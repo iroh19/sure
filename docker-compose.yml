@@ -1,0 +1,73 @@
+# ⚠️  HEDEF ORTAM: Linux + NVIDIA GPU.
+# llm-service nvidia GPU reserve eder → Apple Silicon (Mac) üzerinde Docker ile
+# ÇALIŞMAZ. Mac demosu servisleri native çalıştırır (bkz. README "Native çalıştırma").
+# Bu compose yalnızca GPU'lu bir Linux makinesinde kullanılmalıdır.
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/../data:ro
+      - backend-db:/app/db          # SQLite kalıcı depolama
+    environment:
+      - LLM_SERVICE_URL=http://llm-service:8001
+      - DB_PATH=/app/db/sure_history.db
+    depends_on:
+      - llm-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  llm-service:
+    build: ./llm-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - model-cache:/model-cache          # HuggingFace model cache kalıcı
+      - ./llm-service/sure-aqua-adapter:/adapter:ro   # fine-tune sonrası mount et
+    environment:
+      - AQUA_BASE_MODEL=KurmaAI/AQUA-1B
+      - AQUA_ADAPTER_PATH=/adapter        # boşsa yüklenmez
+      - AQUA_MAX_TOKENS=512
+      - HF_HOME=/model-cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vision-service:
+    build: ./vision-service
+    volumes:
+      - ./data:/app/../data
+      - ./sure_models:/app/../sure_models:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - BACKEND_URL=http://backend:8000
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  model-cache:
+  backend-db:

@@ -1,0 +1,7 @@
+train: /Users/batuhancitak/Desktop/sure-project/data/ogretmen_dataset/images
+val: /Users/batuhancitak/Desktop/sure-project/data/ogretmen_dataset/images
+
+nc: 1
+names:
+  0: sturgeon
+

@@ -1,0 +1,6 @@
+ultralytics>=8.4.0
+opencv-python>=4.9.0
+numpy>=1.26.0
+requests>=2.31.0
+# Sadece Jetson/saha donanımında kurulur (macOS'ta gerekmez):
+# pyrealsense2>=2.55.0

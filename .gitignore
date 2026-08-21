@@ -1,0 +1,61 @@
+# ─── Python ───────────────────────────────────────────────
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ─── Node / Frontend ──────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ─── Editör / OS ──────────────────────────────────────────
+.DS_Store
+*.swp
+.idea/
+.vscode/
+.claude/settings.local.json
+
+# ─── Çalışma zamanı verisi ────────────────────────────────
+*.db
+backend/sure_history.db
+model-cache/
+
+# ─── Büyük medya (GitHub 100MB sınırı) — Releases'a yükle ──
+# Demo videoları ve eğitim videoları repoya konmaz.
+data/balık_videolar/
+*.MOV
+*.mp4
+*.avi
+
+# ─── Dataset görselleri (büyük) — Releases/Drive linki ────
+data/sure_dataset/
+data/ogretmen_dataset/
+
+# ─── Model ağırlıkları (büyük binary) — Releases'a yükle ──
+# Base ağırlıklar ultralytics'ten otomatik iner; eğitilmiş
+# ağırlıkları GitHub Release olarak ekle, README'de linkle.
+*.pt
+sure_models/**/weights/
+llm-service/sure-aqua-adapter*/
+llm-service/test-adapter/
+
+# ─── Ultralytics eğitim artefaktları (opsiyonel: tutulabilir) ──
+# Eğitim grafiklerini (results.png, confusion_matrix.png) tutmak
+# istersen aşağıdaki satırı silme; istemiyorsan yorumu kaldır.
+# sure_models/**/*.jpg
+
+# ─── Ham kareler + otomatik etiketler (büyük) — Releases ──
+data/frames/
+data/annotated_videos/
+
+# ─── Eğitim batch önizlemeleri (büyük, gereksiz) ──────────
+sure_models/**/train_batch*.jpg
+sure_models/**/val_batch*.jpg
+sure_models/**/labels.jpg
+
+# ─── Geçici (elle silinecek) ──────────────────────────────
+_to_delete/

@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   S.U.R.E. — Tasarım Sistemi
+   Sakin, modern, hızlı. Sürekli animasyon yok → düşük repaint, akıcı his.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --bg:          #070b14;
+  --surface:     #0c111d;
+  --surface-2:   #0f1626;
+  --border:      rgba(255, 255, 255, 0.07);
+  --border-soft: rgba(255, 255, 255, 0.045);
+  --accent:      #38bdf8;   /* sky-400 — neon değil, dingin cyan */
+  --accent-2:    #a78bfa;   /* violet-400 */
+  --txt:         #e6edf6;
+  --txt-dim:     #8896a8;
+  --txt-faint:   #56657a;
+
+  --ok:       #34d399;
+  --warning:  #fbbf24;
+  --critical: #f87171;
+
+  --radius:   16px;
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+#root { min-height: 100vh; }
+
+/* Tek, yumuşak üst ışıma — eski yoğun grid + çift radial kaldırıldı */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(1100px 520px at 50% -8%,  rgba(56, 189, 248, 0.07), transparent 60%),
+    radial-gradient(900px 600px  at 100% 0%,  rgba(167, 139, 250, 0.05), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Tabular rakamlar — metrik zıplamasını önler */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ─── Kart ────────────────────────────────────────────────────────────────── */
+.neon-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.008)),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 10px 30px -18px rgba(0, 0, 0, 0.8);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease),
+              box-shadow 0.3s var(--ease);
+  /* mount'ta tek seferlik akıcı giriş */
+  animation: card-in 0.5s var(--ease) both;
+}
+
+.neon-card:hover {
+  border-color: rgba(56, 189, 248, 0.28);
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 16px 40px -20px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(56, 189, 248, 0.06);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Eski "glow-border" sınıfları artık ince durum vurgusu — kalın neon halka yok */
+.glow-border { }
+.glow-border-ok       { border-color: rgba(52, 211, 153, 0.35); box-shadow: 0 0 0 1px rgba(52,211,153,0.10), 0 14px 36px -20px rgba(52,211,153,0.25); }
+.glow-border-warning  { border-color: rgba(251, 191, 36, 0.35); box-shadow: 0 0 0 1px rgba(251,191,36,0.10), 0 14px 36px -20px rgba(251,191,36,0.25); }
+.glow-border-critical { border-color: rgba(248, 113, 113, 0.45); box-shadow: 0 0 0 1px rgba(248,113,113,0.14), 0 14px 40px -18px rgba(248,113,113,0.35); }
+
+/* "scan-line": eski sürekli kayan animasyon kaldırıldı.
+   Artık kartın üst kenarında statik, ince bir vurgu çizgisi. */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(56, 210, 255, 0.35), transparent);
+  pointer-events: none;
+}
+
+/* Köşe parantez süsleri kaldırıldı (corner-tl / corner-br artık inert) */
+.corner-tl, .corner-br { }
+
+/* Pulse ring — sadece durum ikonunda, ölçülü */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+
+/* ─── Etkileşim cilası ─────────────────────────────────────────────────────── */
+button, input { font-family: inherit; }
+
+button { transition: background-color 0.2s var(--ease), color 0.2s var(--ease),
+                     border-color 0.2s var(--ease), transform 0.12s var(--ease); }
+button:active { transform: translateY(1px) scale(0.99); }
+
+input { transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12); }
+
+::selection { background: rgba(56, 189, 248, 0.28); color: #fff; }
+
+:focus-visible { outline: 2px solid rgba(56, 189, 248, 0.5); outline-offset: 2px; }
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.3); background-clip: padding-box; }
+
+/* Recharts tooltip üstte kalsın */
+.recharts-tooltip-wrapper { z-index: 100; }
+
+/* Hareket hassasiyeti — erişilebilirlik */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
