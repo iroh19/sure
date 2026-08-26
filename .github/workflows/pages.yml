@@ -1,0 +1,78 @@
+name: Pages — demo
+
+# Publishes the dashboard to GitHub Pages as a replay of a recorded session.
+#
+# Pages serves static files only, so no inference happens there. The fixture
+# (frontend/public/demo-session.json) is produced from the real detector, rule
+# engine and retrieval by scripts/build_demo_fixture.py, and the page states on
+# its face that it is a recording.
+#
+# The fixture is committed rather than generated here: regenerating it needs the
+# model weights, the demo video and a running pgvector, none of which belong in
+# a Pages build.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a queued run supersedes a pending one but never
+# cancels a deployment already in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Fail if the demo fixture is missing
+        run: |
+          test -f frontend/public/demo-session.json || {
+            echo "frontend/public/demo-session.json not found."
+            echo "Regenerate it with: python scripts/build_demo_fixture.py"
+            exit 1
+          }
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_DEMO: "1"
+          BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

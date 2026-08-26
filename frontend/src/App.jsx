@@ -19,6 +19,13 @@ const DECISION_MS = 8000   // karar motoru daha az sıklıkta çağrılır
 // 8sn'de bir karar → 450 karar ≈ 1 saat. Şerit 60 kare gösterir, sayım tümünü kullanır.
 const DECISION_HISTORY_MAX = 500
 
+// Demo modunda MJPEG akışı yok: Pages'te backend çalışmıyor. Yerine gerçek
+// dedektörün ürettiği, tespit kutuları çizili tek bir kare gösterilir.
+const IS_DEMO    = import.meta.env.VITE_DEMO === '1'
+const STREAM_SRC = IS_DEMO
+  ? `${import.meta.env.BASE_URL || '/'}demo-frame.jpg`
+  : '/api/vision/stream'
+
 // ─── yardımcı ────────────────────────────────────────────────────────────────
 const fmtTime = iso => {
   if (!iso) return ''
@@ -267,14 +274,16 @@ function LiveFeedPanel({ visionState }) {
       <div className="px-4 py-3 border-b border-cyan-500/10 flex items-center gap-2">
         <Radio size={12} className={hasStream ? 'text-red-400 animate-pulse' : 'text-slate-600'} />
         <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-          Canlı Görüntü — YOLO / ByteTrack
+          {IS_DEMO ? 'Kayıtlı Kare — YOLO / ByteTrack' : 'Canlı Görüntü — YOLO / ByteTrack'}
         </span>
         <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded border ${
-          hasStream
-            ? 'text-red-400 border-red-500/40 bg-red-500/10'
-            : 'text-slate-600 border-slate-700'
+          IS_DEMO
+            ? 'text-amber-300 border-amber-500/40 bg-amber-500/10'
+            : hasStream
+              ? 'text-red-400 border-red-500/40 bg-red-500/10'
+              : 'text-slate-600 border-slate-700'
         }`}>
-          {hasStream ? '● LIVE' : '○ BEKLENIYOR'}
+          {IS_DEMO ? '■ KAYIT' : hasStream ? '● LIVE' : '○ BEKLENIYOR'}
         </span>
       </div>
 
@@ -284,7 +293,7 @@ function LiveFeedPanel({ visionState }) {
         <img
           key={streamKey}
           ref={imgRef}
-          src="/api/vision/stream"
+          src={STREAM_SRC}
           alt="Tank kamerası canlı görüntüsü, YOLO tespit kutularıyla işaretlenmiş"
           className="w-full object-contain"
           style={{ maxHeight: 300, display: hasStream ? 'block' : 'none' }}
@@ -793,14 +802,17 @@ export default function App() {
           <LiveClock />
           <div role="status"
                aria-live="polite"
-               aria-label={connected ? 'Backend bağlantısı aktif' : 'Backend bağlantısı kesik'}
+               aria-label={IS_DEMO ? 'Kayıtlı oturum oynatılıyor'
+                 : connected ? 'Backend bağlantısı aktif' : 'Backend bağlantısı kesik'}
                className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-full border tracking-wider ${
             connected
               ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/25'
               : 'text-red-400 bg-red-500/8 border-red-500/25'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-            {connected ? 'ONLINE' : 'OFFLINE'}
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              IS_DEMO ? 'bg-amber-400' : connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
+            }`} />
+            {IS_DEMO ? 'KAYIT' : connected ? 'ONLINE' : 'OFFLINE'}
           </div>
         </div>
       </header>

@@ -1,0 +1,3403 @@
+{
+ "meta": {
+  "kind": "recorded-session",
+  "recorded_at": "2026-08-26T05:31:05.695148+00:00",
+  "steps": 120,
+  "note": "Pre-recorded replay. GitHub Pages serves static files only, so no inference runs in the browser. Sensors, detections and decisions were produced by the real components; see scripts/build_demo_fixture.py.",
+  "provenance": {
+   "sensors": "data/sensor_mock.csv (backend replays this file)",
+   "vision": "YOLOv11s + ByteTrack over data/demo.MOV",
+   "decisions": "backend/rules.py",
+   "narration": "rule engine (LLM fallback path)",
+   "citations": "pgvector retrieval"
+  },
+  "status_counts": {
+   "ok": 98,
+   "critical": 19,
+   "warning": 3
+  }
+ },
+ "steps": [
+  {
+   "timestamp": "2026-06-04T08:00:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:00:00+00:00",
+    "temperature_c": 18.08,
+    "dissolved_oxygen_mgl": 7.66,
+    "ph": 7.26,
+    "tds_ppm": 314.5
+   },
+   "vision": {
+    "frame_id": 0,
+    "fish_count": 18,
+    "avg_activity": 0.00395,
+    "timestamp": "2026-06-04T08:00:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:00:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:00:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:00:30+00:00",
+    "temperature_c": 18.24,
+    "dissolved_oxygen_mgl": 8.21,
+    "ph": 7.39,
+    "tds_ppm": 313.1
+   },
+   "vision": {
+    "frame_id": 1,
+    "fish_count": 17,
+    "avg_activity": 0.00252,
+    "timestamp": "2026-06-04T08:00:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:00:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:01:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:01:00+00:00",
+    "temperature_c": 18.15,
+    "dissolved_oxygen_mgl": 7.72,
+    "ph": 7.27,
+    "tds_ppm": 322.9
+   },
+   "vision": {
+    "frame_id": 2,
+    "fish_count": 18,
+    "avg_activity": 0.00307,
+    "timestamp": "2026-06-04T08:01:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:01:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:01:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:01:30+00:00",
+    "temperature_c": 18.01,
+    "dissolved_oxygen_mgl": 7.87,
+    "ph": 7.37,
+    "tds_ppm": 325.0
+   },
+   "vision": {
+    "frame_id": 3,
+    "fish_count": 18,
+    "avg_activity": 0.00262,
+    "timestamp": "2026-06-04T08:01:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:01:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:02:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:02:00+00:00",
+    "temperature_c": 18.23,
+    "dissolved_oxygen_mgl": 8.2,
+    "ph": 7.41,
+    "tds_ppm": 315.6
+   },
+   "vision": {
+    "frame_id": 4,
+    "fish_count": 17,
+    "avg_activity": 0.0037,
+    "timestamp": "2026-06-04T08:02:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:02:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:02:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:02:30+00:00",
+    "temperature_c": 18.67,
+    "dissolved_oxygen_mgl": 8.31,
+    "ph": 7.33,
+    "tds_ppm": 320.0
+   },
+   "vision": {
+    "frame_id": 5,
+    "fish_count": 16,
+    "avg_activity": 0.00296,
+    "timestamp": "2026-06-04T08:02:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:02:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:03:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:03:00+00:00",
+    "temperature_c": 18.86,
+    "dissolved_oxygen_mgl": 8.03,
+    "ph": 7.29,
+    "tds_ppm": 320.1
+   },
+   "vision": {
+    "frame_id": 6,
+    "fish_count": 17,
+    "avg_activity": 0.0028,
+    "timestamp": "2026-06-04T08:03:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:03:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:03:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:03:30+00:00",
+    "temperature_c": 18.88,
+    "dissolved_oxygen_mgl": 8.26,
+    "ph": 7.44,
+    "tds_ppm": 334.1
+   },
+   "vision": {
+    "frame_id": 7,
+    "fish_count": 17,
+    "avg_activity": 0.00369,
+    "timestamp": "2026-06-04T08:03:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:03:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:04:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:04:00+00:00",
+    "temperature_c": 18.78,
+    "dissolved_oxygen_mgl": 8.56,
+    "ph": 7.37,
+    "tds_ppm": 331.8
+   },
+   "vision": {
+    "frame_id": 8,
+    "fish_count": 16,
+    "avg_activity": 0.00337,
+    "timestamp": "2026-06-04T08:04:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:04:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:04:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:04:30+00:00",
+    "temperature_c": 19.04,
+    "dissolved_oxygen_mgl": 8.29,
+    "ph": 7.48,
+    "tds_ppm": 333.5
+   },
+   "vision": {
+    "frame_id": 9,
+    "fish_count": 16,
+    "avg_activity": 0.00437,
+    "timestamp": "2026-06-04T08:04:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:04:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:05:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:05:00+00:00",
+    "temperature_c": 19.05,
+    "dissolved_oxygen_mgl": 7.83,
+    "ph": 7.36,
+    "tds_ppm": 329.0
+   },
+   "vision": {
+    "frame_id": 10,
+    "fish_count": 16,
+    "avg_activity": 0.00311,
+    "timestamp": "2026-06-04T08:05:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:05:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:05:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:05:30+00:00",
+    "temperature_c": 18.75,
+    "dissolved_oxygen_mgl": 7.99,
+    "ph": 7.35,
+    "tds_ppm": 329.9
+   },
+   "vision": {
+    "frame_id": 11,
+    "fish_count": 15,
+    "avg_activity": 0.00327,
+    "timestamp": "2026-06-04T08:05:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:05:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:06:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:06:00+00:00",
+    "temperature_c": 19.16,
+    "dissolved_oxygen_mgl": 8.09,
+    "ph": 7.41,
+    "tds_ppm": 329.6
+   },
+   "vision": {
+    "frame_id": 12,
+    "fish_count": 15,
+    "avg_activity": 0.00484,
+    "timestamp": "2026-06-04T08:06:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:06:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:06:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:06:30+00:00",
+    "temperature_c": 19.0,
+    "dissolved_oxygen_mgl": 8.55,
+    "ph": 7.48,
+    "tds_ppm": 338.7
+   },
+   "vision": {
+    "frame_id": 13,
+    "fish_count": 15,
+    "avg_activity": 0.00305,
+    "timestamp": "2026-06-04T08:06:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:06:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:07:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:07:00+00:00",
+    "temperature_c": 19.01,
+    "dissolved_oxygen_mgl": 8.37,
+    "ph": 7.39,
+    "tds_ppm": 335.1
+   },
+   "vision": {
+    "frame_id": 14,
+    "fish_count": 15,
+    "avg_activity": 0.00255,
+    "timestamp": "2026-06-04T08:07:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:07:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:07:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:07:30+00:00",
+    "temperature_c": 19.56,
+    "dissolved_oxygen_mgl": 8.3,
+    "ph": 7.48,
+    "tds_ppm": 342.2
+   },
+   "vision": {
+    "frame_id": 15,
+    "fish_count": 14,
+    "avg_activity": 0.00247,
+    "timestamp": "2026-06-04T08:07:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:07:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:08:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:08:00+00:00",
+    "temperature_c": 19.52,
+    "dissolved_oxygen_mgl": 8.39,
+    "ph": 7.42,
+    "tds_ppm": 330.1
+   },
+   "vision": {
+    "frame_id": 16,
+    "fish_count": 14,
+    "avg_activity": 0.00202,
+    "timestamp": "2026-06-04T08:08:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:08:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:08:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:08:30+00:00",
+    "temperature_c": 19.25,
+    "dissolved_oxygen_mgl": 7.98,
+    "ph": 7.43,
+    "tds_ppm": 349.1
+   },
+   "vision": {
+    "frame_id": 17,
+    "fish_count": 13,
+    "avg_activity": 0.0025,
+    "timestamp": "2026-06-04T08:08:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:08:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:09:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:09:00+00:00",
+    "temperature_c": 19.62,
+    "dissolved_oxygen_mgl": 8.0,
+    "ph": 7.53,
+    "tds_ppm": 338.9
+   },
+   "vision": {
+    "frame_id": 18,
+    "fish_count": 14,
+    "avg_activity": 0.00391,
+    "timestamp": "2026-06-04T08:09:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:09:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:09:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:09:30+00:00",
+    "temperature_c": 19.68,
+    "dissolved_oxygen_mgl": 8.1,
+    "ph": 7.46,
+    "tds_ppm": 336.7
+   },
+   "vision": {
+    "frame_id": 19,
+    "fish_count": 13,
+    "avg_activity": 0.00368,
+    "timestamp": "2026-06-04T08:09:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:09:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:10:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:10:00+00:00",
+    "temperature_c": 19.49,
+    "dissolved_oxygen_mgl": 7.92,
+    "ph": 7.53,
+    "tds_ppm": 350.4
+   },
+   "vision": {
+    "frame_id": 20,
+    "fish_count": 15,
+    "avg_activity": 0.00312,
+    "timestamp": "2026-06-04T08:10:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:10:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:10:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:10:30+00:00",
+    "temperature_c": 19.42,
+    "dissolved_oxygen_mgl": 7.86,
+    "ph": 7.62,
+    "tds_ppm": 343.2
+   },
+   "vision": {
+    "frame_id": 21,
+    "fish_count": 15,
+    "avg_activity": 0.00446,
+    "timestamp": "2026-06-04T08:10:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:10:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:11:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:11:00+00:00",
+    "temperature_c": 19.25,
+    "dissolved_oxygen_mgl": 7.7,
+    "ph": 7.45,
+    "tds_ppm": 346.0
+   },
+   "vision": {
+    "frame_id": 22,
+    "fish_count": 17,
+    "avg_activity": 0.00336,
+    "timestamp": "2026-06-04T08:11:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:11:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:11:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:11:30+00:00",
+    "temperature_c": 19.67,
+    "dissolved_oxygen_mgl": 7.97,
+    "ph": 7.45,
+    "tds_ppm": 341.6
+   },
+   "vision": {
+    "frame_id": 23,
+    "fish_count": 14,
+    "avg_activity": 0.00532,
+    "timestamp": "2026-06-04T08:11:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:11:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:12:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:12:00+00:00",
+    "temperature_c": 19.8,
+    "dissolved_oxygen_mgl": 8.03,
+    "ph": 7.64,
+    "tds_ppm": 351.5
+   },
+   "vision": {
+    "frame_id": 24,
+    "fish_count": 15,
+    "avg_activity": 0.00478,
+    "timestamp": "2026-06-04T08:12:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:12:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:12:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:12:30+00:00",
+    "temperature_c": 19.2,
+    "dissolved_oxygen_mgl": 8.15,
+    "ph": 7.59,
+    "tds_ppm": 345.3
+   },
+   "vision": {
+    "frame_id": 25,
+    "fish_count": 14,
+    "avg_activity": 0.00427,
+    "timestamp": "2026-06-04T08:12:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:12:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:13:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:13:00+00:00",
+    "temperature_c": 19.34,
+    "dissolved_oxygen_mgl": 8.06,
+    "ph": 7.48,
+    "tds_ppm": 343.5
+   },
+   "vision": {
+    "frame_id": 26,
+    "fish_count": 13,
+    "avg_activity": 0.00451,
+    "timestamp": "2026-06-04T08:13:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:13:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:13:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:13:30+00:00",
+    "temperature_c": 19.43,
+    "dissolved_oxygen_mgl": 8.27,
+    "ph": 7.64,
+    "tds_ppm": 340.2
+   },
+   "vision": {
+    "frame_id": 27,
+    "fish_count": 12,
+    "avg_activity": 0.00346,
+    "timestamp": "2026-06-04T08:13:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:13:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:14:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:14:00+00:00",
+    "temperature_c": 19.44,
+    "dissolved_oxygen_mgl": 7.62,
+    "ph": 7.65,
+    "tds_ppm": 352.4
+   },
+   "vision": {
+    "frame_id": 28,
+    "fish_count": 13,
+    "avg_activity": 0.00288,
+    "timestamp": "2026-06-04T08:14:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:14:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:14:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:14:30+00:00",
+    "temperature_c": 19.28,
+    "dissolved_oxygen_mgl": 7.95,
+    "ph": 7.6,
+    "tds_ppm": 338.0
+   },
+   "vision": {
+    "frame_id": 29,
+    "fish_count": 13,
+    "avg_activity": 0.00336,
+    "timestamp": "2026-06-04T08:14:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:14:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:15:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:15:00+00:00",
+    "temperature_c": 19.52,
+    "dissolved_oxygen_mgl": 7.83,
+    "ph": 7.64,
+    "tds_ppm": 345.5
+   },
+   "vision": {
+    "frame_id": 30,
+    "fish_count": 13,
+    "avg_activity": 0.00333,
+    "timestamp": "2026-06-04T08:15:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:15:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:15:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:15:30+00:00",
+    "temperature_c": 19.02,
+    "dissolved_oxygen_mgl": 7.62,
+    "ph": 7.49,
+    "tds_ppm": 353.3
+   },
+   "vision": {
+    "frame_id": 31,
+    "fish_count": 13,
+    "avg_activity": 0.00334,
+    "timestamp": "2026-06-04T08:15:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:15:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:16:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:16:00+00:00",
+    "temperature_c": 19.5,
+    "dissolved_oxygen_mgl": 7.98,
+    "ph": 7.55,
+    "tds_ppm": 335.6
+   },
+   "vision": {
+    "frame_id": 32,
+    "fish_count": 14,
+    "avg_activity": 0.00382,
+    "timestamp": "2026-06-04T08:16:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:16:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:16:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:16:30+00:00",
+    "temperature_c": 19.44,
+    "dissolved_oxygen_mgl": 8.03,
+    "ph": 7.51,
+    "tds_ppm": 343.9
+   },
+   "vision": {
+    "frame_id": 33,
+    "fish_count": 13,
+    "avg_activity": 0.00517,
+    "timestamp": "2026-06-04T08:16:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:16:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:17:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:17:00+00:00",
+    "temperature_c": 18.89,
+    "dissolved_oxygen_mgl": 7.84,
+    "ph": 7.65,
+    "tds_ppm": 336.3
+   },
+   "vision": {
+    "frame_id": 34,
+    "fish_count": 13,
+    "avg_activity": 0.00384,
+    "timestamp": "2026-06-04T08:17:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:17:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:17:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:17:30+00:00",
+    "temperature_c": 19.07,
+    "dissolved_oxygen_mgl": 7.62,
+    "ph": 7.55,
+    "tds_ppm": 350.7
+   },
+   "vision": {
+    "frame_id": 35,
+    "fish_count": 12,
+    "avg_activity": 0.00394,
+    "timestamp": "2026-06-04T08:17:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:17:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:18:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:18:00+00:00",
+    "temperature_c": 18.97,
+    "dissolved_oxygen_mgl": 7.3,
+    "ph": 7.61,
+    "tds_ppm": 347.3
+   },
+   "vision": {
+    "frame_id": 36,
+    "fish_count": 11,
+    "avg_activity": 0.00506,
+    "timestamp": "2026-06-04T08:18:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:18:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:18:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:18:30+00:00",
+    "temperature_c": 18.76,
+    "dissolved_oxygen_mgl": 7.34,
+    "ph": 7.7,
+    "tds_ppm": 345.1
+   },
+   "vision": {
+    "frame_id": 37,
+    "fish_count": 10,
+    "avg_activity": 0.00463,
+    "timestamp": "2026-06-04T08:18:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:18:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:19:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:19:00+00:00",
+    "temperature_c": 18.82,
+    "dissolved_oxygen_mgl": 7.45,
+    "ph": 7.52,
+    "tds_ppm": 335.9
+   },
+   "vision": {
+    "frame_id": 38,
+    "fish_count": 10,
+    "avg_activity": 0.00492,
+    "timestamp": "2026-06-04T08:19:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:19:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:19:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:19:30+00:00",
+    "temperature_c": 18.68,
+    "dissolved_oxygen_mgl": 7.46,
+    "ph": 7.55,
+    "tds_ppm": 335.1
+   },
+   "vision": {
+    "frame_id": 39,
+    "fish_count": 10,
+    "avg_activity": 0.00629,
+    "timestamp": "2026-06-04T08:19:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:19:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:20:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:20:00+00:00",
+    "temperature_c": 18.43,
+    "dissolved_oxygen_mgl": 7.45,
+    "ph": 7.55,
+    "tds_ppm": 348.0
+   },
+   "vision": {
+    "frame_id": 40,
+    "fish_count": 10,
+    "avg_activity": 0.00555,
+    "timestamp": "2026-06-04T08:20:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:20:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:20:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:20:30+00:00",
+    "temperature_c": 18.81,
+    "dissolved_oxygen_mgl": 6.95,
+    "ph": 7.55,
+    "tds_ppm": 342.4
+   },
+   "vision": {
+    "frame_id": 41,
+    "fish_count": 10,
+    "avg_activity": 0.00498,
+    "timestamp": "2026-06-04T08:20:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:20:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:21:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:21:00+00:00",
+    "temperature_c": 18.33,
+    "dissolved_oxygen_mgl": 6.95,
+    "ph": 7.69,
+    "tds_ppm": 339.5
+   },
+   "vision": {
+    "frame_id": 42,
+    "fish_count": 10,
+    "avg_activity": 0.00454,
+    "timestamp": "2026-06-04T08:21:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:21:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:21:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:21:30+00:00",
+    "temperature_c": 18.39,
+    "dissolved_oxygen_mgl": 7.42,
+    "ph": 7.66,
+    "tds_ppm": 330.9
+   },
+   "vision": {
+    "frame_id": 43,
+    "fish_count": 11,
+    "avg_activity": 0.00544,
+    "timestamp": "2026-06-04T08:21:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:21:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:22:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:22:00+00:00",
+    "temperature_c": 18.07,
+    "dissolved_oxygen_mgl": 7.09,
+    "ph": 7.58,
+    "tds_ppm": 335.4
+   },
+   "vision": {
+    "frame_id": 44,
+    "fish_count": 11,
+    "avg_activity": 0.0048,
+    "timestamp": "2026-06-04T08:22:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:22:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:22:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:22:30+00:00",
+    "temperature_c": 18.35,
+    "dissolved_oxygen_mgl": 7.23,
+    "ph": 7.69,
+    "tds_ppm": 326.9
+   },
+   "vision": {
+    "frame_id": 45,
+    "fish_count": 11,
+    "avg_activity": 0.00321,
+    "timestamp": "2026-06-04T08:22:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:22:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:23:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:23:00+00:00",
+    "temperature_c": 18.05,
+    "dissolved_oxygen_mgl": 6.91,
+    "ph": 7.66,
+    "tds_ppm": 328.8
+   },
+   "vision": {
+    "frame_id": 46,
+    "fish_count": 11,
+    "avg_activity": 0.00313,
+    "timestamp": "2026-06-04T08:23:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:23:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:23:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:23:30+00:00",
+    "temperature_c": 17.83,
+    "dissolved_oxygen_mgl": 6.95,
+    "ph": 7.57,
+    "tds_ppm": 328.2
+   },
+   "vision": {
+    "frame_id": 47,
+    "fish_count": 11,
+    "avg_activity": 0.00326,
+    "timestamp": "2026-06-04T08:23:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:23:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:24:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:24:00+00:00",
+    "temperature_c": 17.76,
+    "dissolved_oxygen_mgl": 7.28,
+    "ph": 7.57,
+    "tds_ppm": 338.7
+   },
+   "vision": {
+    "frame_id": 48,
+    "fish_count": 11,
+    "avg_activity": 0.00413,
+    "timestamp": "2026-06-04T08:24:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:24:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:24:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:24:30+00:00",
+    "temperature_c": 17.84,
+    "dissolved_oxygen_mgl": 6.54,
+    "ph": 7.68,
+    "tds_ppm": 336.9
+   },
+   "vision": {
+    "frame_id": 49,
+    "fish_count": 11,
+    "avg_activity": 0.00386,
+    "timestamp": "2026-06-04T08:24:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:24:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:25:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:25:00+00:00",
+    "temperature_c": 18.0,
+    "dissolved_oxygen_mgl": 7.19,
+    "ph": 7.64,
+    "tds_ppm": 322.2
+   },
+   "vision": {
+    "frame_id": 50,
+    "fish_count": 10,
+    "avg_activity": 0.00428,
+    "timestamp": "2026-06-04T08:25:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:25:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:25:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:25:30+00:00",
+    "temperature_c": 17.61,
+    "dissolved_oxygen_mgl": 6.57,
+    "ph": 7.55,
+    "tds_ppm": 318.8
+   },
+   "vision": {
+    "frame_id": 51,
+    "fish_count": 11,
+    "avg_activity": 0.0036,
+    "timestamp": "2026-06-04T08:25:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:25:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:26:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:26:00+00:00",
+    "temperature_c": 17.45,
+    "dissolved_oxygen_mgl": 7.15,
+    "ph": 7.51,
+    "tds_ppm": 331.9
+   },
+   "vision": {
+    "frame_id": 52,
+    "fish_count": 14,
+    "avg_activity": 0.00251,
+    "timestamp": "2026-06-04T08:26:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:26:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:26:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:26:30+00:00",
+    "temperature_c": 17.4,
+    "dissolved_oxygen_mgl": 6.65,
+    "ph": 7.65,
+    "tds_ppm": 334.8
+   },
+   "vision": {
+    "frame_id": 53,
+    "fish_count": 12,
+    "avg_activity": 0.00371,
+    "timestamp": "2026-06-04T08:26:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:26:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:27:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:27:00+00:00",
+    "temperature_c": 17.37,
+    "dissolved_oxygen_mgl": 6.84,
+    "ph": 7.48,
+    "tds_ppm": 319.5
+   },
+   "vision": {
+    "frame_id": 54,
+    "fish_count": 11,
+    "avg_activity": 0.00473,
+    "timestamp": "2026-06-04T08:27:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:27:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:27:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:27:30+00:00",
+    "temperature_c": 17.53,
+    "dissolved_oxygen_mgl": 6.69,
+    "ph": 7.55,
+    "tds_ppm": 327.1
+   },
+   "vision": {
+    "frame_id": 55,
+    "fish_count": 9,
+    "avg_activity": 0.00422,
+    "timestamp": "2026-06-04T08:27:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:27:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:28:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:28:00+00:00",
+    "temperature_c": 16.9,
+    "dissolved_oxygen_mgl": 6.66,
+    "ph": 7.54,
+    "tds_ppm": 327.8
+   },
+   "vision": {
+    "frame_id": 56,
+    "fish_count": 9,
+    "avg_activity": 0.00359,
+    "timestamp": "2026-06-04T08:28:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:28:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:28:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:28:30+00:00",
+    "temperature_c": 16.88,
+    "dissolved_oxygen_mgl": 6.92,
+    "ph": 7.44,
+    "tds_ppm": 313.1
+   },
+   "vision": {
+    "frame_id": 57,
+    "fish_count": 9,
+    "avg_activity": 0.00289,
+    "timestamp": "2026-06-04T08:28:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:28:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:29:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:29:00+00:00",
+    "temperature_c": 17.06,
+    "dissolved_oxygen_mgl": 6.65,
+    "ph": 7.47,
+    "tds_ppm": 310.4
+   },
+   "vision": {
+    "frame_id": 58,
+    "fish_count": 9,
+    "avg_activity": 0.00371,
+    "timestamp": "2026-06-04T08:29:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:29:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:29:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:29:30+00:00",
+    "temperature_c": 17.17,
+    "dissolved_oxygen_mgl": 6.27,
+    "ph": 7.53,
+    "tds_ppm": 319.0
+   },
+   "vision": {
+    "frame_id": 59,
+    "fish_count": 9,
+    "avg_activity": 0.00279,
+    "timestamp": "2026-06-04T08:29:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:29:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:30:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:30:00+00:00",
+    "temperature_c": 16.82,
+    "dissolved_oxygen_mgl": 4.01,
+    "ph": 7.51,
+    "tds_ppm": 323.9
+   },
+   "vision": {
+    "frame_id": 60,
+    "fish_count": 9,
+    "avg_activity": 0.00335,
+    "timestamp": "2026-06-04T08:30:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 4.01 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:30:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.904
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:30:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:30:30+00:00",
+    "temperature_c": 16.62,
+    "dissolved_oxygen_mgl": 4.08,
+    "ph": 7.44,
+    "tds_ppm": 311.8
+   },
+   "vision": {
+    "frame_id": 61,
+    "fish_count": 9,
+    "avg_activity": 0.00301,
+    "timestamp": "2026-06-04T08:30:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 4.08 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:30:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.902
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:31:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:31:00+00:00",
+    "temperature_c": 16.85,
+    "dissolved_oxygen_mgl": 3.72,
+    "ph": 7.45,
+    "tds_ppm": 317.6
+   },
+   "vision": {
+    "frame_id": 62,
+    "fish_count": 9,
+    "avg_activity": 0.0023,
+    "timestamp": "2026-06-04T08:31:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.72 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:31:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.905
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:31:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:31:30+00:00",
+    "temperature_c": 16.44,
+    "dissolved_oxygen_mgl": 3.82,
+    "ph": 7.57,
+    "tds_ppm": 321.2
+   },
+   "vision": {
+    "frame_id": 63,
+    "fish_count": 9,
+    "avg_activity": 0.00196,
+    "timestamp": "2026-06-04T08:31:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.82 (güvenli 6.0-12.0) Balık aktivitesi çok düşük (0.00196)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:31:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.91
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:32:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:32:00+00:00",
+    "temperature_c": 16.39,
+    "dissolved_oxygen_mgl": 3.6,
+    "ph": 7.42,
+    "tds_ppm": 318.6
+   },
+   "vision": {
+    "frame_id": 64,
+    "fish_count": 10,
+    "avg_activity": 0.0027,
+    "timestamp": "2026-06-04T08:32:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.6 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:32:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.899
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:32:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:32:30+00:00",
+    "temperature_c": 16.83,
+    "dissolved_oxygen_mgl": 4.11,
+    "ph": 7.43,
+    "tds_ppm": 301.8
+   },
+   "vision": {
+    "frame_id": 65,
+    "fish_count": 10,
+    "avg_activity": 0.0024,
+    "timestamp": "2026-06-04T08:32:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 4.11 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:32:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:33:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:33:00+00:00",
+    "temperature_c": 16.77,
+    "dissolved_oxygen_mgl": 3.95,
+    "ph": 7.47,
+    "tds_ppm": 317.2
+   },
+   "vision": {
+    "frame_id": 66,
+    "fish_count": 10,
+    "avg_activity": 0.00315,
+    "timestamp": "2026-06-04T08:33:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.95 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:33:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.907
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:33:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:33:30+00:00",
+    "temperature_c": 16.64,
+    "dissolved_oxygen_mgl": 3.37,
+    "ph": 7.5,
+    "tds_ppm": 302.3
+   },
+   "vision": {
+    "frame_id": 67,
+    "fish_count": 10,
+    "avg_activity": 0.00291,
+    "timestamp": "2026-06-04T08:33:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.37 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:33:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.901
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:34:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:34:00+00:00",
+    "temperature_c": 16.62,
+    "dissolved_oxygen_mgl": 4.1,
+    "ph": 7.35,
+    "tds_ppm": 297.5
+   },
+   "vision": {
+    "frame_id": 68,
+    "fish_count": 10,
+    "avg_activity": 0.00231,
+    "timestamp": "2026-06-04T08:34:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 4.1 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:34:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.902
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:34:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:34:30+00:00",
+    "temperature_c": 16.27,
+    "dissolved_oxygen_mgl": 3.78,
+    "ph": 7.37,
+    "tds_ppm": 306.1
+   },
+   "vision": {
+    "frame_id": 69,
+    "fish_count": 9,
+    "avg_activity": 0.00355,
+    "timestamp": "2026-06-04T08:34:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.78 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:34:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.904
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:35:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:35:00+00:00",
+    "temperature_c": 16.63,
+    "dissolved_oxygen_mgl": 3.49,
+    "ph": 7.43,
+    "tds_ppm": 298.3
+   },
+   "vision": {
+    "frame_id": 70,
+    "fish_count": 9,
+    "avg_activity": 0.00274,
+    "timestamp": "2026-06-04T08:35:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.49 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:35:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.906
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:35:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:35:30+00:00",
+    "temperature_c": 16.49,
+    "dissolved_oxygen_mgl": 4.04,
+    "ph": 7.46,
+    "tds_ppm": 293.9
+   },
+   "vision": {
+    "frame_id": 71,
+    "fish_count": 8,
+    "avg_activity": 0.00255,
+    "timestamp": "2026-06-04T08:35:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 4.04 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:35:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:36:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:36:00+00:00",
+    "temperature_c": 16.46,
+    "dissolved_oxygen_mgl": 3.53,
+    "ph": 7.28,
+    "tds_ppm": 306.5
+   },
+   "vision": {
+    "frame_id": 72,
+    "fish_count": 9,
+    "avg_activity": 0.0021,
+    "timestamp": "2026-06-04T08:36:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.53 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:36:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.896
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:36:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:36:30+00:00",
+    "temperature_c": 16.6,
+    "dissolved_oxygen_mgl": 3.51,
+    "ph": 7.41,
+    "tds_ppm": 301.2
+   },
+   "vision": {
+    "frame_id": 73,
+    "fish_count": 7,
+    "avg_activity": 0.00158,
+    "timestamp": "2026-06-04T08:36:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.51 (güvenli 6.0-12.0) Balık aktivitesi çok düşük (0.00158)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:36:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:37:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:37:00+00:00",
+    "temperature_c": 16.49,
+    "dissolved_oxygen_mgl": 3.31,
+    "ph": 7.27,
+    "tds_ppm": 307.0
+   },
+   "vision": {
+    "frame_id": 74,
+    "fish_count": 8,
+    "avg_activity": 0.0016,
+    "timestamp": "2026-06-04T08:37:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.31 (güvenli 6.0-12.0) Balık aktivitesi çok düşük (0.0016)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:37:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:37:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:37:30+00:00",
+    "temperature_c": 16.8,
+    "dissolved_oxygen_mgl": 3.74,
+    "ph": 7.41,
+    "tds_ppm": 300.3
+   },
+   "vision": {
+    "frame_id": 75,
+    "fish_count": 8,
+    "avg_activity": 0.00228,
+    "timestamp": "2026-06-04T08:37:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 3.74 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:37:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.901
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:38:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:38:00+00:00",
+    "temperature_c": 16.38,
+    "dissolved_oxygen_mgl": 5.91,
+    "ph": 7.29,
+    "tds_ppm": 305.9
+   },
+   "vision": {
+    "frame_id": 76,
+    "fish_count": 9,
+    "avg_activity": 0.00169,
+    "timestamp": "2026-06-04T08:38:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 5.91 (güvenli 6.0-12.0) Balık aktivitesi çok düşük (0.00169)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:38:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.91
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:38:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:38:30+00:00",
+    "temperature_c": 16.81,
+    "dissolved_oxygen_mgl": 6.5,
+    "ph": 7.4,
+    "tds_ppm": 291.5
+   },
+   "vision": {
+    "frame_id": 77,
+    "fish_count": 9,
+    "avg_activity": 0.00226,
+    "timestamp": "2026-06-04T08:38:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:38:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:39:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:39:00+00:00",
+    "temperature_c": 16.52,
+    "dissolved_oxygen_mgl": 5.9,
+    "ph": 7.36,
+    "tds_ppm": 304.5
+   },
+   "vision": {
+    "frame_id": 78,
+    "fish_count": 9,
+    "avg_activity": 0.00196,
+    "timestamp": "2026-06-04T08:39:00+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 5.9 (güvenli 6.0-12.0) Balık aktivitesi çok düşük (0.00196)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:39:00+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.909
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:39:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:39:30+00:00",
+    "temperature_c": 16.67,
+    "dissolved_oxygen_mgl": 6.32,
+    "ph": 7.23,
+    "tds_ppm": 304.9
+   },
+   "vision": {
+    "frame_id": 79,
+    "fish_count": 8,
+    "avg_activity": 0.00235,
+    "timestamp": "2026-06-04T08:39:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:39:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:40:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:40:00+00:00",
+    "temperature_c": 17.0,
+    "dissolved_oxygen_mgl": 6.62,
+    "ph": 7.34,
+    "tds_ppm": 303.5
+   },
+   "vision": {
+    "frame_id": 80,
+    "fish_count": 8,
+    "avg_activity": 0.00162,
+    "timestamp": "2026-06-04T08:40:00+00:00"
+   },
+   "decision": {
+    "status": "warning",
+    "reasoning": "Balık aktivitesi çok düşük (0.00162)",
+    "recommendations": [
+     "Parametreleri yakından izle.",
+     "Trend kötüleşirse müdahale planı hazırla."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:40:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:40:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:40:30+00:00",
+    "temperature_c": 16.56,
+    "dissolved_oxygen_mgl": 6.45,
+    "ph": 7.24,
+    "tds_ppm": 304.2
+   },
+   "vision": {
+    "frame_id": 81,
+    "fish_count": 8,
+    "avg_activity": 0.00484,
+    "timestamp": "2026-06-04T08:40:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:40:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:41:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:41:00+00:00",
+    "temperature_c": 17.09,
+    "dissolved_oxygen_mgl": 6.57,
+    "ph": 7.32,
+    "tds_ppm": 290.6
+   },
+   "vision": {
+    "frame_id": 82,
+    "fish_count": 8,
+    "avg_activity": 0.00215,
+    "timestamp": "2026-06-04T08:41:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:41:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:41:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:41:30+00:00",
+    "temperature_c": 17.15,
+    "dissolved_oxygen_mgl": 5.98,
+    "ph": 7.32,
+    "tds_ppm": 302.3
+   },
+   "vision": {
+    "frame_id": 83,
+    "fish_count": 8,
+    "avg_activity": 0.00227,
+    "timestamp": "2026-06-04T08:41:30+00:00"
+   },
+   "decision": {
+    "status": "critical",
+    "reasoning": "dissolved_oxygen_mgl aralık dışı: 5.98 (güvenli 6.0-12.0)",
+    "recommendations": [
+     "Havalandırmayı/oksijen pompasını derhal artır.",
+     "Yemlemeyi durdur, suyu kontrol et."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:41:30+00:00",
+    "sources": [
+     {
+      "marker": "K1",
+      "doc_id": "cozunmus-oksijen",
+      "heading": "Sistem eşiği",
+      "similarity": 0.901
+     }
+    ]
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:42:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:42:00+00:00",
+    "temperature_c": 16.89,
+    "dissolved_oxygen_mgl": 6.57,
+    "ph": 7.23,
+    "tds_ppm": 291.1
+   },
+   "vision": {
+    "frame_id": 84,
+    "fish_count": 9,
+    "avg_activity": 0.00177,
+    "timestamp": "2026-06-04T08:42:00+00:00"
+   },
+   "decision": {
+    "status": "warning",
+    "reasoning": "Balık aktivitesi çok düşük (0.00177)",
+    "recommendations": [
+     "Parametreleri yakından izle.",
+     "Trend kötüleşirse müdahale planı hazırla."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:42:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:42:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:42:30+00:00",
+    "temperature_c": 17.31,
+    "dissolved_oxygen_mgl": 6.12,
+    "ph": 7.13,
+    "tds_ppm": 288.9
+   },
+   "vision": {
+    "frame_id": 85,
+    "fish_count": 8,
+    "avg_activity": 0.00255,
+    "timestamp": "2026-06-04T08:42:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:42:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:43:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:43:00+00:00",
+    "temperature_c": 17.11,
+    "dissolved_oxygen_mgl": 6.66,
+    "ph": 7.31,
+    "tds_ppm": 290.6
+   },
+   "vision": {
+    "frame_id": 86,
+    "fish_count": 9,
+    "avg_activity": 0.00257,
+    "timestamp": "2026-06-04T08:43:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:43:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:43:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:43:30+00:00",
+    "temperature_c": 17.39,
+    "dissolved_oxygen_mgl": 6.32,
+    "ph": 7.3,
+    "tds_ppm": 295.9
+   },
+   "vision": {
+    "frame_id": 87,
+    "fish_count": 9,
+    "avg_activity": 0.0035,
+    "timestamp": "2026-06-04T08:43:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:43:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:44:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:44:00+00:00",
+    "temperature_c": 17.66,
+    "dissolved_oxygen_mgl": 6.12,
+    "ph": 7.28,
+    "tds_ppm": 289.0
+   },
+   "vision": {
+    "frame_id": 88,
+    "fish_count": 9,
+    "avg_activity": 0.004,
+    "timestamp": "2026-06-04T08:44:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:44:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:44:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:44:30+00:00",
+    "temperature_c": 17.76,
+    "dissolved_oxygen_mgl": 6.27,
+    "ph": 7.1,
+    "tds_ppm": 294.4
+   },
+   "vision": {
+    "frame_id": 89,
+    "fish_count": 10,
+    "avg_activity": 0.00314,
+    "timestamp": "2026-06-04T08:44:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:44:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:45:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:45:00+00:00",
+    "temperature_c": 17.72,
+    "dissolved_oxygen_mgl": 6.35,
+    "ph": 7.19,
+    "tds_ppm": 296.3
+   },
+   "vision": {
+    "frame_id": 90,
+    "fish_count": 10,
+    "avg_activity": 0.00363,
+    "timestamp": "2026-06-04T08:45:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:45:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:45:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:45:30+00:00",
+    "temperature_c": 17.61,
+    "dissolved_oxygen_mgl": 6.59,
+    "ph": 7.11,
+    "tds_ppm": 300.6
+   },
+   "vision": {
+    "frame_id": 91,
+    "fish_count": 9,
+    "avg_activity": 0.00318,
+    "timestamp": "2026-06-04T08:45:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:45:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:46:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:46:00+00:00",
+    "temperature_c": 17.48,
+    "dissolved_oxygen_mgl": 6.91,
+    "ph": 7.15,
+    "tds_ppm": 301.3
+   },
+   "vision": {
+    "frame_id": 92,
+    "fish_count": 9,
+    "avg_activity": 0.00297,
+    "timestamp": "2026-06-04T08:46:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:46:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:46:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:46:30+00:00",
+    "temperature_c": 18.02,
+    "dissolved_oxygen_mgl": 6.74,
+    "ph": 7.11,
+    "tds_ppm": 288.9
+   },
+   "vision": {
+    "frame_id": 93,
+    "fish_count": 9,
+    "avg_activity": 0.00349,
+    "timestamp": "2026-06-04T08:46:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:46:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:47:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:47:00+00:00",
+    "temperature_c": 18.07,
+    "dissolved_oxygen_mgl": 6.51,
+    "ph": 7.09,
+    "tds_ppm": 305.1
+   },
+   "vision": {
+    "frame_id": 94,
+    "fish_count": 9,
+    "avg_activity": 0.00333,
+    "timestamp": "2026-06-04T08:47:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:47:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:47:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:47:30+00:00",
+    "temperature_c": 18.21,
+    "dissolved_oxygen_mgl": 6.53,
+    "ph": 7.08,
+    "tds_ppm": 297.1
+   },
+   "vision": {
+    "frame_id": 95,
+    "fish_count": 9,
+    "avg_activity": 0.00322,
+    "timestamp": "2026-06-04T08:47:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:47:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:48:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:48:00+00:00",
+    "temperature_c": 18.12,
+    "dissolved_oxygen_mgl": 6.57,
+    "ph": 7.03,
+    "tds_ppm": 298.1
+   },
+   "vision": {
+    "frame_id": 96,
+    "fish_count": 10,
+    "avg_activity": 0.00287,
+    "timestamp": "2026-06-04T08:48:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:48:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:48:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:48:30+00:00",
+    "temperature_c": 18.54,
+    "dissolved_oxygen_mgl": 6.92,
+    "ph": 7.18,
+    "tds_ppm": 302.8
+   },
+   "vision": {
+    "frame_id": 97,
+    "fish_count": 10,
+    "avg_activity": 0.00358,
+    "timestamp": "2026-06-04T08:48:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:48:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:49:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:49:00+00:00",
+    "temperature_c": 18.25,
+    "dissolved_oxygen_mgl": 6.86,
+    "ph": 6.99,
+    "tds_ppm": 297.1
+   },
+   "vision": {
+    "frame_id": 98,
+    "fish_count": 10,
+    "avg_activity": 0.00329,
+    "timestamp": "2026-06-04T08:49:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:49:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:49:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:49:30+00:00",
+    "temperature_c": 18.43,
+    "dissolved_oxygen_mgl": 6.94,
+    "ph": 7.11,
+    "tds_ppm": 301.7
+   },
+   "vision": {
+    "frame_id": 99,
+    "fish_count": 10,
+    "avg_activity": 0.00424,
+    "timestamp": "2026-06-04T08:49:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:49:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:50:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:50:00+00:00",
+    "temperature_c": 18.53,
+    "dissolved_oxygen_mgl": 6.69,
+    "ph": 7.07,
+    "tds_ppm": 311.4
+   },
+   "vision": {
+    "frame_id": 100,
+    "fish_count": 12,
+    "avg_activity": 0.00306,
+    "timestamp": "2026-06-04T08:50:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:50:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:50:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:50:30+00:00",
+    "temperature_c": 18.83,
+    "dissolved_oxygen_mgl": 6.7,
+    "ph": 6.98,
+    "tds_ppm": 304.7
+   },
+   "vision": {
+    "frame_id": 101,
+    "fish_count": 11,
+    "avg_activity": 0.00425,
+    "timestamp": "2026-06-04T08:50:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:50:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:51:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:51:00+00:00",
+    "temperature_c": 18.82,
+    "dissolved_oxygen_mgl": 6.89,
+    "ph": 7.12,
+    "tds_ppm": 310.6
+   },
+   "vision": {
+    "frame_id": 102,
+    "fish_count": 11,
+    "avg_activity": 0.00338,
+    "timestamp": "2026-06-04T08:51:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:51:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:51:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:51:30+00:00",
+    "temperature_c": 18.93,
+    "dissolved_oxygen_mgl": 6.85,
+    "ph": 6.99,
+    "tds_ppm": 297.2
+   },
+   "vision": {
+    "frame_id": 103,
+    "fish_count": 11,
+    "avg_activity": 0.00437,
+    "timestamp": "2026-06-04T08:51:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:51:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:52:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:52:00+00:00",
+    "temperature_c": 18.75,
+    "dissolved_oxygen_mgl": 7.1,
+    "ph": 7.11,
+    "tds_ppm": 299.4
+   },
+   "vision": {
+    "frame_id": 104,
+    "fish_count": 10,
+    "avg_activity": 0.00348,
+    "timestamp": "2026-06-04T08:52:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:52:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:52:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:52:30+00:00",
+    "temperature_c": 18.93,
+    "dissolved_oxygen_mgl": 7.27,
+    "ph": 6.98,
+    "tds_ppm": 313.1
+   },
+   "vision": {
+    "frame_id": 105,
+    "fish_count": 10,
+    "avg_activity": 0.00332,
+    "timestamp": "2026-06-04T08:52:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:52:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:53:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:53:00+00:00",
+    "temperature_c": 19.06,
+    "dissolved_oxygen_mgl": 7.01,
+    "ph": 7.06,
+    "tds_ppm": 300.5
+   },
+   "vision": {
+    "frame_id": 106,
+    "fish_count": 10,
+    "avg_activity": 0.00252,
+    "timestamp": "2026-06-04T08:53:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:53:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:53:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:53:30+00:00",
+    "temperature_c": 19.28,
+    "dissolved_oxygen_mgl": 7.48,
+    "ph": 6.95,
+    "tds_ppm": 310.2
+   },
+   "vision": {
+    "frame_id": 107,
+    "fish_count": 9,
+    "avg_activity": 0.00392,
+    "timestamp": "2026-06-04T08:53:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:53:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:54:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:54:00+00:00",
+    "temperature_c": 19.0,
+    "dissolved_oxygen_mgl": 7.68,
+    "ph": 7.03,
+    "tds_ppm": 304.0
+   },
+   "vision": {
+    "frame_id": 108,
+    "fish_count": 9,
+    "avg_activity": 0.00264,
+    "timestamp": "2026-06-04T08:54:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:54:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:54:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:54:30+00:00",
+    "temperature_c": 19.1,
+    "dissolved_oxygen_mgl": 7.64,
+    "ph": 7.01,
+    "tds_ppm": 320.4
+   },
+   "vision": {
+    "frame_id": 109,
+    "fish_count": 10,
+    "avg_activity": 0.00231,
+    "timestamp": "2026-06-04T08:54:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:54:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:55:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:55:00+00:00",
+    "temperature_c": 19.4,
+    "dissolved_oxygen_mgl": 7.81,
+    "ph": 7.03,
+    "tds_ppm": 324.7
+   },
+   "vision": {
+    "frame_id": 110,
+    "fish_count": 11,
+    "avg_activity": 0.00195,
+    "timestamp": "2026-06-04T08:55:00+00:00"
+   },
+   "decision": {
+    "status": "warning",
+    "reasoning": "Balık aktivitesi çok düşük (0.00195)",
+    "recommendations": [
+     "Parametreleri yakından izle.",
+     "Trend kötüleşirse müdahale planı hazırla."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:55:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:55:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:55:30+00:00",
+    "temperature_c": 19.58,
+    "dissolved_oxygen_mgl": 7.55,
+    "ph": 7.05,
+    "tds_ppm": 317.2
+   },
+   "vision": {
+    "frame_id": 111,
+    "fish_count": 10,
+    "avg_activity": 0.00305,
+    "timestamp": "2026-06-04T08:55:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:55:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:56:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:56:00+00:00",
+    "temperature_c": 19.59,
+    "dissolved_oxygen_mgl": 7.55,
+    "ph": 7.09,
+    "tds_ppm": 323.3
+   },
+   "vision": {
+    "frame_id": 112,
+    "fish_count": 10,
+    "avg_activity": 0.0027,
+    "timestamp": "2026-06-04T08:56:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:56:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:56:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:56:30+00:00",
+    "temperature_c": 19.41,
+    "dissolved_oxygen_mgl": 7.37,
+    "ph": 6.95,
+    "tds_ppm": 322.6
+   },
+   "vision": {
+    "frame_id": 113,
+    "fish_count": 10,
+    "avg_activity": 0.00258,
+    "timestamp": "2026-06-04T08:56:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:56:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:57:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:57:00+00:00",
+    "temperature_c": 19.61,
+    "dissolved_oxygen_mgl": 7.62,
+    "ph": 7.03,
+    "tds_ppm": 316.7
+   },
+   "vision": {
+    "frame_id": 114,
+    "fish_count": 9,
+    "avg_activity": 0.00304,
+    "timestamp": "2026-06-04T08:57:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:57:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:57:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:57:30+00:00",
+    "temperature_c": 19.22,
+    "dissolved_oxygen_mgl": 7.48,
+    "ph": 6.96,
+    "tds_ppm": 319.0
+   },
+   "vision": {
+    "frame_id": 115,
+    "fish_count": 10,
+    "avg_activity": 0.00246,
+    "timestamp": "2026-06-04T08:57:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:57:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:58:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:58:00+00:00",
+    "temperature_c": 19.51,
+    "dissolved_oxygen_mgl": 7.4,
+    "ph": 6.95,
+    "tds_ppm": 327.9
+   },
+   "vision": {
+    "frame_id": 116,
+    "fish_count": 10,
+    "avg_activity": 0.00672,
+    "timestamp": "2026-06-04T08:58:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:58:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:58:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:58:30+00:00",
+    "temperature_c": 19.62,
+    "dissolved_oxygen_mgl": 7.39,
+    "ph": 6.98,
+    "tds_ppm": 326.2
+   },
+   "vision": {
+    "frame_id": 117,
+    "fish_count": 10,
+    "avg_activity": 0.00535,
+    "timestamp": "2026-06-04T08:58:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:58:30+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:59:00+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:59:00+00:00",
+    "temperature_c": 19.45,
+    "dissolved_oxygen_mgl": 7.54,
+    "ph": 6.98,
+    "tds_ppm": 334.8
+   },
+   "vision": {
+    "frame_id": 118,
+    "fish_count": 11,
+    "avg_activity": 0.0056,
+    "timestamp": "2026-06-04T08:59:00+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:59:00+00:00",
+    "sources": []
+   }
+  },
+  {
+   "timestamp": "2026-06-04T08:59:30+00:00",
+   "sensor": {
+    "timestamp": "2026-06-04T08:59:30+00:00",
+    "temperature_c": 19.55,
+    "dissolved_oxygen_mgl": 7.97,
+    "ph": 7.07,
+    "tds_ppm": 333.4
+   },
+   "vision": {
+    "frame_id": 119,
+    "fish_count": 10,
+    "avg_activity": 0.00329,
+    "timestamp": "2026-06-04T08:59:30+00:00"
+   },
+   "decision": {
+    "status": "ok",
+    "reasoning": "Tüm parametreler güvenli aralıkta.",
+    "recommendations": [
+     "Mevcut bakım rutinini sürdür."
+    ],
+    "alerts": [],
+    "engine": "rules",
+    "timestamp": "2026-06-04T08:59:30+00:00",
+    "sources": []
+   }
+  }
+ ]
+}

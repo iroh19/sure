@@ -8,6 +8,12 @@ _English: [README.md](README.md)_
 
 [![CI](https://github.com/iroh19/sure/actions/workflows/ci.yml/badge.svg)](https://github.com/iroh19/sure/actions/workflows/ci.yml)
 
+**[Canlı demo →](https://iroh19.github.io/sure/)** — dashboard, kaydedilmiş bir
+oturumu oynatıyor. GitHub Pages yalnızca statik dosya sunar, yani tarayıcıda
+çıkarım yapılmıyor; sensörler, tespitler, kararlar ve alıntılar gerçek
+bileşenlerle üretildi ve sayfa bunu açıkça yazıyor. Sistemi gerçekten çalıştırmak
+için: [![Codespaces'te aç](https://img.shields.io/badge/Codespaces-a%C3%A7-24292e?logo=github)](https://codespaces.new/iroh19/sure)
+
 | | |
 |---|---|
 | Tespit | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |

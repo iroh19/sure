@@ -8,6 +8,12 @@ _Türkçe: [README.tr.md](README.tr.md)_
 
 [![CI](https://github.com/iroh19/sure/actions/workflows/ci.yml/badge.svg)](https://github.com/iroh19/sure/actions/workflows/ci.yml)
 
+**[Live demo →](https://iroh19.github.io/sure/)** — the dashboard replaying a
+recorded session. GitHub Pages serves static files only, so nothing is inferred
+in the browser; the sensors, detections, decisions and citations were all
+produced by the real components and the page says so on its face. To run the
+system for real: [![Open in Codespaces](https://img.shields.io/badge/Codespaces-open-24292e?logo=github)](https://codespaces.new/iroh19/sure)
+
 | | |
 |---|---|
 | Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
