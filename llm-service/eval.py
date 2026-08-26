@@ -1,19 +1,41 @@
 """
-S.U.R.E. AQUA-7B Eval Script
-=============================
-Fine-tune sonrası model kalitesini 8 senaryo üzerinde ölçer.
-Model yoksa kural motoru ile test eder (fallback mod).
+S.U.R.E. AQUA-1B Eval — model kalite testi
+==========================================
+8 senaryoyu çalıştırır ve `status` alanını doğrular.
+
+ÖNEMLİ: Kural motoru buradan KOPYALANMAZ. `backend/rules.py` doğrudan import
+edilir; yani eval'in ölçtüğü motor, sahada çalışan motorun ta kendisidir.
+(Eskiden burada bir kopya vardı ve üretimden ayrışmıştı: fish_count == 0
+senaryosunda kopya "warning", üretim "ok" diyordu — eval yeşil yanıyordu ama
+hiçbir şeyi doğrulamıyordu.)
 
 Kullanım:
-  python eval.py                    # model + kural motoru karşılaştırma
-  python eval.py --rule-only        # sadece kural motoru (model gerekmez)
+  python eval.py                # AQUA-1B'yi çalıştırır, kural motoruyla karşılaştırır
+  python eval.py --rule-only    # sadece kural motoru (model gerekmez)
+
+Çıkış kodları:
+  0 = tüm senaryolar geçti
+  1 = en az bir senaryo başarısız
+  2 = model yüklenemedi (model modunda istendi ama gelmedi)
 """
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
+
+# Kural motorunun TEK kaynağı: backend/rules.py
+_BACKEND = Path(__file__).resolve().parent.parent / "backend"
+sys.path.insert(0, str(_BACKEND))
+try:
+    import rules  # noqa: E402
+except ImportError:
+    sys.exit(
+        f"\n✗ Kural motoru bulunamadı: {_BACKEND / 'rules.py'}\n"
+        "  eval.py, üretimdeki kural motorunu depo kökünden import eder.\n"
+        "  Depo dışından ya da yalnızca llm-service'i içeren bir konteynerden\n"
+        "  çalıştırıyorsan, tam depoyu klonlayıp tekrar dene.\n"
+    )
 
 
 # ─── Test senaryoları ─────────────────────────────────────────────────────────
@@ -61,93 +83,100 @@ SCENARIOS = [
         "expected": "critical",
     },
     {
-        "id": "T08", "name": "Vision yok — sensör normal",
+        "id": "T08", "name": "Balık tespit edilmedi — sensör normal",
         "sensor": {"temperature_c": 18.0, "dissolved_oxygen_mgl": 7.8, "ph": 6.9, "tds_ppm": 310},
         "vision": {"fish_count": 0, "avg_activity": 0.0},
         "expected": "warning",
     },
 ]
 
-SAFE = {
-    "temperature_c":        (16.0, 21.0),
-    "dissolved_oxygen_mgl": (6.0, 12.0),
-    "ph":                   (6.5, 8.0),
-    "tds_ppm":              (200.0, 450.0),
-}
+
+# ─── Motorlar ─────────────────────────────────────────────────────────────────
+def rule_status(sc: dict) -> str:
+    """Üretimdeki kural motoru (backend/rules.py) — kopya değil."""
+    return rules.evaluate_status(sc["sensor"], sc["vision"])
 
 
-# ─── Kural motoru (backend'den kopyalanmış — circular import önlemek için) ────
-def rule_based_status(sensor: dict, vision: dict) -> str:
-    status = "ok"
-    for key, (lo, hi) in SAFE.items():
-        val = sensor.get(key, 0)
-        if val < lo or val > hi:
-            status = "critical" if key == "dissolved_oxygen_mgl" else \
-                     ("warning" if status == "ok" else status)
-    fc = vision.get("fish_count", 1)
-    act = vision.get("avg_activity", 1)
-    if fc > 0 and act < 0.002:
-        status = "warning" if status == "ok" else status
-    if fc == 0:
-        status = "warning" if status == "ok" else status
-    return status
+def load_model():
+    """AQUA-1B'yi yükler. Başarısızlıkta istisna fırlatır — sessizce düşmez."""
+    import inference
+    inference._load()
+    return inference
 
 
-# ─── Model çağrısı ────────────────────────────────────────────────────────────
-def model_status(snapshot: dict) -> tuple[str, str]:
-    """AQUA-7B'den status döner. Model yoksa (rule-fallback, error) tuple."""
-    try:
-        import inference
-        result = inference.generate_decision(snapshot)
-        return result.get("status", "?"), "model"
-    except Exception as e:
-        return rule_based_status(snapshot["sensor"], snapshot["vision"]), f"rule-fallback ({e.__class__.__name__})"
+def model_status(inference, sc: dict) -> str:
+    snapshot = {"sensor": sc["sensor"], "vision": sc["vision"], "safe_ranges": rules.SAFE}
+    return inference.generate_decision(snapshot).get("status", "?")
 
 
 # ─── Eval runner ──────────────────────────────────────────────────────────────
-def run_eval(rule_only: bool = False) -> None:
-    print(f"\n{'='*60}")
-    print("S.U.R.E. AQUA-7B Eval — 8 Senaryo")
-    print(f"Mod: {'Kural Motoru (--rule-only)' if rule_only else 'Model + Kural Karşılaştırma'}")
-    print(f"{'='*60}\n")
+def run_eval(rule_only: bool = False) -> int:
+    inference = None
+    if not rule_only:
+        try:
+            inference = load_model()
+        except Exception as exc:
+            # Sessizce kural motoruna düşüp "8/8 geçti" basmak, ölçüm yapmadan
+            # yeşil yanmak demekti. Model istendiyse model yoksa bu bir hatadır.
+            print(f"\n✗ AQUA-1B yüklenemedi: {exc.__class__.__name__}: {exc}")
+            print("  Model olmadan model kalitesi ölçülemez.")
+            print("  Sadece kural motorunu test etmek istiyorsan: python eval.py --rule-only\n")
+            return 2
 
-    results = []
+    mode = "Kural Motoru (--rule-only)" if rule_only else "AQUA-1B + Kural Motoru Karşılaştırma"
+    print(f"\n{'='*68}")
+    print("S.U.R.E. Eval — 8 Senaryo")
+    print(f"Mod: {mode}")
+    print(f"Motor kaynağı: backend/rules.py (üretimle aynı)")
+    print(f"{'='*68}\n")
+
+    failures = []
+    disagreements = []
+
     for sc in SCENARIOS:
-        snapshot = {"sensor": sc["sensor"], "vision": sc["vision"], "safe_ranges": SAFE}
+        rule = rule_status(sc)
         if rule_only:
-            pred = rule_based_status(sc["sensor"], sc["vision"])
-            source = "rule"
+            pred, source = rule, "rule"
         else:
-            pred, source = model_status(snapshot)
+            pred, source = model_status(inference, sc), "aqua-1b"
+            if pred != rule:
+                disagreements.append((sc["id"], pred, rule))
 
         passed = pred == sc["expected"]
-        results.append(passed)
+        if not passed:
+            failures.append(sc["id"])
 
         icon = "✓" if passed else "✗"
         print(f"  {icon} [{sc['id']}] {sc['name']}")
-        print(f"       Beklenen: {sc['expected']:8s}  Üretilen: {pred:8s}  Kaynak: {source}")
+        print(f"       Beklenen: {sc['expected']:9s} Üretilen: {pred:9s} Kaynak: {source}")
+        if not rule_only:
+            print(f"       Kural motoru: {rule}")
         if not passed:
             print(f"       ⚠ HATA: beklenen '{sc['expected']}' ama '{pred}' üretildi")
         print()
 
-    passed_n = sum(results)
-    total = len(results)
+    total = len(SCENARIOS)
+    passed_n = total - len(failures)
     pct = passed_n / total * 100
-    print(f"{'='*60}")
-    print(f"SONUÇ: {passed_n}/{total} geçti ({pct:.0f}%)")
-    if pct == 100:
-        print("✓ Tüm senaryolar geçti.")
-    elif pct >= 75:
-        print("⚠ Çoğu senaryo geçti, başarısızlıkları gözden geçir.")
-    else:
-        print("✗ Ciddi başarısızlıklar var — model veya fine-tune sorunu olabilir.")
-    print(f"{'='*60}\n")
 
-    sys.exit(0 if pct == 100 else 1)
+    print(f"{'='*68}")
+    print(f"SONUÇ: {passed_n}/{total} geçti ({pct:.0f}%)   [mod: {'kural' if rule_only else 'model'}]")
+    if failures:
+        print(f"Başarısız senaryolar: {', '.join(failures)}")
+    if disagreements:
+        print(f"\nModel ile kural motorunun ayrıştığı {len(disagreements)} senaryo:")
+        for sid, m, r in disagreements:
+            print(f"  {sid}: model='{m}' kural='{r}'  → canlıda kural motoru override eder")
+    if rule_only:
+        print("\nNOT: Bu çalıştırma kural motorunu doğruladı, MODELİ DEĞİL.")
+        print("     Tez/sunumda model başarımı olarak bu sayıyı kullanma.")
+    print(f"{'='*68}\n")
+
+    return 0 if not failures else 1
 
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("--rule-only", action="store_true", help="Modeli yükleme, sadece kural motorunu test et")
-    a = p.parse_args()
-    run_eval(a.rule_only)
+    p = argparse.ArgumentParser(description="S.U.R.E. karar motoru eval")
+    p.add_argument("--rule-only", action="store_true",
+                   help="Modeli yükleme, sadece kural motorunu test et")
+    sys.exit(run_eval(p.parse_args().rule_only))
