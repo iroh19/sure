@@ -18,7 +18,7 @@ için: [![Codespaces'te aç](https://img.shields.io/badge/Codespaces-a%C3%A7-242
 |---|---|
 | Tespit | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
 | Veri seti | 510 etiketli görsel (412 train / 98 val), tek sınıf `sturgeon` |
-| Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 8 senaryo eval — hepsi CI kapısı |
+| Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 32 MLOps + 8 senaryo eval — hepsi CI kapısı |
 | Retrieval | pgvector · 8 doküman / 44 chunk · MRR **0.856** · hit@1 **0.793** |
 | LLM | AQUA-1B (Gemma 3 1B) · LoRA adaptörü · tamamen on-prem |
 
@@ -215,6 +215,83 @@ cd vision-service
 python export_bench.py                  # export et ve hepsini ölç
 python export_bench.py --skip-export    # mevcut export'ları yeniden ölç
 python export_bench.py --emit-jetson    # Jetson tarafı betiğini yaz
+```
+
+---
+
+## MLOps
+
+Ağırlıklar git'te duruyor ve dosya adıyla ayırt ediliyordu. Bu, rapor epoch 73
+derken sahadaki `best.pt`'nin epoch 77 olduğu ortaya çıkana kadar sürdü —
+Ultralytics manşet metriğe göre değil fitness'a (`0.1*mAP50 + 0.9*mAP50-95`) göre
+seçiyor. Registry tam da bu tür soruyu arkeoloji olmaktan çıkarmak için var.
+
+`mlops/tracking.py --backfill` tamamlanmış koşuların `results.csv`'sini okuyor,
+yani depo ilk komuttan itibaren gerçek geçmişi tutuyor:
+
+| koşu | metrik geçerli | en iyi epoch | mAP50 | precision | recall |
+|---|---|--:|--:|--:|--:|
+| sure_v1 | evet | 77 | 0.8395 | 0.8583 | 0.7188 |
+| ogretmen | **hayır** | 74 | 0.9254 | 0.8829 | 0.9073 |
+
+Öğretmen koşusu kaydediliyor **ve** geçersiz olarak etiketleniyor — aynı 20 kare
+ile eğitilip doğrulandığı için 0.925 ezberi ölçüyor. Yalnızca iyi koşuları tutan
+bir registry "bunu neden kullanmadık" sorusunu yanıtlayamaz.
+
+### Drift
+
+Üretimde etiket yok, bu yüzden drift modelin kendi çıktısından çıkarılıyor:
+tespit güveni dağılımı üzerinde **Population Stability Index**, eğitim zamanında
+doğrulama setinden alınan bir referansa karşı. Balık sayısı değil güven, çünkü
+sayı karışık bir sinyal — az tespit, model bozulduğu için de olabilir tankta az
+balık olduğu için de.
+
+İlk uygulama [0,1] üzerinde eşit genişlikli on bölme kullanıyordu ve işe
+yaramıyordu. Dedektörün güvenleri kabaca 0.5–0.9 arasında; referansta altı bölme
+boştu ve bunlardan birine düşen her kayma boş bölme tabanına çarpıyordu: PSI
+0.06'dan doğrudan 1.05'e sıçrıyor, arada hiçbir şey olmuyordu — gradyan kılığında
+ikili alarm. Referansın kendi yüzdeliklerinden alınan **quantile kenarları** her
+bölmeye ~%10 kütle veriyor ve sinyal dereceleniyor:
+
+| pencere | PSI | sonuç |
+|---|--:|---|
+| referansın kendi iki yarısı | 0.039 | yok |
+| 200 / 500 / 1000 gerçek alt örnek | 0.029 / 0.014 / 0.002 | yok |
+| tespitlerin %10'u bozulur | 0.098 | yok |
+| %20'si bozulur | 0.265 | significant |
+| güven 0.1–0.4'e çöker | 8.28 | significant |
+
+İlk iki satır eşikleri güvenilir yapan şey: kendi kalibrasyon verisinin
+yeniden örneklemesinde alarm veren bir dedektör, sonraki bütün alarmlarını
+gürültüye çevirir.
+
+### Yeniden eğitim otomatik değil, kapılı
+
+Drift dünyanın değiştiğini söyler; yerine geçecek modelin daha iyi olacağını değil.
+
+```
+drift kontrolü ──► karar ──┬─► yok       dur
+                           ├─► inceleme  insana bildir, dur
+                           └─► eğit      eğit ─► değerlendir ─► kapı ─► kaydet
+```
+
+Aday ancak mevcudu `MIN_IMPROVEMENT`'tan (0.005 mAP50) fazla geçerse yayına
+alınır. Eğitim gürültüsü zaten yaklaşık yarı yarıya küçük pozitif farklar üretir;
+onlara bakarak yayına almak, karar kılığında yazı tura atmaktır. Orta seviye
+drift yeniden eğitim değil inceleme açar — her dalgalanmada eğitmek hem hesap
+yakar hem gürültülü bir pencereye uydurma riski taşır.
+
+Karar mantığı `mlops/retrain.py` içinde 32 testli düz fonksiyonlar olarak duruyor;
+`mlops/retrain_dag.py` yalnızca zamanlama yapan ince bir Airflow sarmalayıcısı.
+Airflow proje bağımlılığı değil — DAG bir Airflow kurulumuna bırakılmak üzere.
+
+```bash
+python -m mlops.tracking --backfill      # tamamlanmış koşuları kaydet
+python -m mlops.tracking --list
+python -m mlops.drift --reference        # referans dağılımı yakala
+python -m mlops.drift --check window.json
+python -m mlops.retrain --check window.json
+mlflow ui --backend-store-uri sqlite:///mlops/mlflow.db
 ```
 
 ---

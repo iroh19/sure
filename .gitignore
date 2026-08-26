@@ -41,6 +41,13 @@ data/ogretmen_dataset/
 *.pt
 sure_models/**/weights/
 
+# MLflow tracking store and artefacts — regenerate with
+#   python -m mlops.tracking --backfill
+mlops/mlflow.db
+mlops/artifacts/
+mlops/last_backfill.json
+mlops/recent_window.json
+
 # Export artefacts: derived from weights, regenerate with
 #   python vision-service/export_bench.py
 sure_models/**/export/

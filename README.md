@@ -18,7 +18,7 @@ system for real: [![Open in Codespaces](https://img.shields.io/badge/Codespaces-
 |---|---|
 | Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
 | Dataset | 510 labelled images (412 train / 98 val), single class `sturgeon` |
-| Tests | 18 unit + 22 knowledge-base + 48 agent + 8-scenario eval — all gate CI |
+| Tests | 18 unit + 22 knowledge-base + 48 agent + 32 MLOps + 8-scenario eval — all gate CI |
 | Retrieval | pgvector · 8 docs / 44 chunks · MRR **0.856** · hit@1 **0.793** |
 | LLM | AQUA-1B (Gemma 3 1B) · LoRA domain adapter · fully on-prem |
 
@@ -216,6 +216,84 @@ cd vision-service
 python export_bench.py                  # export and measure everything available
 python export_bench.py --skip-export    # re-measure existing exports
 python export_bench.py --emit-jetson    # write the Jetson-side script
+```
+
+---
+
+## MLOps
+
+Weights used to live in git and be told apart by filename. That held until the
+report claimed epoch 73 while the shipped `best.pt` was epoch 77 — Ultralytics
+selects by fitness (`0.1*mAP50 + 0.9*mAP50-95`), not by the headline metric. A
+registry exists so that class of question is answerable rather than
+archaeological.
+
+`mlops/tracking.py --backfill` reads `results.csv` from the completed runs, so
+the store holds real history from the first command instead of starting empty:
+
+| run | metrics valid | best epoch | mAP50 | precision | recall |
+|---|---|--:|--:|--:|--:|
+| sure_v1 | yes | 77 | 0.8395 | 0.8583 | 0.7188 |
+| ogretmen | **no** | 74 | 0.9254 | 0.8829 | 0.9073 |
+
+The teacher run is logged *and* tagged invalid — it was trained and validated on
+the same 20 frames, so its 0.925 measures memorisation. A registry that only
+keeps the good runs cannot answer "why did we not ship that one".
+
+### Drift
+
+Labels do not exist in production, so drift is inferred from the model's own
+output: **Population Stability Index** over the detection-confidence
+distribution, against a reference captured on the validation set. Confidence
+rather than fish count, because count is confounded — fewer detections may mean a
+worse model or fewer fish.
+
+The first implementation used ten equal-width bins over [0,1] and was useless
+here. The detector's confidences sit in roughly 0.5–0.9, so six bins were empty
+in the reference and any shift into one of them hit the empty-bin floor: PSI
+jumped from 0.06 straight to 1.05 with nothing between, a binary alarm dressed as
+a gradient. **Quantile edges** taken from the reference's own deciles give every
+bin ~10% of the mass, and the signal grades:
+
+| window | PSI | verdict |
+|---|--:|---|
+| two halves of the reference itself | 0.039 | none |
+| 200 / 500 / 1000 real subsamples | 0.029 / 0.014 / 0.002 | none |
+| 10% of detections degraded | 0.098 | none |
+| 20% degraded | 0.265 | significant |
+| confidence collapses to 0.1–0.4 | 8.28 | significant |
+
+The first two rows are the ones that make the thresholds credible: a detector
+that fires on a re-sample of its own calibration data makes every later alert
+noise.
+
+### Retraining is gated, not automatic
+
+Drift says the world changed; it does not say a replacement would be better.
+
+```
+check_drift ──► decide ──┬─► none      stop
+                         ├─► review    notify a human, stop
+                         └─► retrain   train ─► evaluate ─► gate ─► register
+```
+
+A candidate ships only if it beats the incumbent by more than `MIN_IMPROVEMENT`
+(0.005 mAP50). Training noise produces small positive deltas about half the time,
+and shipping on those is a coin flip presented as a decision. Moderate drift
+opens a review rather than firing a retrain, because retraining on every wobble
+burns compute and risks fitting a noisy window.
+
+The decision logic lives in `mlops/retrain.py` as plain functions with 32 tests;
+`mlops/retrain_dag.py` is a thin Airflow wrapper that only schedules. Airflow is
+not a project dependency — the DAG is meant to be dropped into a deployment.
+
+```bash
+python -m mlops.tracking --backfill      # log completed runs
+python -m mlops.tracking --list
+python -m mlops.drift --reference        # capture the reference distribution
+python -m mlops.drift --check window.json
+python -m mlops.retrain --check window.json
+mlflow ui --backend-store-uri sqlite:///mlops/mlflow.db
 ```
 
 ---

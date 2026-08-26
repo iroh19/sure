@@ -38,6 +38,9 @@ jobs:
       - name: Agent tests
         run: python -m pytest llm-service/test_agent.py -v
 
+      - name: MLOps tests (drift + retrain gate)
+        run: python -m pytest mlops -v
+
       - name: Decision-engine eval
         working-directory: llm-service
         run: python eval.py --rule-only
