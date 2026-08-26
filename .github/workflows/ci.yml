@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  lint-backend:
-    name: Backend Lint & Test
+  backend-test:
+    name: Backend — unit tests + decision-engine eval
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,21 @@ jobs:
         run: pip install -r backend/requirements.txt
 
       - name: Syntax check
-        run: python -m py_compile backend/main.py
+        run: python -m py_compile backend/main.py backend/rules.py
+
+      # Safety-critical rule engine. The DO < 6 mg/L => always "critical"
+      # guarantee is pinned here.
+      - name: Unit tests
+        working-directory: backend
+        run: python -m pytest test_decision.py -v
+
+
+      # Quality gate. eval.py imports backend/rules.py directly, so the engine
+      # it measures is the one that ships. --rule-only needs no model; model mode
+      # would require downloading weights and is not run in CI.
+      - name: Decision-engine eval gate
+        working-directory: llm-service
+        run: python eval.py --rule-only
 
   lint-frontend:
     name: Frontend Lint & Build
@@ -52,7 +66,7 @@ jobs:
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [lint-backend, lint-frontend]
+    needs: [backend-test, lint-frontend]
     steps:
       - uses: actions/checkout@v4
 
