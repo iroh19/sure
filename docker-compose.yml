@@ -22,6 +22,45 @@ services:
       timeout: 5s
       retries: 5
 
+  # RAG bilgi tabanı deposu. pgvector/pgvector imajı, PostgreSQL 17 + vector
+  # eklentisini hazır getirir; ayrıca CREATE EXTENSION gerekmez (store.py yine
+  # de idempotent olarak çalıştırır).
+  pgvector:
+    image: pgvector/pgvector:pg17
+    environment:
+      - POSTGRES_DB=sure_rag
+      - POSTGRES_USER=sure
+      # ⚠️ Üretimde POSTGRES_PASSWORD'ü mutlaka .env ile ver. Buradaki
+      # varsayılan yalnızca kapalı ağ demosu içindir.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sure_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sure -d sure_rag"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tek seferlik ingest: bilgi tabanını vektör deposuna yazar ve çıkar.
+  # Ayrı servis olmasının nedeni, llm-service'in her açılışında embedding
+  # üretmesini istememek — ingest yalnızca knowledge/ değiştiğinde gerekir.
+  #   docker compose run --rm rag-ingest
+  rag-ingest:
+    build: ./llm-service
+    command: ["python", "-m", "rag.ingest"]
+    volumes:
+      - model-cache:/model-cache
+    environment:
+      - HF_HOME=/model-cache
+      - RAG_DATABASE_URL=postgresql://sure:${POSTGRES_PASSWORD:-sure_dev}@pgvector:5432/sure_rag
+      - RAG_EMBED_MODEL=e5-small
+      - RAG_CHUNK_STRATEGY=heading
+    depends_on:
+      pgvector:
+        condition: service_healthy
+    restart: "no"
+
   llm-service:
     build: ./llm-service
     ports:
@@ -34,6 +73,16 @@ services:
       - AQUA_ADAPTER_PATH=/adapter        # boşsa yüklenmez
       - AQUA_MAX_TOKENS=512
       - HF_HOME=/model-cache
+      # RAG. Bu değerler rag/bench.py ve rag/calibrate.py ölçümleriyle seçildi;
+      # değiştirmeden önce ölçümü tekrarla.
+      - RAG_DATABASE_URL=postgresql://sure:${POSTGRES_PASSWORD:-sure_dev}@pgvector:5432/sure_rag
+      - RAG_EMBED_MODEL=e5-small
+      - RAG_CHUNK_STRATEGY=heading
+      - RAG_TOP_K=4
+      - RAG_MIN_SIMILARITY=0.85
+    depends_on:
+      pgvector:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
@@ -71,3 +120,4 @@ services:
 volumes:
   model-cache:
   backend-db:
+  pgdata:

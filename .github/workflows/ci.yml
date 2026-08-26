@@ -35,6 +35,9 @@ jobs:
       # Quality gate. eval.py imports backend/rules.py directly, so the engine
       # it measures is the one that ships. --rule-only needs no model; model mode
       # would require downloading weights and is not run in CI.
+      - name: Knowledge-base consistency tests
+        run: python -m pytest llm-service/test_knowledge.py -v
+
       - name: Decision-engine eval gate
         working-directory: llm-service
         run: python eval.py --rule-only

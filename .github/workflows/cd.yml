@@ -32,6 +32,9 @@ jobs:
         run: python -m pytest test_decision.py -v
 
 
+      - name: Knowledge-base consistency tests
+        run: python -m pytest llm-service/test_knowledge.py -v
+
       - name: Decision-engine eval
         working-directory: llm-service
         run: python eval.py --rule-only
