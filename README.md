@@ -10,7 +10,7 @@ _Türkçe: [README.tr.md](README.tr.md)_
 
 | | |
 |---|---|
-| Detection | YOLOv11s · mAP50 **0.840** · precision **0.878** · recall 0.695 |
+| Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
 | Dataset | 510 labelled images (412 train / 98 val), single class `sturgeon` |
 | Tests | 18 unit + 22 knowledge-base + 48 agent + 8-scenario eval — all gate CI |
 | Retrieval | pgvector · 8 docs / 44 chunks · MRR **0.856** · hit@1 **0.793** |
@@ -164,6 +164,56 @@ the benchmark decides whether it earns its place.
 
 ---
 
+## Edge export
+
+`vision-service/export_bench.py` exports the detector to every format available
+on the machine and runs each one through **the same 98-image validation split**
+that produced the baseline. A speed number alone is not a result: every format
+trades accuracy somewhere, and the trade is invisible unless both are measured.
+
+Latency is p50/p95 over 40 real validation frames **decoded into memory first**,
+with 8 warm-up runs discarded. Percentiles rather than a mean, because a
+real-time pipeline is judged by its worst frames.
+
+| Format | Device | mAP50 | ΔmAP50 | mAP50-95 | p50 ms | p95 ms | FPS | Size MB |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| pt | mps | 0.8395 | baseline | 0.5952 | 31.4 | 36.7 | 31.8 | 54.5 |
+| pt | cpu | 0.8395 | +0.0000 | 0.5952 | 39.2 | 41.0 | 25.5 | 54.5 |
+| onnx | cpu | 0.8291 | −0.0104 | 0.5867 | 53.5 | 66.1 | 18.7 | 36.2 |
+| onnx-int8 | cpu | 0.8313 | −0.0082 | 0.5863 | 36.2 | 39.2 | 27.6 | **9.4** |
+| **coreml** | ANE | 0.8298 | −0.0097 | 0.5840 | **9.0** | **9.5** | **111.2** | 18.2 |
+| torchscript | cpu | 0.8291 | −0.0104 | 0.5867 | 52.8 | 54.8 | 18.9 | 36.4 |
+
+**Export itself costs accuracy, before any quantisation.** fp32 ONNX and
+TorchScript lose the same −0.0104 mAP50 and land on an identical mAP50-95 to four
+decimals. Two different runtimes agreeing exactly means the loss is systematic,
+not numerical noise — it comes from the post-processing path exported models
+take, not from weight precision. "fp32 export is free" is wrong here.
+
+**INT8 is nearly free, and beats fp32 ONNX.** 5.8× smaller at 9.4 MB, faster
+(36.2 ms vs 53.5 ms) and with *less* loss (−0.0082 vs −0.0104). That does not
+mean quantisation improves accuracy; read with the finding above, the loss lives
+in the export path and INT8 noise happened to shift the operating point slightly
+favourably. The difference is within noise.
+
+**CoreML wins decisively on Apple Silicon.** 9.0 ms p50 (111 FPS), 3.5× faster
+than PyTorch on MPS, 3× smaller, and the tightest p95 tail of any format (6% over
+p50). ONNX has the worst tail at 24% — a gap the mean would hide.
+
+**TensorRT is not measured.** It needs CUDA and cannot run on Apple Silicon.
+`export_bench.py --emit-jetson` writes `jetson_bench.py`, which produces the FP16
+and INT8 rows on the target device using identical methodology. No invented
+TensorRT numbers are in the table.
+
+```bash
+cd vision-service
+python export_bench.py                  # export and measure everything available
+python export_bench.py --skip-export    # re-measure existing exports
+python export_bench.py --emit-jetson    # write the Jetson-side script
+```
+
+---
+
 ## Verification
 
 ```bash
@@ -247,8 +297,9 @@ comments and commits are English.
 
 ## Known limitations
 
-- **Vision recall 0.695** — roughly 30% of fish missed in dense frames. The fix
+- **Vision recall 0.719** — roughly 28% of fish missed in dense frames. The fix
   is a larger dataset and retraining at `imgsz` 960/1280.
+- **TensorRT rows are unmeasured** — no CUDA device available yet.
 - **AQUA-1B has never been run through the eval in model mode**; `--rule-only`
   verifies the rule engine, not the model.
 - **The LoRA adapter may still be the 8-sample v1**; v2 (128 samples) is pending.

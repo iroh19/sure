@@ -1,6 +1,6 @@
 # S.U.R.E. — Model Başarım Raporu
 
-_Vision (YOLOv11) tespit modeli · son güncelleme: 2026-06-05_
+_Vision (YOLOv11) tespit modeli · son güncelleme: 2026-08-26_
 
 ---
 
@@ -9,22 +9,38 @@ _Vision (YOLOv11) tespit modeli · son güncelleme: 2026-06-05_
 Production (`vision-service/yolo_runner.py`) **`sure_models/sure_v1/weights/best.pt`**
 ağırlığına bağlıdır. Geçerli metrikler bunlardır:
 
-| Metrik | Değer (best.pt, epoch 73) |
+| Metrik | Değer (best.pt, epoch 77) |
 |--------|---------------------------|
-| Precision | **0.878** |
-| Recall | **0.695** |
+| Precision | **0.858** |
+| Recall | **0.719** |
 | mAP50 | **0.840** |
-| mAP50-95 | **0.592** |
+| mAP50-95 | **0.595** |
 
 - Ağ: YOLOv11s · Veri: 510 görsel (412 train / 98 val) · Tek sınıf: `sturgeon`
-- Eğitim: 100 epoch hedefi, epoch 79'da durduruldu, en iyi epoch 73
+- Eğitim: 100 epoch hedefi, epoch 79'da durduruldu
 - Doğrulama seti: 98 görsel / 1525 balık (train'den ayrı)
 - Model epoch 62-79 boyunca ~0.84 mAP50'de platoya oturdu
 
-**Kalan zayıf nokta:** Recall ~0.70 — yoğun/örtüşen balıklar kaçırılıyor.
+> **Düzeltme (2026-08-26).** Bu tablo daha önce epoch 73'ün sayılarını
+> (P 0.878 / R 0.695) taşıyordu ve yanlıştı. Ultralytics `best.pt`'yi mAP50'ye
+> göre değil **fitness = 0.1·mAP50 + 0.9·mAP50-95** ölçütüne göre kaydeder; bu
+> ölçüt epoch 77'yi seçmiş. Hata, `best.pt` üzerinde temel çizgi yeniden
+> koşturulurken yakalandı: taze `val()` çıktısı (0.8590 / 0.7189 / 0.8395) epoch
+> 77 satırıyla dört haneye kadar eşleşti, epoch 73 ile eşleşmedi.
+>
+> Pratik etkisi: mAP değerleri neredeyse değişmedi, ama **precision olduğundan
+> yüksek, recall olduğundan düşük** raporlanmıştı. Sahadaki model belgelenenden
+> daha iyi recall'a sahip.
+
+**Kalan zayıf nokta:** Recall ~0.72 — yoğun/örtüşen balıklar kaçırılıyor.
 `NMS time limit exceeded` uyarıları ve kalabalık kareler bunu doğruluyor.
 Çözüm yönü: yoğun karelerde etiket gözden geçirme + daha yüksek çözünürlük
 (imgsz 960/1280), ya da demo için inference'ta `conf` düşürme + `max_det` artırma.
+
+**Not:** mAP eşikten bağımsızdır ve tekrar üretilebilir; precision/recall ise PR
+eğrisi üzerinde tek bir çalışma noktasıdır (Ultralytics bunları F1'i maksimize
+eden confidence değerinde raporlar). İki koşu arasında mAP sabit kalırken P/R'ın
+birlikte kayması normaldir — biri artarken diğeri azalır.
 
 ### Sunumda kullanma
 
@@ -121,3 +137,62 @@ Eğri yakınsamamıştı, recall %55-63 seviyesindeydi. 100 epoch'luk yeniden e�
 | mAP50-95 | 0.445 | 0.592 | +0.147 |
 
 </details>
+
+---
+
+## Edge export ölçümü (2026-08-26)
+
+`vision-service/export_bench.py` her formatı **aynı 98 görsellik doğrulama
+setinde** koşturur ve mAP ile gecikmeyi birlikte raporlar. Sadece FPS vermek
+eksik tablodur; her format doğruluğu bir yerde takas eder.
+
+Gecikme, diskten okuma zamanlanan döngünün dışında kalacak şekilde **önceden
+belleğe alınmış** 40 gerçek doğrulama karesi üzerinde, 8 ısınma koşusu atılarak
+ölçüldü. Ortalama değil p50/p95: gerçek zamanlı bir hat en kötü karelerine göre
+yargılanır.
+
+| Format | Cihaz | mAP50 | ΔmAP50 | mAP50-95 | p50 ms | p95 ms | FPS | Boyut MB |
+|--------|-------|------:|-------:|---------:|-------:|-------:|----:|---------:|
+| pt | mps | 0.8395 | temel | 0.5952 | 31.4 | 36.7 | 31.8 | 54.5 |
+| pt | cpu | 0.8395 | +0.0000 | 0.5952 | 39.2 | 41.0 | 25.5 | 54.5 |
+| onnx | cpu | 0.8291 | −0.0104 | 0.5867 | 53.5 | 66.1 | 18.7 | 36.2 |
+| onnx-int8 | cpu | 0.8313 | −0.0082 | 0.5863 | 36.2 | 39.2 | 27.6 | **9.4** |
+| **coreml** | ANE | 0.8298 | −0.0097 | 0.5840 | **9.0** | **9.5** | **111.2** | 18.2 |
+| torchscript | cpu | 0.8291 | −0.0104 | 0.5867 | 52.8 | 54.8 | 18.9 | 36.4 |
+
+### Üç bulgu
+
+**1 · Export'un kendisi doğruluk kaybettiriyor — quantization olmadan da.**
+fp32 ONNX ve TorchScript aynı kaybı veriyor: −0.0104 mAP50, ve mAP50-95 dört
+haneye kadar birebir aynı (0.5867). İki farklı çalışma zamanının aynı sayıyı
+vermesi bunun sayısal gürültü değil **sistematik** olduğunu gösteriyor; kayıp
+export edilmiş modellerin izlediği son-işleme yolundan geliyor, ağırlıkların
+hassasiyetinden değil. "fp32 export bedavadır" varsayımı burada yanlış.
+
+**2 · INT8 neredeyse bedava, hatta fp32 ONNX'ten iyi.**
+5.8 kat küçük (9.4 MB) ve fp32 ONNX'ten hızlı (36.2 ms vs 53.5 ms), kaybı da
+daha az (−0.0082 vs −0.0104). Bu ters sonuç quantization'ın doğruluk *artırdığı*
+anlamına gelmez; 1. bulguyla birlikte okunmalı — kayıp export yolundan geliyor ve
+INT8'in gürültüsü çalışma noktasını tesadüfen biraz lehte kaydırmış. Fark gürültü
+bandında.
+
+**3 · Apple Silicon'da CoreML açık ara önde.**
+9.0 ms p50 (111 FPS), MPS PyTorch'tan **3.5 kat hızlı**, 3 kat küçük ve p95
+kuyruğu en dar olan format (p50'nin yalnızca %6 üstü). ONNX'in kuyruğu ise en
+kötüsü (%24). Kuyruk farkı ortalamaya bakınca görünmez.
+
+> **Ölçüm hatası notu.** İlk koşuda gecikme `predict(dosya_yolu)` ile ölçülmüştü
+> ve her yinelemede JPEG diskten okunuyordu. Kareler önceden belleğe alınınca
+> CoreML 13.9 ms'den 9.0 ms'ye düştü — hata en çok, sonucu en çok çarpıttığı
+> yerde önemliydi.
+
+### TensorRT — henüz ölçülmedi
+
+FP16 ve INT8 TensorRT satırları **bu makinede üretilemez**: TensorRT CUDA
+gerektirir, geliştirme makinesi Apple Silicon. `vision-service/jetson_bench.py`
+(üretmek için `export_bench.py --emit-jetson`) aynı metodolojiyle — aynı
+doğrulama seti, aynı yüzdelik gecikme, aynı ısınma — o satırları Jetson üzerinde
+üretir ve `jetson_results.json` yazar.
+
+Tabloya uydurma TensorRT sayısı **konmadı**. Jetson hedefi henüz elde yok;
+olduğunda satırlar buraya eklenecek.

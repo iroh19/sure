@@ -40,6 +40,14 @@ data/ogretmen_dataset/
 # ağırlıkları GitHub Release olarak ekle, README'de linkle.
 *.pt
 sure_models/**/weights/
+
+# Export artefacts: derived from weights, regenerate with
+#   python vision-service/export_bench.py
+sure_models/**/export/
+*.onnx
+*.torchscript
+*.mlpackage/
+*.engine
 llm-service/sure-aqua-adapter*/
 llm-service/test-adapter/
 

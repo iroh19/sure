@@ -10,7 +10,7 @@ _English: [README.md](README.md)_
 
 | | |
 |---|---|
-| Tespit | YOLOv11s · mAP50 **0.840** · precision **0.878** · recall 0.695 |
+| Tespit | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
 | Veri seti | 510 etiketli görsel (412 train / 98 val), tek sınıf `sturgeon` |
 | Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 8 senaryo eval — hepsi CI kapısı |
 | Retrieval | pgvector · 8 doküman / 44 chunk · MRR **0.856** · hit@1 **0.793** |
@@ -162,6 +162,57 @@ gelirse benchmark yerini hak edip etmediğini söyler.
 
 ---
 
+## Edge export
+
+`vision-service/export_bench.py` modeli makinede mevcut her formata çıkarır ve
+her birini **temel çizgiyi üreten aynı 98 görsellik doğrulama setinde** koşturur.
+Tek başına hız sayısı sonuç değildir: her format doğruluğu bir yerde takas eder
+ve ikisi birlikte ölçülmezse bu takas görünmez.
+
+Gecikme, **önceden belleğe alınmış** 40 gerçek doğrulama karesi üzerinde p50/p95
+olarak, 8 ısınma koşusu atılarak ölçülür. Ortalama değil yüzdelik: gerçek zamanlı
+bir hat en kötü karelerine göre yargılanır.
+
+| Format | Cihaz | mAP50 | ΔmAP50 | mAP50-95 | p50 ms | p95 ms | FPS | Boyut MB |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| pt | mps | 0.8395 | temel | 0.5952 | 31.4 | 36.7 | 31.8 | 54.5 |
+| pt | cpu | 0.8395 | +0.0000 | 0.5952 | 39.2 | 41.0 | 25.5 | 54.5 |
+| onnx | cpu | 0.8291 | −0.0104 | 0.5867 | 53.5 | 66.1 | 18.7 | 36.2 |
+| onnx-int8 | cpu | 0.8313 | −0.0082 | 0.5863 | 36.2 | 39.2 | 27.6 | **9.4** |
+| **coreml** | ANE | 0.8298 | −0.0097 | 0.5840 | **9.0** | **9.5** | **111.2** | 18.2 |
+| torchscript | cpu | 0.8291 | −0.0104 | 0.5867 | 52.8 | 54.8 | 18.9 | 36.4 |
+
+**Export'un kendisi, quantization olmadan da doğruluk kaybettiriyor.** fp32 ONNX
+ve TorchScript aynı −0.0104 mAP50 kaybını veriyor ve mAP50-95'te dört haneye
+kadar aynı sayıya oturuyor. İki farklı çalışma zamanının birebir aynı sonucu
+vermesi, kaybın sayısal gürültü değil **sistematik** olduğunu gösterir — kayıp
+export edilmiş modellerin izlediği son-işleme yolundan geliyor, ağırlık
+hassasiyetinden değil.
+
+**INT8 neredeyse bedava ve fp32 ONNX'i geçiyor.** 9.4 MB ile 5.8 kat küçük, daha
+hızlı (36.2 ms vs 53.5 ms) ve kaybı *daha az* (−0.0082 vs −0.0104). Bu,
+quantization'ın doğruluk artırdığı anlamına gelmez; yukarıdaki bulguyla birlikte
+okunmalı — kayıp export yolundan geliyor ve INT8 gürültüsü çalışma noktasını
+tesadüfen lehte kaydırmış. Fark gürültü bandında.
+
+**Apple Silicon'da CoreML açık ara kazanıyor.** 9.0 ms p50 (111 FPS), MPS
+PyTorch'tan 3.5 kat hızlı, 3 kat küçük ve p95 kuyruğu en dar format (p50'nin
+%6 üstü). ONNX'in kuyruğu en kötüsü, %24 — ortalamaya bakınca görünmeyen bir fark.
+
+**TensorRT ölçülmedi.** CUDA gerektiriyor ve Apple Silicon'da çalışmıyor.
+`export_bench.py --emit-jetson`, aynı metodolojiyle FP16 ve INT8 satırlarını
+hedef cihazda üreten `jetson_bench.py`'ı yazar. Tabloya uydurma TensorRT sayısı
+konmadı.
+
+```bash
+cd vision-service
+python export_bench.py                  # export et ve hepsini ölç
+python export_bench.py --skip-export    # mevcut export'ları yeniden ölç
+python export_bench.py --emit-jetson    # Jetson tarafı betiğini yaz
+```
+
+---
+
 ## Doğrulama
 
 ```bash
@@ -245,8 +296,9 @@ mesajları — Türkçe, çünkü ürün Türkçe yanıt veriyor. Kod, yorumlar 
 
 ## Bilinen sınırlamalar
 
-- **Vision recall 0.695** — yoğun karelerde balıkların ~%30'u kaçırılıyor.
+- **Vision recall 0.719** — yoğun karelerde balıkların ~%28'i kaçırılıyor.
   Çözüm: veri setini büyütmek ve `imgsz` 960/1280 ile yeniden eğitmek.
+- **TensorRT satırları ölçülmedi** — henüz CUDA'lı bir cihaz yok.
 - **AQUA-1B model modunda eval'den hiç geçirilmedi**; `--rule-only` kural
   motorunu doğrular, modeli değil.
 - **LoRA adaptörü hâlâ 8 örneklik v1 olabilir**; v2 (128 örnek) bekliyor.
