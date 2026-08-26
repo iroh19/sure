@@ -15,6 +15,8 @@ EXPOSE 8001
 
 # Model cache'i volume'dan kullan
 ENV HF_HOME=/model-cache
-ENV AQUA_BASE_MODEL=KurmaAI/AQUA-7B
+# Adaptör (sure-aqua-adapter) 1B tabana göre eğitildi — taban modeli
+# değiştirirsen adaptörü de yeniden eğitmen gerekir.
+ENV AQUA_BASE_MODEL=KurmaAI/AQUA-1B
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

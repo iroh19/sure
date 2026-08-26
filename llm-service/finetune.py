@@ -1,5 +1,5 @@
 """
-S.U.R.E. × AQUA-7B — LoRA Fine-Tuning
+S.U.R.E. × AQUA-1B — LoRA Fine-Tuning
 =======================================
 Cihaza göre otomatik backend seçer:
   • Apple Silicon (MPS) → MLX (mlx-lm)   — 4-bit quant, düşük bellek
@@ -7,7 +7,11 @@ Cihaza göre otomatik backend seçer:
   • CPU               → HuggingFace PEFT  — float32, yavaş
 
 Kullanım:
-  python finetune.py --data sure_finetune_data.jsonl --output ./sure-aqua-adapter
+  python finetune.py                                    # sure_finetune_data_v2.jsonl (128 örnek)
+  python finetune.py --data sure_finetune_data.jsonl    # el yazımı 8 örnek (yetersiz, sadece duman testi)
+
+VARSAYILAN v2'dir. LoRA için 8 örnek underfitting üretir; v2'yi
+generate_finetune_data.py üretir (8 el yazımı + otomatik senaryolar).
 """
 from __future__ import annotations
 
@@ -205,7 +209,8 @@ def finetune_hf(records: list[dict], output_dir: str, epochs: int,
 # --------------------------------------------------------------------------- #
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("--data",   default="sure_finetune_data.jsonl")
+    p.add_argument("--data",   default="sure_finetune_data_v2.jsonl",
+                   help="Eğitim verisi (varsayılan: 128 örnekli v2)")
     p.add_argument("--output", default="./sure-aqua-adapter")
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--batch",  type=int, default=1)

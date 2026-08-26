@@ -1,12 +1,18 @@
 """
-S.U.R.E. LLM Service (AQUA-7B)
+S.U.R.E. LLM Service (AQUA-1B)
 ================================
 FastAPI servisi — backend'den gelen anlık veriyle refah kararı üretir.
 
 Endpoint'ler:
-  POST /generate   — { snapshot: {...} }  → karar JSON'u
-  POST /chat       — { message, context } → serbest metin yanıt
+  POST /generate        — { snapshot: {...} }  → karar JSON'u
+  POST /generate/stream — aynı girdi, SSE token akışı
+  POST /chat            — { message, context } → serbest metin yanıt
+  POST /chat/stream     — aynı girdi, SSE token akışı
   GET  /health
+
+NOT: Bu servis kural motoru override'ı UYGULAMAZ. Güvenlik ağı backend'de
+(backend/main.py → apply_rule_override). Bu servise doğrudan bağlanan bir
+istemci, DO<6 gibi kritik senaryolarda modelin hatasını yakalayamaz.
 """
 from __future__ import annotations
 
