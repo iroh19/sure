@@ -16,21 +16,32 @@ import re
 import torch
 from pathlib import Path
 
+from agent.router import default_source, gather_with_sources
+from rag.retriever import build_context, retrieve
+from rag.thresholds import (
+    LABELS,
+    critical_parameter,
+    load_activity_min,
+    load_thresholds,
+    render_safe_ranges,
+)
+
 BASE_MODEL_ID  = os.getenv("AQUA_BASE_MODEL", "KurmaAI/AQUA-1B")
 ADAPTER_PATH   = os.getenv("AQUA_ADAPTER_PATH", "").strip()
 MAX_NEW_TOKENS = int(os.getenv("AQUA_MAX_TOKENS", "512"))
 TEMPERATURE    = float(os.getenv("AQUA_TEMPERATURE", "0.3"))
 
-# S.U.R.E. sistem talimatı — tüm promptlara eklenir
+# S.U.R.E. sistem talimatı — tüm promptlara eklenir.
+#
+# GÜVENLİ ARALIKLAR bloğu ELLE YAZILMAZ: knowledge/ frontmatter'ından türetilir
+# ve o da test_knowledge.py ile backend/rules.py'a bağlıdır. Eşiği burada elle
+# güncellemeye kalkma — knowledge/*.md dosyasını düzelt, blok kendiliğinden
+# değişir. Elle yazılan bir kopya kural motorundan sessizce ayrışır ve model
+# eski eşiği gerekçe olarak sunar.
 SYSTEM_PROMPT = (
     "Sen S.U.R.E. adlı otonom mersin balığı (sturgeon) refah izleme sisteminin "
     "Türkçe karar motorusun. Kapalı Devre Balık Yetiştiriciliği (RAS) uzmanısın.\n\n"
-    "GÜVENLİ ARALIKLAR:\n"
-    "- Çözünmüş Oksijen (DO): 6.0-12.0 mg/L  →  <6.0 = KRİTİK\n"
-    "- Sıcaklık: 16-21 °C\n"
-    "- pH: 6.5-8.0\n"
-    "- TDS: 200-450 ppm\n"
-    "- avg_activity <0.002 → hareketsizlik/stres şüphesi"
+    + render_safe_ranges()
 )
 
 
@@ -77,7 +88,8 @@ def _apply_template_mlx(user_content: str) -> str:
     )
 
 
-def _generate_mlx(user_content: str, temp: float = TEMPERATURE) -> str:
+def _generate_mlx(user_content: str, temp: float = TEMPERATURE,
+                  max_tokens: int | None = None) -> str:
     _load_mlx()
     from mlx_lm import generate
     from mlx_lm.sample_utils import make_sampler
@@ -85,7 +97,7 @@ def _generate_mlx(user_content: str, temp: float = TEMPERATURE) -> str:
     return generate(
         _mlx_model, _mlx_tokenizer,
         prompt=prompt,
-        max_tokens=MAX_NEW_TOKENS,
+        max_tokens=max_tokens or MAX_NEW_TOKENS,
         sampler=make_sampler(temp=temp),
         verbose=False,
     )
@@ -144,13 +156,14 @@ def _apply_template_hf(user_content: str) -> "torch.Tensor":
     return _hf_tokenizer(text, return_tensors="pt").to(_hf_model.device)
 
 
-def _generate_hf(user_content: str, temp: float = TEMPERATURE) -> str:
+def _generate_hf(user_content: str, temp: float = TEMPERATURE,
+                 max_tokens: int | None = None) -> str:
     _load_hf()
     inputs = _apply_template_hf(user_content)
     with torch.no_grad():
         out = _hf_model.generate(
             **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
+            max_new_tokens=max_tokens or MAX_NEW_TOKENS,
             temperature=temp,
             do_sample=temp > 0,
             pad_token_id=_hf_tokenizer.eos_token_id,
@@ -170,46 +183,91 @@ def _load() -> None:
         _load_hf()
 
 
-def _generate(user_content: str, temp: float = TEMPERATURE) -> str:
+def _generate(user_content: str, temp: float = TEMPERATURE,
+              max_tokens: int | None = None) -> str:
+    """Ortak üretim arayüzü.
+
+    `max_tokens` çağrı tipine göre ayarlanmalıdır. Planlama ("hangi araç?")
+    ~20 token'lık bir yanıt ister; anlatım ("gerekçeyi yaz") birkaç yüz.
+    İkisine de aynı 512'yi vermek, planlama çağrılarında 25 kat israf demek —
+    ajan döngüsünde bu, tur süresini dakikalara çıkarıyor.
+    """
     if BACKEND == "mlx":
-        return _generate_mlx(user_content, temp)
-    return _generate_hf(user_content, temp)
+        return _generate_mlx(user_content, temp, max_tokens)
+    return _generate_hf(user_content, temp, max_tokens)
 
 
 # --------------------------------------------------------------------------- #
 # Prompt içerikleri (Gemma template'e gömülür)
 # --------------------------------------------------------------------------- #
-def _decision_user_content(snapshot: dict) -> str:
-    return (
+def _decision_user_content(snapshot: dict) -> tuple[str, list[dict]]:
+    """Build the decision prompt and return the sources it cites.
+
+    Evidence gathering is routed deterministically (`agent/router.py`): code
+    decides which trends to pull and what to ask the knowledge base, the model
+    only narrates. `agent/bench_agent.py` measured why — neither local model can
+    select tools reliably.
+    """
+    critical = critical_parameter()
+    lo = load_thresholds()[critical].lo if critical else None
+    label = LABELS.get(critical, (critical, ""))[0] if critical else "DO"
+    kural = (
+        f"KURAL: {label} <{lo:.1f} ise status MUTLAKA 'critical'.\n"
+        if lo is not None else ""
+    )
+
+    evidence, sources = gather_with_sources(snapshot, default_source())
+    context = evidence.as_context()
+    bilgi = (
+        f"KANIT (gerekçende kullandığın parçayı [K1] gibi işaretle):\n{context}\n\n"
+        if context else ""
+    )
+
+    prompt = (
         f"{SYSTEM_PROMPT}\n\n"
-        "KURAL: DO <6.0 ise status MUTLAKA 'critical'.\n"
+        f"{kural}"
         "SADECE geçerli JSON döndür:\n"
         '{"status":"ok|warning|critical","reasoning":"Türkçe açıklama",'
         '"recommendations":["öneri1","öneri2"]}\n\n'
+        f"{bilgi}"
         f"ANLIK VERİ:\n{json.dumps(snapshot, ensure_ascii=False)}"
     )
+    return prompt, sources
 
 
-def _chat_user_content(message: str, context: dict) -> str:
-    return (
+def _chat_user_content(message: str, context: dict) -> tuple[str, list[dict]]:
+    kb, sources = build_context(retrieve(message))
+    bilgi = (
+        f"BİLGİ TABANI (yanıtında kullandığın parçayı [K1] gibi işaretle):\n"
+        f"{kb}\n\n"
+        if kb else ""
+    )
+    prompt = (
         f"{SYSTEM_PROMPT}\n\n"
-        "Kullanıcının sorularını kısa ve net Türkçe yanıtla.\n\n"
+        "Kullanıcının sorularını kısa ve net Türkçe yanıtla.\n"
+        "Bilgi tabanında yanıt yoksa bunu açıkça söyle, uydurma.\n\n"
+        f"{bilgi}"
         f"SİSTEM VERİSİ:\n{json.dumps(context, ensure_ascii=False)}\n\n"
         f"SORU: {message}"
     )
+    return prompt, sources
 
 
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
 def generate_decision(snapshot: dict) -> dict:
-    raw = _generate(_decision_user_content(snapshot))
+    user_content, sources = _decision_user_content(snapshot)
+    raw = _generate(user_content)
     try:
         m = re.search(r'\{.*\}', raw, re.DOTALL)
         if not m:
             raise ValueError("model çıktısında JSON bulunamadı")
         parsed = json.loads(m.group())
         parsed["engine"] = f"aqua-1b/{BACKEND}"
+        # Kaynaklar karara iliştirilir: gerekçedeki [K1] işaretleri arayüzde
+        # dokümana bağlanabilsin ve uydurulmuş alıntı tespit edilebilsin.
+        parsed["sources"] = sources
         return parsed
     except (json.JSONDecodeError, AttributeError, ValueError):
         return {
@@ -217,13 +275,14 @@ def generate_decision(snapshot: dict) -> dict:
             "status": "ok",
             "reasoning": raw[:500],
             "recommendations": [],
+            "sources": sources,
         }
 
 
 def generate_decision_stream(snapshot: dict):
     """Token-by-token generator for SSE streaming."""
     _load()
-    user_content = _decision_user_content(snapshot)
+    user_content, _sources = _decision_user_content(snapshot)
     if BACKEND == "mlx":
         from mlx_lm import stream_generate
         from mlx_lm.sample_utils import make_sampler
@@ -253,13 +312,14 @@ def generate_decision_stream(snapshot: dict):
 
 
 def generate_chat(message: str, context: dict) -> str:
-    return _generate(_chat_user_content(message, context), temp=0.7)
+    user_content, _sources = _chat_user_content(message, context)
+    return _generate(user_content, temp=0.7)
 
 
 def generate_chat_stream(message: str, context: dict):
     """Token-by-token generator for chat SSE streaming."""
     _load()
-    user_content = _chat_user_content(message, context)
+    user_content, _sources = _chat_user_content(message, context)
     if BACKEND == "mlx":
         from mlx_lm import stream_generate
         from mlx_lm.sample_utils import make_sampler

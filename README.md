@@ -1,120 +1,262 @@
-# S.U.R.E. — Otonom Mersin Balığı Refah İzleme Sistemi
+# S.U.R.E. — Autonomous Sturgeon Welfare Monitoring
 
-> **S**turgeon · **U**nified · **R**efah · **E**ngine
-> Kapalı Devre Balık Yetiştiriciliği (RAS) için bilgisayarlı görü + su kalitesi
-> sensörü + yerel LLM karar motorunu birleştiren gerçek zamanlı izleme prototipi.
-> _TEKNOFEST için geliştirilmiştir._
+Real-time welfare monitoring for recirculating aquaculture (RAS): computer
+vision, water-quality sensors and a locally hosted LLM behind a deterministic
+safety net.
+
+_Türkçe: [README.tr.md](README.tr.md)_
+
+[![CI](https://github.com/iroh19/sure/actions/workflows/ci.yml/badge.svg)](https://github.com/iroh19/sure/actions/workflows/ci.yml)
+
+| | |
+|---|---|
+| Detection | YOLOv11s · mAP50 **0.840** · precision **0.878** · recall 0.695 |
+| Dataset | 510 labelled images (412 train / 98 val), single class `sturgeon` |
+| Tests | 18 unit + 22 knowledge-base + 48 agent + 8-scenario eval — all gate CI |
+| Retrieval | pgvector · 8 docs / 44 chunks · MRR **0.856** · hit@1 **0.793** |
+| LLM | AQUA-1B (Gemma 3 1B) · LoRA domain adapter · fully on-prem |
 
 ---
 
-## Ne yapar?
+## The problem
 
-Bir tank kamerasından gelen görüntüde mersin balıklarını **YOLOv11 + ByteTrack**
-ile tespit ve takip eder; su kalitesi sensörlerini (çözünmüş oksijen, sıcaklık,
-pH, TDS) okur; bu verileri yerel çalışan **AQUA-1B** diline (RAS uzmanı,
-fine-tune edilmiş) vererek Türkçe refah kararı üretir. Kritik durumlarda
-(örn. oksijen < 6 mg/L) anlık uyarı verir. Tümü **React** tabanlı canlı bir
-dashboard'da gösterilir.
+Dissolved oxygen below 6 mg/L kills stock within hours. An LLM is genuinely
+useful here — it reasons over sensor data and fish behaviour together and
+explains itself in plain language — but **an LLM silently missing a
+safety-critical threshold is not acceptable**.
 
-## Mimari
+So the model proposes and a deterministic rule engine disposes. When the model
+says `ok` while `backend/rules.py` sees `critical`, severity is escalated and the
+rule engine's reason is appended. Malformed output fails safe. If the LLM service
+is down entirely, the decision still comes out of the rule engine.
+
+## Design decisions
+
+**The model never has the last word.** `rules.py` is the single source of truth
+and imports no FastAPI, pydantic or httpx, so the backend and the eval harness
+run the same code. Severity is only escalated, never lowered. The dashboard's
+critical-DO banner is computed straight from the sensor and never touches the LLM.
+
+**The eval measures production.** It used to carry its own copy of the rule
+logic, and the copy had drifted: on `fish_count == 0` the copy said `warning`
+while production said `ok` — green, and verifying nothing. The copy is gone.
+
+**Thresholds have one source.** They lived in three places (rule engine,
+knowledge base, system prompt), and hand-typed copies drift. The chain is now
+`SYSTEM_PROMPT <- knowledge/*.md <- backend/rules.py`, held by 22 tests that were
+mutation-checked: they fail on a changed bound, a changed severity and a deleted
+document.
+
+**Retrieval favours precision over recall**, and **tool routing is code rather
+than the model** — both measured, both below.
+
+---
+
+## Architecture
 
 ```
-vision-service ──POST /api/vision/ingest (metrikler ~15fps)──┐
-  (YOLOv11+ByteTrack) ─POST /api/vision/frame (JPEG)─────────┤
-                                                             ▼
-sensor (mock CSV) ──2s──────────────►  backend (FastAPI :8000)
-                                          │  Store(deque 300) + SQLite
-                                          │  GET /api/decision ─► llm-service :8001
-                                          ▼                        (AQUA-1B, mlx/HF)
-                                      frontend :5173 (React + Recharts)
+vision-service ──POST /api/vision/ingest (~15 fps)──┐
+  (YOLOv11 + ByteTrack)  ──POST /api/vision/frame───┤
+                                                    ▼
+sensor (mock CSV) ──2 s──────────► backend (FastAPI :8000)
+                                     │  Store(deque 300) + SQLite
+                                     │  GET /api/decision ─► llm-service :8001
+                                     ▼                       (AQUA-1B, mlx/HF)
+                                 frontend :5173 (React + Recharts)
 ```
 
-| Servis | Görev | Teknoloji |
-|--------|-------|-----------|
-| `backend` | API, durum birleştirme, kural motoru, SQLite geçmiş | FastAPI |
-| `llm-service` | Refah kararı + sohbet (SSE streaming) | AQUA-1B, mlx-lm / transformers |
-| `vision-service` | Balık tespit + takip | YOLOv11, ByteTrack, OpenCV |
-| `frontend` | Canlı dashboard | React 19, Vite, Tailwind, Recharts |
+| Service | Responsibility | Stack |
+|---|---|---|
+| `backend` | API, state fusion, rule engine, history | FastAPI |
+| `llm-service` | Decision + chat (SSE), RAG, agent tools | AQUA-1B, mlx-lm / transformers |
+| `vision-service` | Detection and tracking | YOLOv11, ByteTrack, OpenCV |
+| `frontend` | Live dashboard | React 19, Vite, Tailwind, Recharts |
+| `pgvector` | Knowledge-base vector store | PostgreSQL 17 + pgvector 0.8 |
 
-## Hızlı başlangıç (Mac / Apple Silicon — native)
+On a `v*.*.*` tag the CD pipeline runs the quality gate first, and only then
+builds and pushes to GHCR.
 
-> Docker Compose **yalnızca Linux + NVIDIA GPU** içindir. Apple Silicon'da
-> servisleri aşağıdaki gibi elle çalıştır.
+---
+
+## Retrieval
+
+Eight documents under `llm-service/knowledge/` (oxygen, temperature,
+pH/alkalinity, nitrogen cycle, TDS, behaviour, emergency procedures, decision
+logic) are indexed in pgvector. Evidence enters the prompt selected by whichever
+parameter deviates, the model cites `[K1]`, `[K2]`, and sources are attached to
+the decision so the UI can link back.
+
+`rag/bench.py` compares 2 embedding models × 4 chunking strategies over 29
+labelled queries. Metrics are document-level.
+
+| Model | Strategy | Chunks | hit@1 | hit@3 | MRR | Context words | |
+|---|---|--:|--:|--:|--:|--:|---|
+| e5-small | fixed-480w | 8 | 0.862 | 0.897 | 0.900 | 1646 | narrow space, over budget |
+| e5-small | fixed-240w | 16 | 0.759 | 1.000 | 0.868 | 922 | over budget |
+| **e5-small** | **heading** | **44** | **0.793** | **0.931** | **0.856** | **317** | **chosen** |
+| tr-bert | heading | 44 | 0.724 | 0.931 | 0.833 | 317 | |
+| tr-bert | fixed-480w | 8 | 0.414 | 0.828 | 0.614 | 1646 | narrow space |
+
+The top row was not chosen. `fixed-480w` produces one chunk per document, so at
+k=5 it returns 62% of the corpus and hit@5 = 1.000 is arithmetic, not skill. It
+also wants ~1646 words against a ~380-word prompt budget, so the measured score
+is unreachable in production. `bench.py` flags both traps.
+
+`e5-small` beats `tr-bert` under every strategy and the gap widens as chunks grow
+(MRR 0.833 → 0.614): e5 is trained for asymmetric retrieval with
+`query:`/`passage:` prefixes, while `tr-bert` is a sentence-similarity model and
+long passages fall outside its training distribution.
+
+**Threshold.** Bi-encoders return a nearest chunk for every query, including ones
+the corpus cannot answer. `rag/calibrate.py` compares 29 positives against 12
+hard negatives: positives score 0.841–0.892, negatives 0.813–0.847 — overlapping.
+
+| Threshold | Positives kept | Negatives passed | F1 |
+|---|--:|--:|--:|
+| 0.84 | 29/29 | 3/12 | 0.951 |
+| **0.85** | 24/29 | **0/12** | 0.906 |
+
+F1 picks 0.84; we ship 0.85. The errors are not symmetric — a missed document
+only weakens the reasoning and the rule engine still decides, while fabricated
+context presents wrong information with a citation attached.
+
+Retrieval is an enhancement, not a dependency: if pgvector is unreachable,
+`retrieve()` returns nothing and the system carries on.
 
 ```bash
-# 0. Python ortamı
-python3 -m venv venv && source venv/bin/activate
+cd llm-service
+python -m rag.ingest        # index the corpus
+python -m rag.bench         # model × strategy
+python -m rag.calibrate     # similarity threshold
+```
 
-# 1. LLM servisi (mlx, ilk açılışta modeli indirir)
-#    AQUA_ADAPTER_PATH → fine-tune adaptörü (Türkçe + alana-uyarlı yanıt)
+---
+
+## Agent
+
+`agent/tools.py` defines three read-only tools (sensor trend, fish activity,
+knowledge base) with JSON Schema validation and injected data access. No write
+tools — the model gathers evidence, the rule engine decides and alarms.
+
+`agent/loop.py` is a hand-written loop with a step budget, repetition detection,
+tool errors fed back as observations, and a wall clock independent of the step
+count. `generate` is injected, so 48 tests drive it with a scripted model and no
+LLM at all.
+
+`agent/bench_agent.py` then asked whether a real model can drive it:
+
+| Model | Format | Selection | Steps | Time |
+|---|--:|--:|--:|--:|
+| AQUA-1B (Gemma 3 1B) | 0% | 0% | 0.0 | 2.7 s |
+| AQUA-7B (Mistral, 4-bit) | 60% | 50% | 3.6 | 11.9 s |
+
+AQUA-1B never emits a parseable action — it echoes the instruction or copies the
+JSON template, and a prefill test produced identical output across four different
+scenarios. The 7B model holds the format more often but chose `get_sensor_trend`
+in **all five** scenarios: a constant answer, so its 50% is incidental.
+`bench_agent.py` reports that as `CONSTANT ANSWER` rather than letting the
+percentage flatter it.
+
+`agent/router.py` ships instead: routing is deterministic code, the model only
+narrates. Tools, validation and execution are shared with the loop; only the
+planner differs. `loop.py` stays in the tree — if a tool-capable model appears,
+the benchmark decides whether it earns its place.
+
+---
+
+## Verification
+
+```bash
+cd backend && python -m pytest test_decision.py -v      # 18 (1 skipped without torch)
+python -m pytest llm-service/test_knowledge.py -v       # 22
+python -m pytest llm-service/test_agent.py -v           # 48
+cd llm-service && python eval.py --rule-only            # 8 scenarios
+```
+
+All four run in CI and nothing is built or published unless they pass. `eval.py`
+exits `0` all passed, `1` a scenario failed, `2` model unavailable — in model
+mode it never silently falls back to the rule engine.
+
+One backend test imports `inference.py` and needs torch; it is skipped otherwise,
+so CI reports **17 passed, 1 skipped**. Installing ~800 MB of torch in CI for one
+test was a deliberate no.
+
+Vision metrics and training notes: [`MODEL_RAPORU.md`](MODEL_RAPORU.md) _(Turkish)_.
+
+---
+
+## Quick start (macOS / Apple Silicon)
+
+Docker Compose targets Linux + NVIDIA; on Apple Silicon run services natively.
+
+```bash
+brew install postgresql@17 pgvector && brew services start postgresql@17
+createdb sure_rag && psql -d sure_rag -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
 cd llm-service && pip install -r requirements.txt
+python -m rag.ingest
 AQUA_ADAPTER_PATH=./sure-aqua-adapter uvicorn main:app --port 8001
 
-# 2. Backend (yeni terminal)
-cd backend && pip install -r requirements.txt
-uvicorn main:app --port 8000
-
-# 3. Vision (yeni terminal) — demo videosuyla
-cd vision-service && pip install -r requirements.txt
-python yolo_runner.py --source ../data/demo.MOV
-
-# 4. Frontend (yeni terminal)
-cd frontend && npm install && npm run dev
-# → http://localhost:5173
+cd backend && pip install -r requirements.txt && uvicorn main:app --port 8000
+cd vision-service && pip install -r requirements.txt && python yolo_runner.py --source ../data/demo.MOV
+cd frontend && npm install && npm run dev        # http://localhost:5173
 ```
 
-## Testler
+Training and fine-tuning:
 
 ```bash
-cd backend && python -m pytest test_decision.py -v
-```
-Güvenlik-kritik kural motorunu doğrular (DO < 6 mg/L → "critical").
-
-## Model eğitimi
-
-Vision modeli (YOLOv11) kendi makinende eğitilir:
-
-```bash
-cd vision-service
-python train_sure.py     # 510 görsel (412 train / 98 val), 100 epoch, mps
-```
-Çıktı: `sure_models/sure_v1/weights/best.pt`. Production (`yolo_runner.py`) bu
-ağırlığa bağlıdır. Model başarım analizi ve eğitim notları için bkz.
-[`MODEL_RAPORU.md`](MODEL_RAPORU.md).
-
-## Büyük dosyalar (repoda yok)
-
-Videolar, dataset görselleri ve model ağırlıkları boyut nedeniyle git'e
-**dahil edilmez** (bkz. `.gitignore`). Bunları **GitHub Releases** veya bir
-bulut linkinden indir:
-
-- `data/balık_videolar/` — kaynak videolar → _Releases_
-- `data/sure_dataset/` — 510 etiketli görsel → _Releases / Drive_
-- `sure_models/*/weights/*.pt` — eğitilmiş ağırlıklar → _Releases_
-- `data/demo.MOV` — demo videosu → _Releases_
-
-> Base ağırlıklar (`yolo11n.pt`, `yolo11s.pt`) ultralytics'ten ilk eğitimde
-> otomatik iner; commit'lemeye gerek yok.
-
-## Proje yapısı
-
-```
-backend/         FastAPI API + kural motoru + SQLite + testler
-llm-service/     AQUA-1B çıkarım, SSE streaming, fine-tune, eval
-vision-service/  YOLO eğitim + ByteTrack runner
-frontend/        React dashboard
-data/            sensor_mock.csv + dataset yaml'ları (görseller hariç)
-sure_models/     eğitim çıktıları (ağırlıklar hariç)
-MODEL_RAPORU.md  model başarım analizi
-TODOS.md         ertelenen iyileştirmeler
+cd vision-service && python train_sure.py                    # YOLOv11s, 510 images
+cd llm-service && python finetune.py --output ./adapter-v2   # LoRA; MLX or PEFT by device
 ```
 
-## Bilinen sınırlamalar / yapılacaklar
+## Configuration
 
-Demo sonrası iyileştirmeler [`TODOS.md`](TODOS.md)'de listelidir
-(SQLite yazma yolu, MJPEG stream'e geçiş, CORS kısıtlama).
+| Variable | Default | Notes |
+|---|---|---|
+| `LLM_SERVICE_URL` | `http://localhost:8001` | |
+| `BACKEND_URL` | `http://localhost:8000` | agent tools read history from here |
+| `CORS_ORIGINS` | `*` | narrow for any public deployment |
+| `DB_PATH` | `backend/sure_history.db` | |
+| `AQUA_BASE_MODEL` | `KurmaAI/AQUA-1B` | the adapter was trained against 1B |
+| `AQUA_ADAPTER_PATH` | _(empty)_ | not loaded when empty |
+| `RAG_ENABLED` | `1` | `0` disables retrieval |
+| `RAG_DATABASE_URL` | `postgresql:///sure_rag` | |
+| `RAG_EMBED_MODEL` | `e5-small` | `e5-small` \| `tr-bert` |
+| `RAG_CHUNK_STRATEGY` | `heading` | see the benchmark |
+| `RAG_MIN_SIMILARITY` | `0.85` | recalibrate if the corpus changes |
 
-## Kapsam dışı
+## Layout
 
-Gerçek sensör donanımı entegrasyonu, kimlik doğrulama, çok-tank desteği,
-Telegram uyarısı — prototip kapsamı dışındadır.
+```
+backend/          FastAPI, SQLite, tests
+  rules.py        rule engine — single source of truth
+llm-service/
+  knowledge/      RAG corpus, 8 docs, thresholds in frontmatter
+  rag/            chunking, embedding, pgvector, benchmark, calibration
+  agent/          tools, loop, deterministic router, model benchmark
+vision-service/   YOLO training + ByteTrack runner
+frontend/         React dashboard
+```
+
+Videos, dataset images and weights are excluded from git (see `.gitignore`) and
+published via GitHub Releases.
+
+Strings the model reads — the knowledge base, tool descriptions, prompts and
+error messages — are Turkish, because the product answers in Turkish. Code,
+comments and commits are English.
+
+## Known limitations
+
+- **Vision recall 0.695** — roughly 30% of fish missed in dense frames. The fix
+  is a larger dataset and retraining at `imgsz` 960/1280.
+- **AQUA-1B has never been run through the eval in model mode**; `--rule-only`
+  verifies the rule engine, not the model.
+- **The LoRA adapter may still be the 8-sample v1**; v2 (128 samples) is pending.
+- **The dashboard does not render `sources` yet** — citations reach
+  `/api/decision` but are not displayed.
+
+Out of scope: real sensor hardware, authentication, multi-tank, alerting.
+
+---
+
+_Built for the TEKNOFEST Agricultural Technologies competition._
