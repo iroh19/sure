@@ -1,54 +1,85 @@
 # S.U.R.E. — TODOS
 
-Demo (TEKNOFEST) için bilinçli ertelenen işler. Her madde `/plan-eng-review`
-(2026-06-05) sırasında tartışıldı ve demo sonrasına bırakıldı.
+Ertelenen işler. Kapatılanlar en altta arşivde.
 
 ---
 
-## 1. SQLite yazma yolunu right-size et  (P2)
+## Açık
 
-**Ne:** Backend her ~15fps vision frame'ini async handler içinde senkron `sqlite3`
-ile, her yazmada yeni bir bağlantı açarak yazıyor; tablolar sınırsız büyüyor.
+### 1. Vision recall'ını yükselt (P2)
 
-**Neden:** Senkron disk I/O event loop'u bloklar → uzun demoda frame ingest,
-karar çağrıları ve MJPEG stream birlikte takılır. DB dosyası da sürekli şişer.
+**Ne:** `sure_v1` recall ~0.695 — yoğun/örtüşen karelerde balıkların ~%30'u
+kaçırılıyor. `NMS time limit exceeded` uyarıları bunu doğruluyor.
+
+**Çözüm yönü:** yoğun karelerde etiket gözden geçirme + `imgsz` 960/1280 ile
+yeniden eğitim, ya da demo için inference'ta `conf` düşürüp `max_det` artırma.
+En etkili adım veri setini büyütmek.
+
+**Dosyalar:** `vision-service/train_sure.py`, `vision-service/yolo_runner.py`.
+**Bağımlılık:** Yok. Ayrıntı: [`MODEL_RAPORU.md`](MODEL_RAPORU.md).
+
+### 2. AQUA-1B'yi gerçek modelle eval'den geçir (P1 — tez öncesi)
+
+**Ne:** `llm-service/eval.py` artık üretim kural motorunu doğru şekilde test
+ediyor, ama **model modunda hiç çalıştırılmadı**. `--rule-only` sonucu kural
+motorunu doğrular, modeli değil.
+
+**Neden:** Tez savunmasında "model ne kadar iyi?" sorusunun sayısal yanıtı
+ancak model modunda çalıştırınca oluşur.
 
 **Çözüm:**
-- Vision'ı her frame yerine ~1Hz yaz (canlı veri zaten `Store.deque`'da, maxlen 300).
-- Modül düzeyinde tek SQLite bağlantısı kullan (bağlantı-per-yazma yerine).
-- Periyodik prune veya satır cap (ör. son 10k kayıt) ekle.
+```bash
+cd llm-service
+AQUA_ADAPTER_PATH=./sure-aqua-adapter python3 eval.py
+```
+8/8 beklenmiyor; model ile kural motorunun ayrıştığı senaryolar raporun
+sonunda listelenir. Canlıda kural motoru override eder, yani ayrışma
+tehlikeli değil — ama bilinmesi gerekir.
 
-**Dosyalar:** `backend/main.py` → `Store.push_vision`, `push_sensor`, `db_insert_*`.
-**Bağımlılık:** Yok. Demo'da risk düşük olduğu için ertelendi.
+**Dosyalar:** `llm-service/eval.py`.
+**Bağımlılık:** Model + adaptörün indirilmiş olması.
 
-## 2. MJPEG frame dedup'ını sayaca çevir  (P2)
+### 3. Adaptörü v2 veriyle yeniden eğit (P2)
 
-**Ne:** `backend/main.py:384` MJPEG stream'inde yeni frame tespiti `id(jpeg)` ile
-yapılıyor. Python GC sonrası nesne id'sini geri kullanabilir → yeni bir frame eski
-bir id ile çakışıp atlanabilir.
+**Ne:** `llm-service/sure-aqua-adapter/` büyük olasılıkla 8 örneklik v1 ile
+eğitildi (`finetune.py` varsayılanı o zaman v1'di). Varsayılan artık
+`sure_finetune_data_v2.jsonl` (128 örnek) ama adaptör yeniden eğitilmedi.
 
-**Çözüm:** `Store`'a monotonik `frame_seq` sayacı ekle, dedup'ı ona göre yap.
-**Dosyalar:** `backend/main.py` → `Store.push_frame`, `vision_stream`.
-**Bağımlılık:** Madde 3'ün ön koşulu.
+**Çözüm:** `cd llm-service && python3 finetune.py --output ./sure-aqua-adapter-v2`
+Sonra eval'i iki adaptörle karşılaştır, iyi olanı kullan.
 
-## 3. Frontend'i MJPEG stream'e geçir  (P2)
+**Dosyalar:** `llm-service/finetune.py`, `llm-service/sure_finetune_data_v2.jsonl`.
+**Bağımlılık:** Madde 2 (ölçüm olmadan karşılaştırma anlamsız).
 
-**Ne:** `LiveFeedPanel` şu an `/api/vision/frame.jpg`'i 250ms'de bir poll ediyor
-(incelemede 100ms'den düşürüldü). Backend'de zaten kullanılmayan bir MJPEG push
-stream var (`/api/vision/stream`).
+### 4. Frontend bundle'ını böl (P3)
 
-**Çözüm:** `<img src>`'i `/api/vision/stream`'e bağla → polling tamamen biter,
-sunucu frame'leri push eder. Önce Madde 2 (id dedup) düzeltilmeli.
-**Dosyalar:** `frontend/src/App.jsx` → `LiveFeedPanel`.
-**Bağımlılık:** Madde 2.
+**Ne:** `dist/assets/index-*.js` 577 KB (gzip 173 KB) — recharts + lucide tek
+chunk'ta. Vite 500 KB uyarısı veriyor.
 
-## 4. CORS'u kısıtla  (P3)
+**Çözüm:** Recharts'ı `React.lazy` ile grafik paneline böl.
+**Dosyalar:** `frontend/src/App.jsx`, `frontend/vite.config.js`.
+**Bağımlılık:** Yok. Kapalı ağ demosunda etkisi yok.
 
-**Ne:** `backend/main.py:315` `allow_origins=["*"]` — tüm originlere açık.
+### 5. Production'da CORS'u kısıtla (P3)
 
-**Neden:** Kapalı ağ demosunda kabul edilebilir; internete açık bir deployment'ta
-güvenlik açığı.
+**Ne:** `CORS_ORIGINS` ortam değişkeni eklendi ama varsayılan hâlâ `*`
+(kapalı ağ demosu için bilinçli). Backend açılışta bunu log'luyor.
 
-**Çözüm:** Production'da `allow_origins`'i frontend origin'iyle sınırla.
+**Çözüm:** İnternete açık bir deployment'ta
+`CORS_ORIGINS="https://sure.example.com"` ver.
 **Dosyalar:** `backend/main.py`.
-**Bağımlılık:** Yok. Sadece production deployment öncesi gerekli.
+**Bağımlılık:** Yok. Sadece public deployment öncesi.
+
+---
+
+## Kapatıldı (2026-08-24 `/autoplan` incelemesi)
+
+| # | İş | Nasıl kapatıldı |
+|---|----|-----------------|
+| ~~1~~ | SQLite yazma yolunu right-size et | Tek paylaşılan bağlantı + WAL + `DB_ROW_CAP` prune + vision ~1Hz (`VISION_DB_INTERVAL`) + kapanışta `db_close()` |
+| ~~2~~ | MJPEG frame dedup'ını sayaca çevir | `Store.frame_seq` monotonik sayaç; `id(jpeg)` karşılaştırması kaldırıldı |
+| ~~3~~ | Frontend'i MJPEG stream'e geçir | `LiveFeedPanel` artık `/api/vision/stream`'e bağlı; 250ms polling kaldırıldı, kopunca 2sn'de yeniden bağlanır |
+| ~~4~~ | CORS'u kısıtla | `CORS_ORIGINS` env eklendi (yukarıda madde 5 olarak izleniyor) |
+
+Aynı incelemede kapatılan diğer bulgular için [`PLAN.md`](PLAN.md) →
+"İnceleme bulguları" bölümüne bak.

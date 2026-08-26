@@ -16,6 +16,8 @@ const HISTORY_URL = '/api/history'
 const STATE_URL   = '/api/state'
 const DECISION_URL= '/api/decision'
 const DECISION_MS = 8000   // karar motoru daha az sıklıkta çağrılır
+// 8sn'de bir karar → 450 karar ≈ 1 saat. Şerit 60 kare gösterir, sayım tümünü kullanır.
+const DECISION_HISTORY_MAX = 500
 
 // ─── yardımcı ────────────────────────────────────────────────────────────────
 const fmtTime = iso => {
@@ -48,6 +50,8 @@ function useDismissable(resetMs = 30000) {
 function CriticalAlertBanner({ do: doValue, onDismiss }) {
   return (
     <div className="relative mb-4 rounded-xl overflow-hidden border-2 border-red-500"
+         role="alert"
+         aria-live="assertive"
          style={{ boxShadow: '0 0 32px rgba(239,68,68,0.5), inset 0 0 20px rgba(239,68,68,0.08)' }}>
       <div className="absolute inset-0 bg-red-500/10 animate-pulse pointer-events-none" />
       <div className="relative flex items-center gap-3 px-4 py-3">
@@ -182,7 +186,8 @@ function DecisionPanel({ decision, loading }) {
   const bgClass   = { ok: 'rgba(52,211,153,0.05)', warning: 'rgba(251,191,36,0.05)', critical: 'rgba(239,68,68,0.07)' }
 
   if (loading && !decision) return (
-    <div className="neon-card glow-border p-4 flex items-center gap-3 text-slate-500">
+    <div className="neon-card glow-border p-4 flex items-center gap-3 text-slate-500"
+         role="status" aria-live="polite" aria-busy="true">
       <Brain size={16} className="text-violet-400 animate-pulse" />
       <span className="text-xs tracking-wider">AQUA LLM ANALİZ EDİYOR…</span>
       <span className="flex gap-1 ml-auto">
@@ -237,22 +242,21 @@ function DecisionPanel({ decision, loading }) {
 // ─── Canlı Kamera Feed Paneli ──────────────────────────────────────────────────
 function LiveFeedPanel({ visionState }) {
   const [hasStream, setHasStream] = useState(false)
-  const [frameTs, setFrameTs]     = useState(Date.now())
-  const [frameId, setFrameId]     = useState(0)
+  // MJPEG bağlantısı koparsa <img>'i yeni bir key ile yeniden kurmak için.
+  const [streamKey, setStreamKey] = useState(0)
   const imgRef = useRef(null)
 
-  // 250ms polling (~4fps) — 100ms (10 istek/sn) zayıf donanımı yoruyordu;
-  // 4fps canlı his için yeterli, ağ/CPU yükünü ~%60 azaltır.
-  useEffect(() => {
-    const id = setInterval(() => setFrameTs(Date.now()), 250)
-    return () => clearInterval(id)
+  // Polling yok: backend multipart/x-mixed-replace ile frame'leri PUSH eder,
+  // tarayıcı tek bir bağlantıyı açık tutup <img>'i kendisi günceller.
+  // (Eskiden 250ms'de bir /api/vision/frame.jpg isteniyordu.)
+  const handleStreamError = useCallback(() => {
+    setHasStream(false)
+    // 2sn sonra yeniden bağlan — vision servisi geç açılmış olabilir.
+    setTimeout(() => setStreamKey(k => k + 1), 2000)
   }, [])
 
-  // vision state değişince frame'i zorla yenile
-  useEffect(() => {
-    if (visionState?.frame_id) setFrameId(visionState.frame_id)
-  }, [visionState?.frame_id])
-
+  // Türetilmiş değer — ayrı state + effect gerekmiyordu (cascading render üretiyordu).
+  const frameId   = visionState?.frame_id ?? 0
   const tracks    = visionState?.tracks ?? []
   const fishCount = visionState?.fish_count ?? 0
   const activity  = visionState?.avg_activity ?? 0
@@ -276,15 +280,16 @@ function LiveFeedPanel({ visionState }) {
 
       {/* Frame alanı */}
       <div className="relative bg-black" style={{ minHeight: 220 }}>
-        {/* Backend'den gelen annotated JPEG — her frameTs değişiminde cache-bust */}
+        {/* Backend MJPEG push stream — tarayıcı bağlantıyı açık tutar */}
         <img
+          key={streamKey}
           ref={imgRef}
-          src={`/api/vision/frame.jpg?t=${frameTs}`}
-          alt="live feed"
+          src="/api/vision/stream"
+          alt="Tank kamerası canlı görüntüsü, YOLO tespit kutularıyla işaretlenmiş"
           className="w-full object-contain"
           style={{ maxHeight: 300, display: hasStream ? 'block' : 'none' }}
           onLoad={() => setHasStream(true)}
-          onError={() => setHasStream(false)}
+          onError={handleStreamError}
         />
 
         {/* Vision servisi başlamadıysa animasyonlu tank simülasyonu */}
@@ -463,20 +468,64 @@ function MockTankCanvas({ tracks }) {
 }
 
 // ─── Karar Geçmişi Zaman Şeridi ───────────────────────────────────────────────
+const TIMELINE_SQUARES = 60   // ~8 dk canlı (DECISION_MS=8sn) + DB'den gelen geçmiş
+
 function DecisionTimeline({ history }) {
   const colorMap = { ok: 'bg-emerald-500', warning: 'bg-amber-500', critical: 'bg-red-500' }
+  const shown = history.slice(-TIMELINE_SQUARES)
+
+  // "Son 1 saatte kaç uyarı aldım?" — şeridin kendisi 60 kare gösteriyor ama
+  // sayım tüm geçmiş üzerinden, gerçek 1 saatlik pencereyle yapılır.
+  // Referans zaman olarak wall-clock yerine EN SON kararın zamanı kullanılır:
+  // render saf kalır (Date.now() render sırasında impure sayılır) ve backend
+  // sustuğunda sayaç eski pencereyi saymaya devam etmez.
+  const newest = history.length ? Date.parse(history[history.length - 1].timestamp) : NaN
+  const hourAgo = Number.isFinite(newest) ? newest - 3600_000 : NaN
+  const lastHour = Number.isFinite(hourAgo)
+    ? history.filter(d => {
+        const t = Date.parse(d.timestamp)
+        return Number.isFinite(t) && t >= hourAgo
+      })
+    : []
+  const warnings  = lastHour.filter(d => d.status === 'warning').length
+  const criticals = lastHour.filter(d => d.status === 'critical').length
+
+  const span = shown.length > 1
+    ? `${fmtTime(shown[0].timestamp)} – ${fmtTime(shown[shown.length - 1].timestamp)}`
+    : null
+
   return (
-    <div className="flex items-center gap-1" title="Son 20 karar geçmişi">
-      {history.length === 0
-        ? <span className="text-[9px] text-slate-700 tracking-widest">— karar bekleniyor —</span>
-        : history.slice(-20).map((status, i) => (
-            <span
-              key={i}
-              className={`w-2.5 h-2.5 rounded-sm shrink-0 ${colorMap[status] ?? 'bg-slate-600'}`}
-              title={status}
-            />
-          ))
-      }
+    <div className="flex items-center gap-3 min-w-0">
+      <div
+        className="flex items-center gap-1 min-w-0 overflow-hidden"
+        role="img"
+        aria-label={
+          history.length === 0
+            ? 'Karar geçmişi boş, ilk karar bekleniyor'
+            : `Son ${shown.length} karar. Son 1 saatte ${criticals} kritik, ${warnings} uyarı.`
+        }
+        title={span ? `Gösterilen aralık: ${span}` : 'Son kararlar'}
+      >
+        {shown.length === 0
+          ? <span className="text-[9px] text-slate-700 tracking-widest">— karar bekleniyor —</span>
+          : shown.map((d, i) => (
+              <span
+                key={`${d.timestamp}-${i}`}
+                className={`w-2.5 h-2.5 rounded-sm shrink-0 ${colorMap[d.status] ?? 'bg-slate-600'}`}
+                title={`${fmtTime(d.timestamp)} — ${d.status}`}
+              />
+            ))
+        }
+      </div>
+
+      {lastHour.length > 0 && (
+        <span className="text-[9px] font-mono tracking-wider text-slate-600 shrink-0 whitespace-nowrap">
+          son 1s:{' '}
+          <span className={criticals ? 'text-red-400' : 'text-slate-600'}>{criticals} kritik</span>
+          {' · '}
+          <span className={warnings ? 'text-amber-400' : 'text-slate-600'}>{warnings} uyarı</span>
+        </span>
+      )}
     </div>
   )
 }
@@ -490,14 +539,16 @@ function ChatBar() {
   const [loading, setLoading] = useState(false)
   const [streaming, setStreaming] = useState('')  // aktif stream token buffer
   const bottomRef = useRef(null)
-  const esRef = useRef(null)
+  const abortRef  = useRef(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streaming])
 
-  // Bileşen unmount olunca EventSource kapat
-  useEffect(() => () => esRef.current?.close(), [])
+  // Unmount olunca uçuşan stream isteğini iptal et.
+  // (Burada EventSource yok: /api/chat/stream POST olduğu için fetch + reader
+  // kullanılıyor; eski `esRef` hiçbir zaman atanmıyordu, ölü koddu.)
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   const send = async () => {
     const msg = input.trim()
@@ -509,10 +560,14 @@ function ChatBar() {
 
     try {
       // SSE stream ile token alımı
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
       const res = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg }),
+        signal: controller.signal,
       })
 
       if (!res.ok || !res.body) throw new Error(res.statusText)
@@ -654,20 +709,32 @@ export default function App() {
     try {
       const d = await fetch(DECISION_URL).then(r => r.json())
       setDecision(d)
-      if (d.status) setDecisionHistory(prev => [...prev.slice(-19), d.status])
+      if (d.status) {
+        setDecisionHistory(prev => [
+          ...prev.slice(-(DECISION_HISTORY_MAX - 1)),
+          { status: d.status, timestamp: d.timestamp ?? new Date().toISOString() },
+        ])
+      }
     } catch { /* ignore */ }
     finally { setDecisionLoading(false) }
   }, [])
 
   useEffect(() => {
     // Uygulama başladığında DB'den önceki karar geçmişini yükle
-    fetch('/api/decision/history?limit=20')
+    // 1 saatlik özet için şeritte görünenden daha derin geçmiş çekilir.
+    fetch(`/api/decision/history?limit=${DECISION_HISTORY_MAX}`)
       .then(r => r.json())
-      .then(rows => setDecisionHistory(rows.map(r => r.status).filter(Boolean)))
+      .then(rows => setDecisionHistory(
+        rows.filter(r => r.status).map(r => ({ status: r.status, timestamp: r.timestamp }))
+      ))
       .catch(() => {})
 
-    fetchHistory()
-    fetchDecision()
+    // fetchDecision ilk satırında setDecisionLoading(true) çağırıyor; async
+    // gövde ilk await'e kadar SENKRON çalıştığı için bunu doğrudan effect
+    // içinden çağırmak mount sırasında zincirleme render tetikliyordu.
+    // Mikrotask'a alınca ilk render tamamlanmış oluyor.
+    queueMicrotask(fetchHistory)
+    queueMicrotask(fetchDecision)
     const histTimer = setInterval(fetchHistory, POLL_MS)
     const decTimer  = setInterval(fetchDecision, DECISION_MS)
     return () => { clearInterval(histTimer); clearInterval(decTimer) }
@@ -724,7 +791,10 @@ export default function App() {
         {/* Sağ: saat + bağlantı */}
         <div className="flex items-center gap-3">
           <LiveClock />
-          <div className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-full border tracking-wider ${
+          <div role="status"
+               aria-live="polite"
+               aria-label={connected ? 'Backend bağlantısı aktif' : 'Backend bağlantısı kesik'}
+               className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-full border tracking-wider ${
             connected
               ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/25'
               : 'text-red-400 bg-red-500/8 border-red-500/25'
@@ -737,7 +807,7 @@ export default function App() {
 
       {/* ─── Karar geçmişi şeridi ─── */}
       <div className="flex items-center gap-3 mb-3 px-1">
-        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-700 shrink-0">Karar Geçmişi</span>
+        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-700 shrink-0" id="karar-gecmisi-label">Karar Geçmişi</span>
         <DecisionTimeline history={decisionHistory} />
       </div>
 
