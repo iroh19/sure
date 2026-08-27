@@ -178,3 +178,22 @@ def test_generate_decision_handles_malformed_output(monkeypatch):
     out = inference.generate_decision({"sensor": None, "vision": None})
     assert "status" in out and "engine" in out
     assert out["status"] == "ok"  # ayrıştırılamayınca güvenli varsayılan
+    # Bu 'ok' modelin kararı değil. engine ve status başarı yoluyla birebir aynı
+    # olduğu için tek ayırt edici işaret bu.
+    assert out["parsed"] is False
+
+
+def test_generate_decision_marks_parsed_output(monkeypatch):
+    """Model geçerli JSON döndüğünde karar `parsed: True` taşır."""
+    pytest.importorskip("torch")
+    import importlib
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "llm-service"))
+    inference = importlib.import_module("inference")
+
+    monkeypatch.setattr(inference, "_generate",
+                        lambda *a, **k: '{"status": "warning", "reasoning": "test"}')
+    out = inference.generate_decision({"sensor": None, "vision": None})
+    assert out["status"] == "warning"
+    assert out["parsed"] is True

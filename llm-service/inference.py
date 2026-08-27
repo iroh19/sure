@@ -268,14 +268,20 @@ def generate_decision(snapshot: dict) -> dict:
         # Kaynaklar karara iliştirilir: gerekçedeki [K1] işaretleri arayüzde
         # dokümana bağlanabilsin ve uydurulmuş alıntı tespit edilebilsin.
         parsed["sources"] = sources
+        parsed["parsed"] = True
         return parsed
     except (json.JSONDecodeError, AttributeError, ValueError):
+        # `parsed: False` olmadan bu dal, modelin gerçekten "ok" demesinden
+        # ayırt edilemiyordu: aynı engine, aynı status alanı. Aşağı akıştaki
+        # hiçbir tüketici -- eval, backend, arayüz -- farkı göremiyordu, ve
+        # ölçüm bunu görmek için ayrı bir harness yazmak zorunda kalıyordu.
         return {
             "engine": f"aqua-1b/{BACKEND}",
             "status": "ok",
             "reasoning": raw[:500],
             "recommendations": [],
             "sources": sources,
+            "parsed": False,
         }
 
 

@@ -357,6 +357,7 @@ python -m pytest llm-service/test_knowledge.py -v       # 22
 python -m pytest llm-service/test_agent.py -v           # 48
 python -m pytest twin_bridge -v                         # 19
 cd llm-service && python eval.py --rule-only            # 8 scenarios
+AQUA_ADAPTER_PATH=... python eval.py --repeat 3         # model mode, 3 draws
 ```
 
 All four run in CI and nothing is built or published unless they pass. `eval.py`
@@ -405,6 +406,7 @@ cd llm-service && python finetune.py --output ./adapter-v2   # LoRA; MLX or PEFT
 | `DB_PATH` | `backend/sure_history.db` | |
 | `AQUA_BASE_MODEL` | `KurmaAI/AQUA-1B` | the adapter was trained against 1B |
 | `AQUA_ADAPTER_PATH` | _(empty)_ | not loaded when empty |
+| `AQUA_TEMPERATURE` | `0.3` | **the decision path samples.** Same snapshot, different severity between runs — set `0` to measure |
 | `RAG_ENABLED` | `1` | `0` disables retrieval |
 | `RAG_DATABASE_URL` | `postgresql:///sure_rag` | |
 | `RAG_EMBED_MODEL` | `e5-small` | `e5-small` \| `tr-bert` |
