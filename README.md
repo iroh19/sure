@@ -14,13 +14,55 @@ in the browser; the sensors, detections, decisions and citations were all
 produced by the real components and the page says so on its face. To run the
 system for real: [![Open in Codespaces](https://img.shields.io/badge/Codespaces-open-24292e?logo=github)](https://codespaces.new/iroh19/sure)
 
+**[Read the paper →](research/SURE-paper.pdf)** — 32 pages on the dual-layer
+architecture, and [how it was researched](research/SURE-research-process.pdf)
+_([Türkçe](research/SURE-arastirma-sureci.pdf))_. Everything behind it — eleven
+experiments, raw logs, independent verification — is in [`research/`](research/).
+
 | | |
 |---|---|
-| Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
+| Detection | YOLOv11s · mAP50 **0.840** |
+| Operating point | `conf=0.20` → precision **0.720** · recall **0.782** · F1 **0.750** |
 | Dataset | 510 labelled images (412 train / 98 val), single class `sturgeon` |
 | Tests | 18 unit + 22 knowledge-base + 48 agent + 32 MLOps + 8-scenario eval — all gate CI |
 | Retrieval | pgvector · 8 docs / 44 chunks · MRR **0.856** · hit@1 **0.793** |
 | LLM | AQUA-1B (Gemma 3 1B) · LoRA domain adapter · fully on-prem |
+
+---
+
+## The paper
+
+[**`research/SURE-paper.pdf`**](research/SURE-paper.pdf) · 32 pages · 56 references · 5 figures
+
+The architecture below is written up as an academic manuscript, produced with
+[pAI/MSc](https://dspace.mit.edu/handle/1721.1/165377) — an agentic research
+pipeline from MIT — with us on the loop. The long-form account of how that
+worked is [`SURE-research-process.pdf`](research/SURE-research-process.pdf).
+
+Writing it meant running eleven experiments against this codebase, and three of
+them contradicted what this README used to say:
+
+- **The rule engine rarely corrects the model.** It caught a genuine LLM
+  under-call in 1 case out of 8. In 4 of 8 it defaulted safe because the model's
+  output would not parse at all. The dominant safety mechanism is fail-safe
+  defaulting, not error correction — and 6 of 8 reasoning strings fabricated
+  sensor values that were never in the input, invisible to output-only checks.
+- **The dual-layer design is not novel.** The adversarial literature pass
+  classified it as the Safety Instrumented Systems pattern (IEC 61508/61511).
+  The paper reframes the contribution around cross-layer consistency instead.
+- **The recall we quoted is not the recall we run at.** The `conf=0.20` we
+  actually ship gives recall 0.782 / precision 0.720. The 0.859 / 0.719 pair in
+  `MODEL_RAPORU.md` is the F1-argmax optimum — correct, but a different question.
+
+The whole trail is committed in [`research/`](research/): LaTeX source, the
+eleven experiments with raw logs and scripts, the independent verification that
+recomputed every headline number, and the full pipeline record.
+
+> **Scope.** S.U.R.E. has never run in a live aquaculture facility. No physical
+> sensor hardware exists, and every sensor reading in every experiment is
+> synthetically generated. The 510-image dataset is real footage of the rig,
+> hand-labelled, but intentionally small. The contribution is a feasibility and
+> resource-management demonstration, not a field validation.
 
 ---
 
@@ -370,6 +412,8 @@ llm-service/
   agent/          tools, loop, deterministic router, model benchmark
 vision-service/   YOLO training + ByteTrack runner
 frontend/         React dashboard
+twin_bridge/      Modbus client for the digital twin + two-engine comparison
+research/         the paper, its LaTeX source, and the full research record
 ```
 
 Videos, dataset images and weights are excluded from git (see `.gitignore`) and
@@ -381,8 +425,17 @@ comments and commits are English.
 
 ## Known limitations
 
-- **Vision recall 0.719** — roughly 28% of fish missed in dense frames. The fix
-  is a larger dataset and retraining at `imgsz` 960/1280.
+- **Vision recall 0.782 at the threshold we ship** (`conf=0.20`), against a
+  precision of 0.720. The 0.859 / 0.719 pair quoted in `MODEL_RAPORU.md` is the
+  F1-argmax optimum and answers a different question. The fix for both is a
+  larger dataset and retraining at `imgsz` 960/1280.
+- **The validation set contains no sparse frames** (1–2 fish) — an untested
+  regime, quantified in the paper.
+- **32 near-duplicate frame pairs** between train and val, found by perceptual
+  hash. Enumerated, not yet folded into a corrected headline metric.
+- **A superseded figure is live in the RAG corpus** —
+  `llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58` still states
+  recall ~0.695 and is ingested into the vector store.
 - **TensorRT rows are unmeasured** — no CUDA device available yet.
 - **AQUA-1B has never been run through the eval in model mode**; `--rule-only`
   verifies the rule engine, not the model.
