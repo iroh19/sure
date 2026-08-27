@@ -77,3 +77,4 @@ _to_delete/
 
 # Arkadaşın dijital ikiz projesi — ayrı depo, buraya dahil değil
 ras-digital-twin-main/
+.gstack/
