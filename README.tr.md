@@ -356,6 +356,7 @@ python -m pytest llm-service/test_knowledge.py -v       # 22
 python -m pytest llm-service/test_agent.py -v           # 48
 python -m pytest twin_bridge -v                         # 19
 cd llm-service && python eval.py --rule-only            # 8 senaryo
+AQUA_ADAPTER_PATH=... python eval.py --repeat 3         # model modu, 3 çekiliş
 ```
 
 Dördü de CI'da çalışıyor ve geçmeden hiçbir imaj build edilmiyor. `eval.py`
@@ -404,6 +405,7 @@ cd llm-service && python finetune.py --output ./adapter-v2   # LoRA; cihaza gör
 | `DB_PATH` | `backend/sure_history.db` | |
 | `AQUA_BASE_MODEL` | `KurmaAI/AQUA-1B` | adaptör 1B tabana göre eğitildi |
 | `AQUA_ADAPTER_PATH` | _(boş)_ | boşsa yüklenmez |
+| `AQUA_TEMPERATURE` | `0.3` | **karar yolu örnekleme yapıyor.** Aynı snapshot, koşular arasında farklı severity — ölçüm için `0` ver |
 | `RAG_ENABLED` | `1` | `0` retrieval'ı kapatır |
 | `RAG_DATABASE_URL` | `postgresql:///sure_rag` | |
 | `RAG_EMBED_MODEL` | `e5-small` | `e5-small` \| `tr-bert` |

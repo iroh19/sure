@@ -361,14 +361,18 @@ def parse_decision_text(raw: str) -> dict:
             parsed = json.loads(m.group())
             if isinstance(parsed, dict):
                 parsed.setdefault("engine", "aqua-1b/stream")
+                parsed["parsed"] = True
                 return parsed
         except json.JSONDecodeError:
             pass
+    # inference.generate_decision ile aynı işaret: bu 'ok' modelin kararı değil.
+    # İki yol ayrışmamalı, kör noktaları da ayrışmamalı.
     return {
         "engine": "aqua-1b/stream",
         "status": "ok",
         "reasoning": raw.strip()[:500],
         "recommendations": [],
+        "parsed": False,
     }
 
 

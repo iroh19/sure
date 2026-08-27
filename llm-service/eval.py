@@ -104,13 +104,20 @@ def load_model():
     return inference
 
 
-def model_status(inference, sc: dict) -> str:
+def model_status(inference, sc: dict) -> tuple[str, bool]:
+    """(status, parsed) döndürür.
+
+    `parsed` olmadan bu fonksiyon modelin kararıyla, çıktısı ayrıştırılamadığı
+    için düşülen güvenli varsayılanı aynı şey sanıyordu — ikisi de 'ok' ve ikisi
+    de aynı engine. Yani skor, kısmen modeli değil fallback'i ölçüyordu.
+    """
     snapshot = {"sensor": sc["sensor"], "vision": sc["vision"], "safe_ranges": rules.SAFE}
-    return inference.generate_decision(snapshot).get("status", "?")
+    out = inference.generate_decision(snapshot)
+    return out.get("status", "?"), bool(out.get("parsed", False))
 
 
 # ─── Eval runner ──────────────────────────────────────────────────────────────
-def run_eval(rule_only: bool = False) -> int:
+def run_eval(rule_only: bool = False, repeat: int = 1) -> int:
     inference = None
     if not rule_only:
         try:
@@ -128,17 +135,37 @@ def run_eval(rule_only: bool = False) -> int:
     print("S.U.R.E. Eval — 8 Senaryo")
     print(f"Mod: {mode}")
     print(f"Motor kaynağı: backend/rules.py (üretimle aynı)")
+    if not rule_only:
+        import inference as _inf
+        print(f"Sıcaklık: {_inf.TEMPERATURE}  ·  tekrar: {repeat}")
+        if _inf.TEMPERATURE > 0 and repeat == 1:
+            print("UYARI: karar yolu örnekleme yapıyor, bu tek bir çekiliş.")
+            print("       Ölçüm istiyorsan --repeat N ver ya da AQUA_TEMPERATURE=0 kur.")
     print(f"{'='*68}\n")
 
     failures = []
     disagreements = []
+    unparsed = []
+    unstable = []
 
     for sc in SCENARIOS:
         rule = rule_status(sc)
         if rule_only:
             pred, source = rule, "rule"
         else:
-            pred, source = model_status(inference, sc), "aqua-1b"
+            draws = [model_status(inference, sc) for _ in range(repeat)]
+            statuses = [d[0] for d in draws]
+            n_unparsed = sum(1 for d in draws if not d[1])
+            # Çoğunluk değil en kötü durum: bir senaryo bazen 'ok' bazen
+            # 'critical' diyorsa, raporlanacak olan modelin ıskaladığı hâldir.
+            pred = min(statuses, key=lambda st: rules.SEVERITY.get(st, 0)) \
+                if len(set(statuses)) > 1 else statuses[0]
+            source = "aqua-1b" if n_unparsed == 0 else (
+                f"aqua-1b → AYRIŞTIRILAMADI ({n_unparsed}/{repeat}), güvenli varsayılan")
+            if n_unparsed:
+                unparsed.append(f"{sc['id']}({n_unparsed}/{repeat})")
+            if len(set(statuses)) > 1:
+                unstable.append((sc["id"], sorted(set(statuses))))
             if pred != rule:
                 disagreements.append((sc["id"], pred, rule))
 
@@ -167,6 +194,16 @@ def run_eval(rule_only: bool = False) -> int:
         print(f"\nModel ile kural motorunun ayrıştığı {len(disagreements)} senaryo:")
         for sid, m, r in disagreements:
             print(f"  {sid}: model='{m}' kural='{r}'  → canlıda kural motoru override eder")
+    if unstable:
+        print(f"\nAynı girdide farklı cevap veren {len(unstable)} senaryo:")
+        for sid, opts in unstable:
+            print(f"  {sid}: {' / '.join(opts)}  → yukarıda en kötü durum raporlandı")
+    if not rule_only:
+        print(f"\nModelin çıktısı {len(unparsed)}/{total} senaryoda ayrıştırılamadı"
+              + (f": {', '.join(unparsed)}" if unparsed else ""))
+        if unparsed:
+            print("  Bu senaryolarda 'ok' modelin kararı değil, güvenli varsayılan.")
+            print("  Yukarıdaki yüzde o kadarıyla modeli değil fallback'i ölçüyor.")
     if rule_only:
         print("\nNOT: Bu çalıştırma kural motorunu doğruladı, MODELİ DEĞİL.")
         print("     Tez/sunumda model başarımı olarak bu sayıyı kullanma.")
@@ -179,4 +216,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="S.U.R.E. karar motoru eval")
     p.add_argument("--rule-only", action="store_true",
                    help="Modeli yükleme, sadece kural motorunu test et")
-    sys.exit(run_eval(p.parse_args().rule_only))
+    p.add_argument("--repeat", type=int, default=1,
+                   help="Her senaryoyu N kez koştur (karar yolu örnekleme yapıyor)")
+    a = p.parse_args()
+    sys.exit(run_eval(a.rule_only, max(1, a.repeat)))
