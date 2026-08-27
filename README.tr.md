@@ -432,9 +432,10 @@ mesajları — Türkçe, çünkü ürün Türkçe yanıt veriyor. Kod, yorumlar 
   rejim, makalede sayısallaştırıldı.
 - **Train ve val arasında 32 yakın-kopya kare çifti**, algısal karma ile bulundu.
   Sayıldı, henüz düzeltilmiş bir manşet metriğe yansıtılmadı.
-- **RAG korpusunda aşılmış bir değer canlı duruyor** —
-  `llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58` hâlâ recall
-  ~0.695 diyor ve vektör deposuna besleniyor.
+- **Korpus değişince vektör deposu yeniden beslenmek zorunda.** Aşılmış bir
+  recall değeri `knowledge/06-davranis-ve-refah-gostergeleri.md` içinde bir gün
+  boyunca durdu, EXP11 bulana kadar — kaynakta düzeltilip yeniden beslendi, ama
+  indeksin diskteki dosyalarla eşleştiğini zorlayan bir mekanizma yok.
 - **TensorRT satırları ölçülmedi** — henüz CUDA'lı bir cihaz yok.
 - **AQUA-1B model modunda eval'den hiç geçirilmedi**; `--rule-only` kural
   motorunu doğrular, modeli değil.

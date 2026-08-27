@@ -11,7 +11,7 @@ ağırlığına bağlıdır. Geçerli metrikler bunlardır:
 
 | Metrik | Değer (best.pt, epoch 77) |
 |--------|---------------------------|
-| Precision | **0.858** |
+| Precision | **0.859** |
 | Recall | **0.719** |
 | mAP50 | **0.840** |
 | mAP50-95 | **0.595** |
@@ -32,21 +32,53 @@ ağırlığına bağlıdır. Geçerli metrikler bunlardır:
 > yüksek, recall olduğundan düşük** raporlanmıştı. Sahadaki model belgelenenden
 > daha iyi recall'a sahip.
 
-**Kalan zayıf nokta:** Recall ~0.72 — yoğun/örtüşen balıklar kaçırılıyor.
-`NMS time limit exceeded` uyarıları ve kalabalık kareler bunu doğruluyor.
-Çözüm yönü: yoğun karelerde etiket gözden geçirme + daha yüksek çözünürlük
-(imgsz 960/1280), ya da demo için inference'ta `conf` düşürme + `max_det` artırma.
-
 **Not:** mAP eşikten bağımsızdır ve tekrar üretilebilir; precision/recall ise PR
 eğrisi üzerinde tek bir çalışma noktasıdır (Ultralytics bunları F1'i maksimize
 eden confidence değerinde raporlar). İki koşu arasında mAP sabit kalırken P/R'ın
 birlikte kayması normaldir — biri artarken diğeri azalır.
+
+### Çalıştığımız nokta yukarıdaki tablo değil
+
+Yukarıdaki P/R çifti Ultralytics'in F1-argmax raporu. Production ise
+`vision-service/yolo_runner.py:44`'te `CONF_THRESH = 0.20` ile koşuyor.
+Ultralytics'in ince taneli confidence eğrisi doğrudan okunduğunda:
+
+| Confidence | Precision | Recall | F1 |
+|------------|-----------|--------|-----|
+| **0.20 (production)** | **0.720** | **0.782** | **0.750** |
+| 0.30 | 0.820 | 0.743 | 0.780 |
+| 0.35 | 0.851 | 0.725 | 0.783 |
+| F1-argmax (eğri tepesi, conf=0.341) | 0.845 | 0.730 | 0.784 |
+| Yukarıdaki tablo (`box.mp`/`box.mr`) | 0.859 | 0.719 | 0.783 |
+
+İkisi de doğru; farklı sorulara cevap veriyorlar. Tablo "bu model en iyi ayarında
+ne yapar" sorusunun, 0.20 satırı "sahada koşan sistem ne yapıyor" sorusunun
+cevabı. Tezde ve sunumda hangisinin kullanıldığı açıkça söylenmeli.
+
+**Metodolojik uyarı:** `model.val(conf=X)` bu soruyu cevaplamaz. `box.mp`/`box.mr`
+conf 0.10'dan 0.30'a kadar birebir aynı geliyor (0.859/0.719), çünkü Ultralytics
+korunan eğri üzerinde argmax raporluyor — düşük bir `conf` geçmek, gerçek en-iyi-F1
+noktası aralıkta kaldığı sürece raporlanan P/R'ı değiştirmiyor. Çalışma
+noktasındaki P/R için eğrinin kendisi okunmalı.
+
+**Kalan zayıf nokta:** Çalışma noktasında bile recall 0.782 — yoğun/örtüşen
+balıklar kaçırılıyor. `NMS time limit exceeded` uyarıları ve kalabalık kareler
+bunu doğruluyor. Çözüm yönü: yoğun karelerde etiket gözden geçirme + daha yüksek
+çözünürlük (imgsz 960/1280), ya da inference'ta `max_det` artırma.
+
+Ölçüm ayrıntısı: [`research/experiments/EXP07/`](research/experiments/EXP07/).
 
 ### Sunumda kullanma
 
 - ✅ Yukarıdaki `sure_v1` sayılarını kullan — ayrı doğrulama setinde ölçüldü.
 - ❌ `ogretmen` modelinin mAP50 = 0.918 değerini **kullanma**. Aşağıda açıklandığı
   gibi veri sızıntılı; gerçek genelleme başarısını göstermiyor.
+- ⚠️ `sure_v1` sayıları da tamamen temiz değil: train ve val arasında algısal karma
+  ile **32 yakın-kopya kare çifti** bulundu (14'ü komşu indeksli). Etkisi henüz
+  sayısallaştırılmadı, yani yukarıdaki mAP50/P/R bir miktar iyimser olabilir.
+  Ayrıntı: [`research/experiments/EXP05/`](research/experiments/EXP05/).
+- ⚠️ Doğrulama setinde **hiç seyrek kare yok** (1–2 balıklı) — sistemin bu rejimde
+  ne yaptığı ölçülmedi.
 
 ---
 
@@ -129,7 +161,7 @@ Eğri yakınsamamıştı, recall %55-63 seviyesindeydi. 100 epoch'luk yeniden e�
 
 ### 3. Yeniden eğitimin kazancı
 
-| Metrik | Eski (5 epoch) | Yeni best.pt (ep73) | Fark |
+| Metrik | Eski (5 epoch) | epoch 73 (o zaman best.pt sanılan) | Fark |
 |--------|----------------|---------------------|------|
 | Precision | 0.788 | 0.878 | +0.090 |
 | Recall | 0.630 | 0.695 | +0.065 |
