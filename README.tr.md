@@ -14,13 +14,56 @@ oturumu oynatıyor. GitHub Pages yalnızca statik dosya sunar, yani tarayıcıda
 bileşenlerle üretildi ve sayfa bunu açıkça yazıyor. Sistemi gerçekten çalıştırmak
 için: [![Codespaces'te aç](https://img.shields.io/badge/Codespaces-a%C3%A7-24292e?logo=github)](https://codespaces.new/iroh19/sure)
 
+**[Makaleyi oku →](research/SURE-paper.pdf)** — çift katmanlı mimari üzerine 32
+sayfa, ve [nasıl araştırıldığı](research/SURE-arastirma-sureci.pdf)
+_([English](research/SURE-research-process.pdf))_. Arkasındaki her şey — on bir
+deney, ham loglar, bağımsız doğrulama — [`research/`](research/) altında.
+
 | | |
 |---|---|
-| Tespit | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
+| Tespit | YOLOv11s · mAP50 **0.840** |
+| Çalışma noktası | `conf=0.20` → precision **0.720** · recall **0.782** · F1 **0.750** |
 | Veri seti | 510 etiketli görsel (412 train / 98 val), tek sınıf `sturgeon` |
 | Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 32 MLOps + 8 senaryo eval — hepsi CI kapısı |
 | Retrieval | pgvector · 8 doküman / 44 chunk · MRR **0.856** · hit@1 **0.793** |
 | LLM | AQUA-1B (Gemma 3 1B) · LoRA adaptörü · tamamen on-prem |
+
+---
+
+## Makale
+
+[**`research/SURE-paper.pdf`**](research/SURE-paper.pdf) · 32 sayfa · 56 kaynak · 5 şekil
+
+Aşağıdaki mimari akademik bir makale olarak yazıldı; MIT kaynaklı ajan tabanlı
+araştırma hattı [pAI/MSc](https://dspace.mit.edu/handle/1721.1/165377) ile, biz
+döngünün üzerinde kalarak. Sürecin uzun anlatımı:
+[`SURE-arastirma-sureci.pdf`](research/SURE-arastirma-sureci.pdf).
+
+Makaleyi yazmak, bu kod tabanına karşı on bir deney koşturmak demekti ve üçü bu
+README'nin eskiden söylediğiyle çelişti:
+
+- **Kural motoru modeli nadiren düzeltiyor.** 8 vakanın 1'inde LLM'in gerçek bir
+  düşük tahminini yakaladı. 4'ünde ise sadece modelin çıktısı hiç
+  ayrıştırılamadığı için güvenli varsayılana düştü. Baskın güvenlik mekanizması
+  hata düzeltme değil, güvenli varsayılana düşme — ve 8 gerekçenin 6'sı girdide
+  hiç olmayan sensör değerleri uydurmuştu; yalnızca çıktıya bakan bir kontrol
+  bunu göremez.
+- **Çift katmanlı tasarım özgün değil.** Düşmanca literatür taraması bunu Safety
+  Instrumented Systems kalıbı (IEC 61508/61511) olarak sınıflandırdı. Makale
+  katkıyı bunun yerine katmanlar arası tutarlılık üzerinden çerçeveliyor.
+- **Alıntıladığımız recall, çalıştığımız recall değil.** Gerçekten kullandığımız
+  `conf=0.20` recall 0.782 / precision 0.720 veriyor. `MODEL_RAPORU.md`'deki
+  0.859 / 0.719 çifti F1-argmax optimumu — doğru, ama farklı bir sorunun cevabı.
+
+Tüm iz [`research/`](research/) altında commitli: LaTeX kaynağı, ham log ve
+betikleriyle on bir deney, her manşet sayıyı yeniden hesaplayan bağımsız
+doğrulama ve hattın tam kaydı.
+
+> **Kapsam.** S.U.R.E. hiçbir zaman çalışan bir su ürünleri tesisinde koşmadı.
+> Fiziksel sensör donanımı mevcut değil; tüm deneylerdeki her sensör okuması
+> sentetik olarak üretildi. 510 görüntülük veri seti düzeneğin elle etiketlenmiş
+> gerçek görüntüleri, ama kasıtlı olarak küçük. Katkı, bir saha validasyonu
+> değil, fizibilite ve kaynak yönetimi gösterimidir.
 
 ---
 
@@ -368,6 +411,8 @@ llm-service/
   agent/          araçlar, döngü, deterministik yönlendirici, model ölçümü
 vision-service/   YOLO eğitimi + ByteTrack runner
 frontend/         React dashboard
+twin_bridge/      Dijital ikiz için Modbus istemcisi + iki-motor karşılaştırması
+research/         makale, LaTeX kaynağı ve tüm araştırma kaydı
 ```
 
 Videolar, veri seti görselleri ve ağırlıklar git'e dahil değil (bkz.
@@ -379,8 +424,17 @@ mesajları — Türkçe, çünkü ürün Türkçe yanıt veriyor. Kod, yorumlar 
 
 ## Bilinen sınırlamalar
 
-- **Vision recall 0.719** — yoğun karelerde balıkların ~%28'i kaçırılıyor.
-  Çözüm: veri setini büyütmek ve `imgsz` 960/1280 ile yeniden eğitmek.
+- **Kullandığımız eşikte vision recall 0.782** (`conf=0.20`), precision 0.720
+  karşılığında. `MODEL_RAPORU.md`'de alıntılanan 0.859 / 0.719 çifti F1-argmax
+  optimumu ve farklı bir soruya cevap veriyor. İkisinin de çözümü: veri setini
+  büyütmek ve `imgsz` 960/1280 ile yeniden eğitmek.
+- **Doğrulama setinde hiç seyrek kare yok** (1–2 balık) — test edilmemiş bir
+  rejim, makalede sayısallaştırıldı.
+- **Train ve val arasında 32 yakın-kopya kare çifti**, algısal karma ile bulundu.
+  Sayıldı, henüz düzeltilmiş bir manşet metriğe yansıtılmadı.
+- **RAG korpusunda aşılmış bir değer canlı duruyor** —
+  `llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58` hâlâ recall
+  ~0.695 diyor ve vektör deposuna besleniyor.
 - **TensorRT satırları ölçülmedi** — henüz CUDA'lı bir cihaz yok.
 - **AQUA-1B model modunda eval'den hiç geçirilmedi**; `--rule-only` kural
   motorunu doğrular, modeli değil.
