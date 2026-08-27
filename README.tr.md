@@ -24,7 +24,7 @@ deney, ham loglar, bağımsız doğrulama — [`research/`](research/) altında.
 | Tespit | YOLOv11s · mAP50 **0.840** |
 | Çalışma noktası | `conf=0.20` → precision **0.720** · recall **0.782** · F1 **0.750** |
 | Veri seti | 510 etiketli görsel (412 train / 98 val), tek sınıf `sturgeon` |
-| Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 32 MLOps + 8 senaryo eval — hepsi CI kapısı |
+| Testler | 18 birim + 22 bilgi tabanı + 48 ajan + 32 MLOps + 19 twin-bridge + 8 senaryo eval — hepsi CI kapısı |
 | Retrieval | pgvector · 8 doküman / 44 chunk · MRR **0.856** · hit@1 **0.793** |
 | LLM | AQUA-1B (Gemma 3 1B) · LoRA adaptörü · tamamen on-prem |
 
@@ -345,6 +345,7 @@ mlflow ui --backend-store-uri sqlite:///mlops/mlflow.db
 cd backend && python -m pytest test_decision.py -v      # 18 (torch yoksa 1 atlanır)
 python -m pytest llm-service/test_knowledge.py -v       # 22
 python -m pytest llm-service/test_agent.py -v           # 48
+python -m pytest twin_bridge -v                         # 19
 cd llm-service && python eval.py --rule-only            # 8 senaryo
 ```
 

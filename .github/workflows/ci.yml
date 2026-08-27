@@ -44,6 +44,12 @@ jobs:
       - name: MLOps tests (drift + retrain gate)
         run: python -m pytest mlops -v
 
+      # Two independent implementations of the same safety intent — backend/rules.py
+      # and the twin's CODESYS logic — compared against a fake twin. Needs only
+      # pytest; CODESYS and Godot are not available here, which is the point.
+      - name: Digital-twin bridge tests
+        run: python -m pytest twin_bridge -v
+
       - name: Decision-engine eval gate
         working-directory: llm-service
         run: python eval.py --rule-only
