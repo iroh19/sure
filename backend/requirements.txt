@@ -4,3 +4,8 @@ httpx>=0.27.0
 pydantic>=2.9.0
 python-multipart>=0.0.9
 pytest>=8.0.0          # birim testler: python -m pytest test_decision.py
+
+# Digital-twin bridge (SENSOR_SOURCE=twin). Optional at runtime: twin_bridge is
+# only imported inside twin_sensor_loop, so the default csv source never touches
+# this, and twin_bridge's own tests use a fake and need no Modbus client at all.
+pymodbus>=3.6.0

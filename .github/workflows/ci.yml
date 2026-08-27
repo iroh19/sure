@@ -29,7 +29,7 @@ jobs:
       # guarantee is pinned here.
       - name: Unit tests
         working-directory: backend
-        run: python -m pytest test_decision.py -v
+        run: python -m pytest test_decision.py test_twin_integration.py -v
 
 
       # Quality gate. eval.py imports backend/rules.py directly, so the engine

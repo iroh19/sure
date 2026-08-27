@@ -29,7 +29,7 @@ jobs:
 
       - name: Unit tests
         working-directory: backend
-        run: python -m pytest test_decision.py -v
+        run: python -m pytest test_decision.py test_twin_integration.py -v
 
 
       - name: Knowledge-base consistency tests
@@ -37,6 +37,9 @@ jobs:
 
       - name: Agent tests
         run: python -m pytest llm-service/test_agent.py -v
+
+      - name: Digital-twin bridge tests
+        run: python -m pytest twin_bridge -v
 
       - name: MLOps tests (drift + retrain gate)
         run: python -m pytest mlops -v

@@ -63,32 +63,66 @@ class ModbusTwin:
         self._client = None
 
     def _connect(self):
-        if self._client is None:
-            try:
-                from pymodbus.client import ModbusTcpClient
-            except ImportError as exc:
-                raise TwinUnavailable(
-                    "pymodbus is not installed.\n  pip install 'pymodbus>=3.6'"
-                ) from exc
+        # `is_socket_open()` is checked on every call, not just when `_client` is
+        # None. The first version only ever connected once: if the peer process
+        # was killed and restarted (exactly what happened when the fake PLC was
+        # bounced during testing), the stale client object survived and every
+        # later read silently used a dead socket instead of reconnecting.
+        if self._client is not None and self._client.is_socket_open():
+            return self._client
 
-            client = ModbusTcpClient(self.host, port=self.port, timeout=self.timeout)
-            if not client.connect():
-                raise TwinUnavailable(
-                    f"no Modbus server at {self.host}:{self.port}. "
-                    f"Start the CODESYS soft PLC and the Godot scene first."
-                )
-            self._client = client
+        try:
+            from pymodbus.client import ModbusTcpClient
+        except ImportError as exc:
+            raise TwinUnavailable(
+                "pymodbus is not installed.\n  pip install 'pymodbus>=3.6'"
+            ) from exc
+
+        client = ModbusTcpClient(self.host, port=self.port, timeout=self.timeout)
+        if not client.connect():
+            self._client = None
+            raise TwinUnavailable(
+                f"no Modbus server at {self.host}:{self.port}. "
+                f"Start the CODESYS soft PLC and the Godot scene first."
+            )
+        self._client = client
         return self._client
 
-    def read(self) -> tuple[dict, dict]:
-        client = self._connect()
+    @staticmethod
+    def _unit_kwarg(fn, unit: int) -> dict:
+        """pymodbus renamed the unit argument: `slave=` before 3.15, `device_id=`
+        after. Inspecting once beats pinning the library or catching TypeError on
+        every read."""
+        import inspect
 
-        hr = client.read_holding_registers(0, count=HOLDING_COUNT, slave=self.unit)
-        ir = client.read_input_registers(0, count=INPUT_COUNT, slave=self.unit)
+        params = inspect.signature(fn).parameters
+        if "device_id" in params:
+            return {"device_id": unit}
+        if "slave" in params:
+            return {"slave": unit}
+        return {}
+
+    def read(self) -> tuple[dict, dict]:
+        # Every failure mode below funnels into TwinUnavailable. This is a
+        # boundary to an external process (CODESYS/Godot, or the fake stand-in)
+        # that can vanish at any moment, and the caller — the sensor loop running
+        # as a background asyncio task — only catches TwinUnavailable. Letting a
+        # raw pymodbus/socket exception escape here does not crash loudly; it
+        # kills that task silently, and the dashboard is then frozen on the last
+        # good reading with no error anywhere. That is exactly what the first
+        # version did when the peer was bounced during testing.
+        try:
+            client = self._connect()
+            unit_kw = self._unit_kwarg(client.read_holding_registers, self.unit)
+            hr = client.read_holding_registers(0, count=HOLDING_COUNT, **unit_kw)
+            ir = client.read_input_registers(0, count=INPUT_COUNT, **unit_kw)
+        except TwinUnavailable:
+            raise
+        except Exception as exc:  # noqa: BLE001 — deliberate: see above
+            self.close()
+            raise TwinUnavailable(f"{type(exc).__name__}: {exc}") from exc
 
         if hr.isError() or ir.isError():
-            # Drop the connection so the next call reconnects rather than
-            # repeatedly failing against a half-dead socket.
             self.close()
             raise TwinUnavailable(f"read failed: holding={hr}, input={ir}")
 

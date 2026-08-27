@@ -45,6 +45,16 @@ SENSOR_TICK  = 2.0
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://localhost:8001")
 LLM_TIMEOUT     = 30.0
 
+# Where sensor readings come from.
+#   csv   — replay data/sensor_mock.csv (default; no external dependency)
+#   twin  — read the digital twin's plant model over Modbus TCP
+#
+# The twin is a physically grounded plant (virtual clock, aquaculture rates,
+# oxygen dynamics) driven by a real PLC, so running against it exercises the
+# decision engine on something that responds to actuation instead of a fixed
+# 120-row file.
+SENSOR_SOURCE = os.getenv("SENSOR_SOURCE", "csv").strip().lower()
+
 # Vision ~15fps gelir; her frame'i diske yazmak event loop'u bloklar.
 # Canlı veri zaten Store.deque'da (maxlen=300), DB sadece trend geçmişi için.
 VISION_DB_INTERVAL = float(os.getenv("VISION_DB_INTERVAL", "1.0"))   # saniye
@@ -278,7 +288,64 @@ def load_sensor_rows() -> list[dict]:
         return list(csv.DictReader(f))
 
 
-async def sensor_loop():
+# Latest controller state read from the twin, exposed at /api/twin. Kept out of
+# Store because it is not S.U.R.E.'s own telemetry — it is the other engine's.
+twin_state: dict = {"connected": False, "plc": None, "raw": None, "error": None}
+
+
+async def twin_sensor_loop():
+    """Feed the store from the digital twin's plant model.
+
+    If the twin is unreachable this loop reports disconnected and keeps retrying;
+    it deliberately does NOT fall back to the CSV. Silently substituting recorded
+    data for a live plant would mean the dashboard shows sensor values that no
+    sensor produced, which is worse than showing nothing.
+    """
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from twin_bridge.client import ModbusTwin, TwinUnavailable
+    from twin_bridge.registers import to_sure_snapshot
+
+    twin = ModbusTwin()
+    print(f"[sensor_loop] source=twin ({twin.host}:{twin.port})")
+    warned = False
+
+    while True:
+        try:
+            holding, inputs = twin.read()
+        except TwinUnavailable as exc:
+            if not warned:
+                print(f"[sensor_loop] twin unreachable: {exc}")
+                warned = True
+            twin_state.update(connected=False, error=str(exc))
+            await asyncio.sleep(SENSOR_TICK)
+            continue
+        except Exception as exc:  # noqa: BLE001
+            # Belt and braces on top of ModbusTwin's own catch-all: this loop is
+            # a background asyncio task nobody awaits, so any exception that
+            # escapes it kills it silently and the dashboard freezes on the last
+            # good reading with no error surfaced anywhere. That happened once
+            # during testing, from a bug this except did not yet exist to catch.
+            print(f"[sensor_loop] unexpected error, continuing: {type(exc).__name__}: {exc}")
+            twin_state.update(connected=False, error=str(exc))
+            await asyncio.sleep(SENSOR_TICK)
+            continue
+
+        if warned:
+            print("[sensor_loop] twin reconnected")
+            warned = False
+
+        snapshot = to_sure_snapshot(holding)
+        store.push_sensor(SensorReading(
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            **snapshot["sensor"],
+        ))
+        twin_state.update(connected=True, plc=inputs, raw=holding, error=None)
+        await asyncio.sleep(SENSOR_TICK)
+
+
+async def csv_sensor_loop():
     rows = load_sensor_rows()
     if not rows:
         print(f"[sensor_loop] {SENSOR_CSV} bulunamadı.")
@@ -295,6 +362,15 @@ async def sensor_loop():
         ))
         i += 1
         await asyncio.sleep(SENSOR_TICK)
+
+
+async def sensor_loop():
+    """Dispatch to the configured source."""
+    if SENSOR_SOURCE == "twin":
+        await twin_sensor_loop()
+    else:
+        print(f"[sensor_loop] source=csv ({SENSOR_CSV.name})")
+        await csv_sensor_loop()
 
 
 # --------------------------------------------------------------------------- #
@@ -521,6 +597,53 @@ async def get_state():
     return {
         "vision": store.latest_vision.model_dump() if store.latest_vision else None,
         "sensor": store.latest_sensor.model_dump() if store.latest_sensor else None,
+    }
+
+
+@app.get("/api/twin")
+async def get_twin():
+    """The twin's controller alongside S.U.R.E.'s own verdict.
+
+    Two independent implementations of the same safety intent watch the same
+    tank: this rule engine, and the IEC 61131-3 logic in the twin's CODESYS
+    project. They were written separately from the same domain. Where they agree
+    that is evidence; where they disagree it says exactly which threshold to
+    argue about, which is something a single implementation checked only against
+    its own tests can never tell you.
+    """
+    if SENSOR_SOURCE != "twin":
+        return {"enabled": False,
+                "hint": "start the backend with SENSOR_SOURCE=twin"}
+
+    if not twin_state["connected"]:
+        return {"enabled": True, "connected": False, "error": twin_state["error"]}
+
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from twin_bridge.compare import compare_once
+
+    status, alarms, kind, note = compare_once(twin_state["raw"], twin_state["plc"])
+    return {
+        "enabled": True,
+        "connected": True,
+        "sure": {"status": status},
+        "plc": {
+            "aerator_pct": twin_state["plc"]["aerator_pct"],
+            "heater_on": bool(twin_state["plc"]["heater_on"]),
+            "feeder_on": bool(twin_state["plc"]["feeder_on"]),
+            "exchange_on": bool(twin_state["plc"]["exchange_on"]),
+            "portion_g": twin_state["plc"]["portion_g"],
+            "alarms": alarms,
+            "advice": twin_state["plc"]["advice"],
+        },
+        "plant": {
+            "ammonia_mgl": twin_state["raw"]["ammonia_mgl"],
+            "biomass_kg": twin_state["raw"]["biomass_kg"],
+            "appetite_index": twin_state["raw"]["appetite_index"],
+            "stress_index": twin_state["raw"]["stress_index"],
+        },
+        "comparison": {"verdict": kind, "note": note},
     }
 
 

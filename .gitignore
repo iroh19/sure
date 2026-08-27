@@ -21,6 +21,9 @@ frontend/.vite/
 
 # ─── Çalışma zamanı verisi ────────────────────────────────
 *.db
+# SQLite WAL/shared-memory sidecars — created whenever the backend runs.
+*.db-wal
+*.db-shm
 backend/sure_history.db
 model-cache/
 
@@ -78,3 +81,6 @@ _to_delete/
 # Arkadaşın dijital ikiz projesi — ayrı depo, buraya dahil değil
 ras-digital-twin-main/
 .gstack/
+
+# Local Claude Code tooling (browser preview launch config)
+.claude/
