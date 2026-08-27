@@ -1,0 +1,14 @@
+[
+  {
+    "name": "coreml",
+    "device": "cpu",
+    "map50": 0.8298,
+    "map5095": 0.584,
+    "precision": 0.8455,
+    "recall": 0.7212,
+    "p50_ms": 9.01,
+    "p95_ms": 9.36,
+    "size_mb": 18.2,
+    "status": "ok"
+  }
+]

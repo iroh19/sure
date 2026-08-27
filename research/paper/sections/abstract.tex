@@ -1,0 +1,22 @@
+\begin{abstract}
+An implemented sturgeon welfare-monitoring system for recirculating aquaculture pairs a locally
+hosted LLM with a deterministic rule engine holding final, escalation-only authority over severity
+decisions, because a dissolved-oxygen crash can kill stock within hours and a silent model mistake
+is not tolerable. One might expect the architecture's value to come from the rule engine correcting
+the model's occasional wrong call. Measured against the system, offline, against synthetically generated sensor
+readings and labeled imagery, that is not what happens:
+half the evaluated scenarios produce output the model never parses, and the rule engine's
+contribution is defaulting safe rather than adjudicating a disagreement -- genuine correction occurs
+in only one case in eight. Even where the model's final answer agreed with the rule engine, its
+reasoning fabricated a sensor value never present in the input in two of three such cases, invisible
+to output-only evaluation. This was tested against a self-documented, insufficient training adapter,
+making it a stronger stress test, not a weaker one. The same narrow-interface discipline held across
+four further layers: an agentic tool-routing negative result surviving an adversarial re-run, a
+retrieval threshold tuned for asymmetric cost, a drift-detection binning choice whose sensitivity
+crosses over rather than behaving monotonically, and a vision pipeline whose configured operating
+point runs at recall 0.782, not the headline academic-optimum recall of 0.719 usually quoted for
+it. The resulting rule is narrow and falsifiable: such a pipeline can be made safe against an
+unreliable model provided its validator reads nothing beyond one enumerable field and always
+defaults conservatively -- a claim about interface design, not about having made the model
+trustworthy.
+\end{abstract}

@@ -1,0 +1,188 @@
+\section{Related Work}
+\label{sec:related-work}
+
+Two literatures bear on this paper, and they answer different questions. One asks whether the
+\emph{setting} is real: is precision aquaculture a live engineering problem, and is edge
+deployment of vision models on Apple Silicon or similar hardware a solved-enough practice to build
+on. The other asks whether the \emph{safety pattern} is new: is putting a deterministic layer in
+final authority over a probabilistic one a novel idea. The honest answer to the second question is
+no, and stating that plainly, with the specific prior art named, is more useful to a reader than
+pretending otherwise.
+
+\subsection{Precision aquaculture and edge vision: an active, competitive setting}
+
+Computer-vision monitoring of farmed fish is a mature enough sub-field to have its own taxonomy.
+\citet{cui2025fishtracking}'s survey organizes the literature into detection, counting, behavior
+classification, and activity analysis, and reports contemporaneous RAS-specific YOLO variants
+reaching mAP50 above 0.90 -- higher than the 0.840 this paper's own detector achieves on a
+510-image, single-class dataset. S.U.R.E.'s vision pipeline is not a vision-accuracy contribution
+against that baseline, and this paper does not claim it is one. What the field's own review
+literature does flag as missing is the closure from a detection to an actionable, safety-graded
+decision: \citet{fitzgerald2025machinevision} state directly that most deployed vision systems in
+aquaculture welfare monitoring never complete that trace. Precision-aquaculture reviews describe
+detectors; they describe welfare taxonomies decomposed into input- and outcome-based indicators
+\citep{frontiers2023welfare,pmc2021myfishcheck}; they do not, in general, describe a system that
+follows one detector's confidence-threshold choice all the way to the single rule that consumes it.
+Section~\ref{sec:results} traces exactly that path for one rule (\texttt{fish\_count==0}), and the
+sturgeon-specific prior work is thin enough -- \citet{sturgeon2024cmscn}'s cross-modal stress
+classifier is the closest, and it is a lab study, not a deployed system -- that a working,
+bench-evaluated, sturgeon-specific decision pipeline is itself a modest but genuine contribution to that
+narrow corner of the literature, independent of anything claimed about the LLM layer.
+
+The motivating urgency claim -- that a dissolved-oxygen crash can kill stock within hours -- is not
+this paper's own measurement; it is grounded in water-quality literature reporting species- and
+temperature-dependent lethal thresholds in the 4.1--7.0~mg/L range
+\citep{lindholm2023waterquality,agmrc2026waterquality}, and it should be read with that
+species/temperature caveat attached rather than as a universal constant. On the edge-deployment
+side, CoreML-on-Apple-Neural-Engine benchmarking is itself vendor-documented practice, not a novel
+technique \citep{ultralytics2026coreml}, and the INT8 accuracy band this paper reports
+(\(-0.0082\) mAP50) sits comfortably inside the 0.5--2.0-point range already reported for
+calibrated quantization in the TensorRT/ONNX literature \citep{ultralytics2025tensorrt,
+arxiv2025quantrobustness}. Community-documented practitioner reports of ONNX and TorchScript
+export losing accuracy relative to eager PyTorch execution, independent of quantization, already
+circulate informally on GitHub issue threads \citep{github2022yolov5issue,github2024onnxissue};
+this paper's contribution there (Section~\ref{sec:results}) is quantifying that suspected mechanism
+under one controlled, six-configuration sweep against a single held-out validation set, not
+discovering it. None of this establishes novelty. It establishes that the ground the system stands
+on -- fish detection, tracking with ByteTrack \citep{zhang2022bytetrack}, and export-format
+benchmarking -- is real, current, and reasonably well understood, and that S.U.R.E. sits inside it
+rather than reinventing it. Deployment context matters here too: on-device inference is favored
+specifically because sub-100ms latency and unreliable rural connectivity make cloud round-trip
+unattractive \citep{roboflow2025cloudedge}; this paper's latency numbers measure model inference
+only, and should not be compared directly to reported end-to-end field latencies for a
+cloud-served alternative.
+
+\subsection{What this paper does not claim to have invented}
+
+The pivot matters enough to state on its own. This paper does \emph{not} claim to have invented
+deterministic override of a probabilistic component, interlocks, or runtime shielding. That
+concept is decades old in industrial safety engineering: Safety Instrumented Systems, formalized
+under IEC 61508 and IEC 61511, already specify a diagnosed, non-bypassable final-authority layer
+for enumerable hazards, with the entire discipline organized around the assumption that the
+protected process cannot be trusted to self-correct \citep{aiche2009beacon,icheme2026iec61511}.
+The reinforcement-learning safety literature arrives at the same idea from a different direction:
+a \emph{shield} vetoes or corrects a learned policy's proposed action before it reaches the
+environment, and that literature independently states the same boundary condition this paper's
+Formalization~\ref{form:enumerable} derives from first-hand observation of the system -- shielding
+requires a formally specifiable, enumerable safety condition, and offers no guarantee once the
+thing being checked is open-ended \citep{arxiv2024verifshielding,arxiv2025watchdogs}. Practitioner
+writing on LLM guardrails has, by 2025--2026, already converged on almost the same slogan this
+paper's system embodies -- the model proposes, a rule engine disposes
+\citep{rulebricks2026deterministic,danilec2026deterministic,arthur2025guardrails,shields2024acm} --
+so even the specific framing is not new currency.
+
+One architectural distinction is worth naming rather than glossing over, because it is the one
+place this paper's independence claim is weaker than the industrial-safety literature it borrows
+language from. IEC 61511's Independent Protection Layer criteria are written around \emph{physical}
+independence: separate sensors, separate actuators, separate failure paths. S.U.R.E.'s
+independence is \emph{logical}, at the code level -- \texttt{backend/rules.py} is a single Python
+module imported by both the system's decision path and the evaluation harness, and
+Section~\ref{sec:system-architecture} treats that shared-import property as the thing doing the
+safety work. A shared module that both paths import is a strictly weaker independence guarantee
+than physically separate hardware, and this paper does not pretend otherwise; it is, however, a
+real and verifiable property (Section~\ref{sec:results} reports a direct object-identity check,
+not a code-review claim), and it is the property that actually failed once in this system's own
+history -- an evaluation harness that had silently drifted from the system's real decision logic, on exactly the
+scenario (\texttt{fish\_count==0}) this paper's vision-safety trace revisits.
+
+\subsection{LLM guardrails and agentic reliability: a critical read, not a bibliography}
+
+Most published guardrail architectures for LLMs re-validate a model's output with a second model,
+a schema check, or a human reviewer -- not a dependency-free deterministic rule engine whose
+escalation-only precedence is enforced by literally sharing code with the system under test. That
+gap is worth naming before this paper's own contribution, because it is the specific thing most of
+this cluster does not do. Academic proposals for LLM-mediated industrial control already exist at
+the framework or simulation level: \citet{arxiv2024industrialllm} and a related line of work on
+agentic industrial control \citep{arxiv2025agenticindustrial} propose exactly the pattern of
+routing every LLM proposal through an external validator before actuation. What distinguishes
+S.U.R.E. from that closest same-domain-class prior art is not the pattern but the evidentiary
+status: those are proposed or simulated architectures, and this is an implemented system, evaluated
+offline against synthetically generated sensor data, with a documented near-miss and eleven
+independently verified experiments behind its numbers. Clinical
+LLM safety offers a useful contrast in the opposite direction. There, the dominant backstop is
+human-in-the-loop review, and residual hallucination rates remain non-trivial even under
+mitigation -- one adversarial-robustness study reports failure rates near 44\% for clinical
+decision support under adversarial prompting \citep{commsmed2025hallucination,bmc2026hallucination}.
+A human reviewer does not scale to a 24-hour, unattended aquaculture deployment; substituting an
+always-available, unit-tested deterministic module for that human is the design choice this paper
+measures the consequences of, not a claim that the substitution itself is conceptually new.
+
+On the LLM component's own reliability, this paper's negative result for agentic tool-calling
+(Section~\ref{sec:results}) sits inside, rather than against, a growing and unresolved literature:
+small on-device models' tool-calling reliability is described as an actively contested research
+area with mixed findings across studies \citep{arxiv2510slmagentic}, and independent 2025--2026
+benchmarks of comparably sized models report similarly severe failure rates
+\citep{devto2026llama3b,arxiv2606toolenv}. That does not make AQUA-1B's 0\%/0\% result
+uninteresting; it makes it one more literature-consistent data point rather than an outlier
+demanding a special explanation. The constant-answer artifact this paper flags in AQUA-7B's
+tool-selection benchmark is a named, established concern in benchmark-evaluation research more
+broadly -- flagging near-zero-entropy answer distributions as a scoring artifact rather than
+evidence of discrimination is not new \citep{arxiv2024artifacts} -- and this paper's contribution
+there is a narrow application of that established discipline to a new task class (closed-menu
+agentic tool selection), not the invention of artifact-aware evaluation.
+
+The paper's own fabrication finding -- a model reaching the categorically correct status label
+through a free-text reasoning chain that cites a sensor value never present in the input -- sits
+closest to a strand of hallucination research that most benchmark work cannot reach, because most
+benchmark work grades only the final answer. General hallucination and confabulation research in
+natural-language generation is by now a mature survey area \citep{ji2023hallucinationsurvey}, and
+a broader taxonomy has recently extended that framing specifically to agentic systems
+\citep{arxiv2509agenthallucinationsurvey}. The closest direct match found for this paper's specific
+observation -- fabrication surviving inside an output whose enumerable field is correct -- is a
+2026 study on internal representations as indicators of hallucination in agentic tool selection
+\citep{arxiv2601toolhallucination}, which shares the underlying concern but not this paper's
+specific empirical instance: a small, self-documented-undertrained local model, in an implemented
+safety-critical decision loop, where the fabrication is invisible to precisely the evaluation
+regime -- status-only, answer-only grading -- that dominates the guardrail and agentic-benchmark
+literature this cluster otherwise reviews. That is the gap this paper's Section~\ref{sec:results}
+actually fills, and it is worth stating plainly rather than folding into a longer list: an
+evaluation regime built to check an enumerable field will not catch a wrong reason attached to a
+right decision, because it was never designed to look.
+
+\subsection{Retrieval calibration and drift-gated MLOps: careful application, not invention}
+
+The two remaining clusters ground this paper's RAG and MLOps components as applications of
+active, already-established sub-literatures, and this paper treats them exactly that way.
+Asymmetric retrieval training explains, mechanically, why the deployed e5-small embedding model
+outperforms a symmetric sentence-similarity model as passage length grows -- the query/passage
+prefix scheme \citet{wang2022e5} introduce is the reason, not a novel discovery of this paper.
+Per-corpus similarity-threshold calibration is itself an established discipline, not a one-off
+choice: recent work argues explicitly against a universal similarity threshold in favor of
+corpus-specific precision/recall calibration \citep{researchgate2025ragprecision,
+braintrust2025ragmetrics}, and this paper's 0.85-over-0.84 threshold selection
+(Section~\ref{sec:results}) is exactly that discipline applied, with the asymmetric cost stated
+rather than assumed. It is also bounded by a limit this paper does not try to talk around: recent
+formal work on embedding-similarity-based hallucination gating shows there are certified limits to
+how much a similarity threshold alone can prevent \citep{arxiv2026semanticillusion,
+arxiv2025haltrag}, and the overlapping positive/negative similarity distributions this paper
+measures on its own small corpus independently confirm that caution -- a threshold, however
+carefully chosen, is a mitigation, not an elimination, of retrieval-driven fabrication risk.
+
+Population Stability Index drift detection has the same status: the pitfall this paper's own
+MLOps sweep rediscovers -- that binning choice materially changes PSI's sensitivity, and that
+naive equal-width binning can behave badly under a narrow-banded score distribution -- is already
+documented, standard practice in the credit-scoring literature PSI originates from
+\citep{arize2026psi,arize2026binning,fiddler2026psi,yurdakul2018psi}. Champion-challenger
+promotion gating with a minimum-improvement margin before shipping a retrained model is likewise
+widely documented MLOps practice \citep{datarobot2026champion,snowflake2026champion}, as is the
+broader tension between scheduled and drift-triggered retraining
+\citep{wwt2026mlopsdrift,researchgate2025autodrift}. What is not already documented, as far as this
+review can establish, is the specific combination this system runs: PSI over YOLO detection-
+confidence deciles, narrow-banded for a structurally different reason than a credit score is
+narrow-banded, feeding a champion-challenger gate for a vision-detection registry rather than a
+tabular classifier. That is a real but modest contribution -- an application of two known
+techniques to a new signal type and a new model class -- and this paper states it at that scale,
+not as a discovery of either PSI or champion-challenger gating.
+
+\subsection{What is actually new here}
+
+After three clusters of prior art, the honest novelty locus is narrow and specific: the same
+narrow-enumerable-interface, escalation-only discipline, independently measured across five
+architecturally distinct layers of one implemented system -- decision fusion, agentic tool
+routing, retrieval, MLOps retraining, and edge vision -- including one full disclosed negative
+result and a fabrication-detection finding the Safety-Instrumented-System and shielding
+literatures have no equivalent for, because those literatures are built around enumerable
+action or state spaces, not free-text reasoning that can be factually wrong while the enumerable
+output next to it is correct. Section~\ref{sec:results} is the actual argument for this claim; this
+section's job was only to establish that nothing else in the surrounding literature already makes
+it.

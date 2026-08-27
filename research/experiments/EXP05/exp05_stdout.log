@@ -1,0 +1,151 @@
+==============================================================================
+EXP05 -- Vision Dataset Train/Val Leakage Audit
+==============================================================================
+sure-project root (read-only): /Users/batuhancitak/Desktop/sure-project
+train/images count: 412 (spec expects 412)
+val/images count:   98 (spec expects 98)
+
+--- Source-group breakdown (videoN_ prefix, or pooled frame_source0) ---
+  frame_source0    train= 29  val=  6  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video1           train=  6  val=  0
+  video2           train= 29  val=  6  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video3           train=  3  val=  0
+  video4           train= 12  val=  3  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video5           train= 34  val= 10  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video6           train= 78  val= 26  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video7           train=207  val= 47  <-- CROSS-SPLIT SOURCE-GROUP COLLISION (same source video in both splits)
+  video8           train=  7  val=  0
+  video9           train=  7  val=  0
+
+Cross-split source-group collisions: 6 / 10 groups -> ['frame_source0', 'video2', 'video4', 'video5', 'video6', 'video7']
+
+--- Exact frame-index overlap check within colliding source groups ---
+  frame_source0: train_idx_range=[0,34] val_idx_range=[4,26] exact_index_overlap_count=0
+  video2: train_idx_range=[0,34] val_idx_range=[1,23] exact_index_overlap_count=0
+  video4: train_idx_range=[0,14] val_idx_range=[6,11] exact_index_overlap_count=0
+  video5: train_idx_range=[0,43] val_idx_range=[7,39] exact_index_overlap_count=0
+  video6: train_idx_range=[0,103] val_idx_range=[2,102] exact_index_overlap_count=0
+  video7: train_idx_range=[0,259] val_idx_range=[1,246] exact_index_overlap_count=0
+
+Total exact same-frame-index collisions across colliding groups: 0
+Interpretation: 0 exact-index collisions means the split does NOT reuse the identical frame in both splits, but interleaves DIFFERENT frame indices from the SAME source video across train/val -- this is a distinct, subtler risk (near-duplicate adjacent frames) from the ogretmen case (identical folder/files in both splits), and is exactly what the perceptual-hash check below is for.
+
+--- Positive-control sanity check: known ogretmen leak ---
+data/ogretmen.yaml contents:
+train: /Users/batuhancitak/Desktop/sure-project/data/ogretmen_dataset/images
+val: /Users/batuhancitak/Desktop/sure-project/data/ogretmen_dataset/images
+
+nc: 1
+names:
+  0: sturgeon
+
+
+train path == val path? True (CONFIRMED: same folder used for both -- a 100% leak by construction, already flagged invalid in MODEL_RAPORU.md and excluded from headline numbers. Note: ogretmen_dataset is a SEPARATE dataset from sure_dataset (different folder entirely), so it is not part of the 412/98 split audited here -- this check only confirms our leakage-detection LOGIC would have caught it, as the design doc requested.)
+
+--- Perceptual hash (aHash + dHash, 64-bit each) near-duplicate check ---
+imagehash library: NOT installed in anaconda env (confirmed via import attempt) -- implemented minimal aHash/dHash inline with PIL+numpy only.
+Computed hashes for 510 images.
+Total within-source-group train x val pairs compared: 12481
+
+Threshold <= 5 bits (of 64) on aHash OR dHash: 32 candidate near-duplicate pairs
+    video7: train=video7_frame_0023.jpg (idx 23)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=2  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0081.jpg (idx 81)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=2  dHash_dist=10  frame_index_gap=10
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0017.jpg (idx 17)  val=video7_frame_0016.jpg (idx 16)  aHash_dist=3  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0025.jpg (idx 25)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0072.jpg (idx 72)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=3  dHash_dist=16  frame_index_gap=4
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=16  frame_index_gap=3
+    video5: train=video5_frame_0020.jpg (idx 20)  val=video5_frame_0019.jpg (idx 19)  aHash_dist=4  dHash_dist=22  frame_index_gap=1
+    video5: train=video5_frame_0040.jpg (idx 40)  val=video5_frame_0039.jpg (idx 39)  aHash_dist=4  dHash_dist=10  frame_index_gap=1
+    video6: train=video6_frame_0027.jpg (idx 27)  val=video6_frame_0026.jpg (idx 26)  aHash_dist=4  dHash_dist=21  frame_index_gap=1
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=4  dHash_dist=16  frame_index_gap=7
+    video7: train=video7_frame_0027.jpg (idx 27)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=4  dHash_dist=12  frame_index_gap=3
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0002.jpg (idx 2)  aHash_dist=5  dHash_dist=13  frame_index_gap=1
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0004.jpg (idx 4)  aHash_dist=5  dHash_dist=17  frame_index_gap=1
+    video7: train=video7_frame_0005.jpg (idx 5)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=11  frame_index_gap=3
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0012.jpg (idx 12)  aHash_dist=5  dHash_dist=14  frame_index_gap=6
+    video7: train=video7_frame_0007.jpg (idx 7)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0010.jpg (idx 10)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0011.jpg (idx 11)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=13  frame_index_gap=2
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0015.jpg (idx 15)  aHash_dist=5  dHash_dist=7  frame_index_gap=1
+    video7: train=video7_frame_0019.jpg (idx 19)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=8  frame_index_gap=5
+    video7: train=video7_frame_0020.jpg (idx 20)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=4
+    video7: train=video7_frame_0022.jpg (idx 22)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=2
+    video7: train=video7_frame_0165.jpg (idx 165)  val=video7_frame_0164.jpg (idx 164)  aHash_dist=5  dHash_dist=8  frame_index_gap=1
+    video7: train=video7_frame_0186.jpg (idx 186)  val=video7_frame_0187.jpg (idx 187)  aHash_dist=5  dHash_dist=6  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=10  frame_index_gap=3
+    video7: train=video7_frame_0214.jpg (idx 214)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=5  dHash_dist=13  frame_index_gap=6
+    video7: train=video7_frame_0215.jpg (idx 215)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=14  frame_index_gap=8
+    ... (2 more, see near_duplicate_pairs_full.json)
+
+Threshold <= 10 bits (of 64) on aHash OR dHash: 202 candidate near-duplicate pairs
+    video7: train=video7_frame_0023.jpg (idx 23)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=2  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0081.jpg (idx 81)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=2  dHash_dist=10  frame_index_gap=10
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0017.jpg (idx 17)  val=video7_frame_0016.jpg (idx 16)  aHash_dist=3  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0025.jpg (idx 25)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0072.jpg (idx 72)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=3  dHash_dist=16  frame_index_gap=4
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=16  frame_index_gap=3
+    video5: train=video5_frame_0020.jpg (idx 20)  val=video5_frame_0019.jpg (idx 19)  aHash_dist=4  dHash_dist=22  frame_index_gap=1
+    video5: train=video5_frame_0040.jpg (idx 40)  val=video5_frame_0039.jpg (idx 39)  aHash_dist=4  dHash_dist=10  frame_index_gap=1
+    video6: train=video6_frame_0027.jpg (idx 27)  val=video6_frame_0026.jpg (idx 26)  aHash_dist=4  dHash_dist=21  frame_index_gap=1
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=4  dHash_dist=16  frame_index_gap=7
+    video7: train=video7_frame_0027.jpg (idx 27)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=4  dHash_dist=12  frame_index_gap=3
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0002.jpg (idx 2)  aHash_dist=5  dHash_dist=13  frame_index_gap=1
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0004.jpg (idx 4)  aHash_dist=5  dHash_dist=17  frame_index_gap=1
+    video7: train=video7_frame_0005.jpg (idx 5)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=11  frame_index_gap=3
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0012.jpg (idx 12)  aHash_dist=5  dHash_dist=14  frame_index_gap=6
+    video7: train=video7_frame_0007.jpg (idx 7)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0010.jpg (idx 10)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0011.jpg (idx 11)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=13  frame_index_gap=2
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0015.jpg (idx 15)  aHash_dist=5  dHash_dist=7  frame_index_gap=1
+    video7: train=video7_frame_0019.jpg (idx 19)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=8  frame_index_gap=5
+    video7: train=video7_frame_0020.jpg (idx 20)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=4
+    video7: train=video7_frame_0022.jpg (idx 22)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=2
+    video7: train=video7_frame_0165.jpg (idx 165)  val=video7_frame_0164.jpg (idx 164)  aHash_dist=5  dHash_dist=8  frame_index_gap=1
+    video7: train=video7_frame_0186.jpg (idx 186)  val=video7_frame_0187.jpg (idx 187)  aHash_dist=5  dHash_dist=6  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=10  frame_index_gap=3
+    video7: train=video7_frame_0214.jpg (idx 214)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=5  dHash_dist=13  frame_index_gap=6
+    video7: train=video7_frame_0215.jpg (idx 215)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=14  frame_index_gap=8
+    ... (172 more, see near_duplicate_pairs_full.json)
+
+Threshold <= 16 bits (of 64) on aHash OR dHash: 902 candidate near-duplicate pairs
+    video7: train=video7_frame_0023.jpg (idx 23)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=2  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0081.jpg (idx 81)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=2  dHash_dist=10  frame_index_gap=10
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0017.jpg (idx 17)  val=video7_frame_0016.jpg (idx 16)  aHash_dist=3  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0025.jpg (idx 25)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0072.jpg (idx 72)  val=video7_frame_0071.jpg (idx 71)  aHash_dist=3  dHash_dist=3  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=3  dHash_dist=16  frame_index_gap=4
+    video7: train=video7_frame_0211.jpg (idx 211)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=3  dHash_dist=16  frame_index_gap=3
+    video5: train=video5_frame_0020.jpg (idx 20)  val=video5_frame_0019.jpg (idx 19)  aHash_dist=4  dHash_dist=22  frame_index_gap=1
+    video5: train=video5_frame_0040.jpg (idx 40)  val=video5_frame_0039.jpg (idx 39)  aHash_dist=4  dHash_dist=10  frame_index_gap=1
+    video6: train=video6_frame_0027.jpg (idx 27)  val=video6_frame_0026.jpg (idx 26)  aHash_dist=4  dHash_dist=21  frame_index_gap=1
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=4  dHash_dist=16  frame_index_gap=7
+    video7: train=video7_frame_0027.jpg (idx 27)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=4  dHash_dist=12  frame_index_gap=3
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0002.jpg (idx 2)  aHash_dist=5  dHash_dist=13  frame_index_gap=1
+    video6: train=video6_frame_0003.jpg (idx 3)  val=video6_frame_0004.jpg (idx 4)  aHash_dist=5  dHash_dist=17  frame_index_gap=1
+    video7: train=video7_frame_0005.jpg (idx 5)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=11  frame_index_gap=3
+    video7: train=video7_frame_0006.jpg (idx 6)  val=video7_frame_0012.jpg (idx 12)  aHash_dist=5  dHash_dist=14  frame_index_gap=6
+    video7: train=video7_frame_0007.jpg (idx 7)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=5  frame_index_gap=1
+    video7: train=video7_frame_0010.jpg (idx 10)  val=video7_frame_0008.jpg (idx 8)  aHash_dist=5  dHash_dist=10  frame_index_gap=2
+    video7: train=video7_frame_0011.jpg (idx 11)  val=video7_frame_0013.jpg (idx 13)  aHash_dist=5  dHash_dist=13  frame_index_gap=2
+    video7: train=video7_frame_0014.jpg (idx 14)  val=video7_frame_0015.jpg (idx 15)  aHash_dist=5  dHash_dist=7  frame_index_gap=1
+    video7: train=video7_frame_0019.jpg (idx 19)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=8  frame_index_gap=5
+    video7: train=video7_frame_0020.jpg (idx 20)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=4
+    video7: train=video7_frame_0022.jpg (idx 22)  val=video7_frame_0024.jpg (idx 24)  aHash_dist=5  dHash_dist=5  frame_index_gap=2
+    video7: train=video7_frame_0165.jpg (idx 165)  val=video7_frame_0164.jpg (idx 164)  aHash_dist=5  dHash_dist=8  frame_index_gap=1
+    video7: train=video7_frame_0186.jpg (idx 186)  val=video7_frame_0187.jpg (idx 187)  aHash_dist=5  dHash_dist=6  frame_index_gap=1
+    video7: train=video7_frame_0210.jpg (idx 210)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=10  frame_index_gap=3
+    video7: train=video7_frame_0214.jpg (idx 214)  val=video7_frame_0208.jpg (idx 208)  aHash_dist=5  dHash_dist=13  frame_index_gap=6
+    video7: train=video7_frame_0215.jpg (idx 215)  val=video7_frame_0207.jpg (idx 207)  aHash_dist=5  dHash_dist=14  frame_index_gap=8
+    ... (872 more, see near_duplicate_pairs_full.json)
+
+Minimum (aHash,dHash) distance found across ALL within-source-group train/val pairs: 2 / 64 bits
+
+Wall time: 5.9s

@@ -1,0 +1,45 @@
+{
+  "paper": "S.U.R.E. (Aquaculture Welfare Integration): Autonomous Sturgeon Welfare Monitoring in Recirculating Aquaculture Systems via Edge-AI and RAG-Enhanced Deterministic Fusion",
+  "one_sentence_claim": "A deterministic safety backstop's soundness in a deployed LLM-plus-validator system never depended on the LLM reasoning correctly, only on one enumerable status field being extractable and the system defaulting safe when it isn't -- and this held even when the LLM component was demonstrably undertrained.",
+  "central_spine": "narrow-enumerable-field validator interfaces make an unreliable LLM's failures harmless, measured across five architecturally distinct layers of one deployed system",
+  "primary_evidence": {
+    "goal": "G3 / EXP03",
+    "finding": "4-bucket behavioral classification (n=8): 50% unparseable-defaulted-to-ok, 38% parseable-and-agrees, 12% parseable-and-under-calls-and-escalated, 0% over-calls; 6/8 reasoning strings contain fabricated sensor values, including 2 of 3 in the agrees bucket"
+  },
+  "secondary_evidence_by_priority": [
+    {"rank": 2, "goal": "G4 / EXP04", "finding": "agentic tool-routing negative result, replicated and strengthened at n=9 (from n=5)"},
+    {"rank": 3, "goal": "G7 / EXP07", "finding": "deployed operating point recall 0.782 vs. headline academic-argmax recall 0.719 -- both correct, distinct questions, 0.782 governs the safety discussion"},
+    {"rank": 4, "goal": "G6 / EXP06", "finding": "INT8 quantization loses less accuracy (-0.0082) than fp32 ONNX/TorchScript export (-0.0104)"},
+    {"rank": 5, "goal": "G1 / EXP01", "finding": "RAG threshold calibration favors precision (0.85) over the F1-optimum (0.84), an asymmetric-cost design choice"},
+    {"rank": 6, "goal": "G8 / EXP08", "finding": "PSI binning sensitivity crossover: quantile more sensitive at delta<=0.06, equal-width overtakes from delta>=0.08"},
+    {"rank": 7, "goal": "G5 / EXP05", "finding": "32 near-duplicate train/val frame pairs found; same-checkpoint re-evaluation gives a modest, quantified corrected vision-metric range"}
+  ],
+  "compressed_to_footnote_or_paragraph": [
+    "G9/EXP09 twin_bridge -- unit-tested only, one auxiliary-evidence paragraph, never a named subsection",
+    "0.858-vs-0.859 precision rounding inconsistency",
+    "EXP08 internal PSI resampling-seed inconsistency (delta=0.04)",
+    "AQUA-7B agent-benchmark format%/step-count non-reproduction"
+  ],
+  "must_never_claim": [
+    "that the paper invented deterministic override, interlocks, or runtime shielding (EQUIVALENT_KNOWN per novelty_flags.json; cite SIS/IEC 61508-61511 and RL shielding explicitly)",
+    "that the architecture 'solves LLM unreliability' in general -- the falsifiable claim is narrower: the validator's soundness is independent of the LLM's reasoning quality",
+    "that twin_bridge was field-validated -- unit-tested only, never exercised against a live Godot/CODESYS session",
+    "that the adapter-provenance caveat applies to G4/EXP04 -- it applies to G3/EXP03 and its derivatives only (G4 ran the base model, no adapter loaded)",
+    "that the G5 correction is a leakage-free retrain -- it is a same-checkpoint re-evaluation on a smaller held-out set",
+    "a confidence interval or generalization claim from n=8 (G3's entire fixed scenario population)"
+  ],
+  "must_disclose_and_where": [
+    {"item": "adapter provenance (8-example smoke-test dataset, not the 128-example v2)", "first_in": "System Architecture, at first mention of AQUA-1B/G3", "repeated_in": "Results 5.1 opening beat"},
+    {"item": "0.719 (headline argmax) vs. 0.782 (deployed operating point) recall", "first_in": "Abstract (same sentence, both numbers)", "repeated_in": "Results 5.3 named callout"},
+    {"item": "live, unfixed 0.695 recall figure inside the production RAG knowledge base", "first_in": "Introduction or Discussion (one rhetorical sentence)", "repeated_in": "Table 3 (data-integrity table)"},
+    {"item": "zero k=1/k=2 sparse-frame coverage in the validation set", "first_in": "Results 5.3, beside the 0/98 full-frame-miss headline number", "repeated_in": "Known Limitations"},
+    {"item": "G3's 38% agrees bucket fabrication annotation", "first_in": "Results 5.1, every time the bucket percentages are quoted", "repeated_in": "Figure 1 caption"}
+  ],
+  "surprise_markers": [
+    "Results 5.1 opening beat: fail-safe defaulting dominance + fabrication-in-agreement, one combined beat",
+    "Results 5.1 adapter-provenance sentence is a confident disclosure immediately after, NOT a fourth surprise marker",
+    "Results 5.3: INT8 loses less accuracy than fp32 export"
+  ],
+  "audience": "applied-AI / ML-systems reviewers and practitioners building LLM-plus-validator pipelines in safety-critical or industrial settings; secondarily, precision-aquaculture / RAS engineering readers",
+  "success_condition": "a reader who reads only the Abstract can state: 'the safety property here did not depend on the LLM reasoning correctly, it depended on a narrow enumerable interface and a safe default -- and the paper measured, rather than assumed, that this held even against an undertrained model, across five layers, with one full disclosed negative result.'"
+}

@@ -1,0 +1,70 @@
+{
+  "experiment_id": "EXP07",
+  "sub_experiment": "confidence_threshold_curve_analysis",
+  "headline_box_mp_mr": {
+    "precision": 0.8589679256591463,
+    "recall": 0.7188889049222116,
+    "map50": 0.8394782259318897
+  },
+  "headline_f1": 0.7827104455515016,
+  "true_f1_argmax_on_fine_curve": {
+    "conf": 0.34134134134134136,
+    "precision": 0.844703115645062,
+    "recall": 0.7304918032786886,
+    "f1": 0.783456948431862
+  },
+  "headline_vs_true_argmax_f1_delta": 0.0007465028803603779,
+  "deployed_conf": 0.2,
+  "deployed_operating_point": {
+    "conf": 0.20020020020020018,
+    "precision": 0.7204859316451784,
+    "recall": 0.7822950819672131,
+    "f1": 0.7501194064166758
+  },
+  "points_of_interest": {
+    "0.1": {
+      "conf": 0.10010010010010009,
+      "precision": 0.563471429169101,
+      "recall": 0.8472732057270028,
+      "f1": 0.676825886582712
+    },
+    "0.15": {
+      "conf": 0.15015015015015015,
+      "precision": 0.6550375609052455,
+      "recall": 0.8130883503482514,
+      "f1": 0.7255554932040503
+    },
+    "0.2": {
+      "conf": 0.20020020020020018,
+      "precision": 0.7204859316451784,
+      "recall": 0.7822950819672131,
+      "f1": 0.7501194064166758
+    },
+    "0.25": {
+      "conf": 0.2502502502502503,
+      "precision": 0.7759558723393901,
+      "recall": 0.7608139517582437,
+      "f1": 0.7683103147489188
+    },
+    "0.3": {
+      "conf": 0.3003003003003003,
+      "precision": 0.8197248970579277,
+      "recall": 0.7429508196721312,
+      "f1": 0.7794519075899147
+    },
+    "0.35": {
+      "conf": 0.35035035035035034,
+      "precision": 0.8513981665964389,
+      "recall": 0.7250969217517665,
+      "f1": 0.7831882184054358
+    },
+    "0.4": {
+      "conf": 0.40040040040040037,
+      "precision": 0.8809689749894388,
+      "recall": 0.7036065573770491,
+      "f1": 0.7823616293286848
+    }
+  },
+  "methodological_note": "model.val(conf=X) for X below the internal best-F1 confidence does NOT change box.mp/box.mr -- those are already an argmax-over-the-retained-curve figure, not a measurement pinned to conf=X. Confirmed empirically in exp07_conf_sweep.py: box.mp/mr were identical (0.859/0.719) for conf in {0.10,...,0.30} and only moved once conf exceeded the internal argmax threshold (~0.34). Reading the fine-grained p_curve/r_curve/f1_curve arrays directly (this script) is the correct way to get precision/recall AT a specific confidence threshold.",
+  "wall_time_seconds": 19.822821855545044
+}

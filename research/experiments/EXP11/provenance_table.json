@@ -1,0 +1,218 @@
+{
+  "experiment_id": "EXP11",
+  "generated_at_utc": "2026-08-26T15:00:00+00:00",
+  "finalized_at_utc": "2026-08-26T18:10:00+00:00",
+  "finalization_note": "This table was originally produced by a 4-of-11 execution batch (EXP02/EXP08/EXP09/EXP11) while EXP01/EXP03-EXP07/EXP10 were still pending. This finalization pass runs now that all 10 other experiments (EXP01-EXP09, EXP10) are complete, adding full provenance entries for every headline number and re-checking the manuscript-wide stale-figure grep against the now-complete experiment set. No entry from the original 4-of-11 pass was altered; only new entries and new findings were added.",
+  "sure_project_head_at_grep_time": {
+    "short_hash": "3c1b9fa",
+    "date": "2026-08-26T08:57:33+03:00",
+    "message": "Add MLOps: experiment tracking, drift detection and a gated retrain path"
+  },
+  "note": "This table now covers (a) the stale-vs-corrected recall figure's own provenance chain, (b) all 10 other experiments (EXP01-EXP10), and (c) a consolidated list of every stale/inconsistent/superseded figure found across the complete experiment set, not just 0.695-vs-0.719.",
+  "recall_figure_provenance_chain": [
+    {
+      "value": "0.695",
+      "status": "STALE -- superseded",
+      "introduced_by_commit": "d709836",
+      "introduced_at": "2026-08-26T07:31:00+03:00",
+      "commit_message": "Switch the dashboard to MJPEG streaming, refresh model report and plan",
+      "context": "MODEL_RAPORU.md's table mislabeled epoch-73 metrics (selected by mAP50, not fitness) as if they were best.pt's own numbers.",
+      "still_present_in": [
+        "sure-project/TODOS.md:11 (self-flagged as a pre-existing, already-stale P2 planning item)",
+        "sure-project/MODEL_RAPORU.md:25,135 (explicitly inside the 2026-08-26 correction note itself, narrating the mistake -- not a live claim)",
+        "sure-project/llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 (RAG knowledge-base source doc -- RE-VERIFIED STILL PRESENT AND UNCORRECTED at finalization time; see stale_and_inconsistent_figures[0] below)"
+      ]
+    },
+    {
+      "value": "0.719",
+      "status": "CORRECTED -- authoritative for the F1-argmax operating point ONLY (see stale_and_inconsistent_figures[1] for a second, distinct resolution this finalization pass adds)",
+      "introduced_by_commit": "9a260af",
+      "introduced_at": "2026-08-26T08:14:54+03:00",
+      "commit_message": "Add edge export benchmark, and correct the reported detector metrics",
+      "context": "Fresh val() run against best.pt (epoch 77, selected by Ultralytics' fitness=0.1*mAP50+0.9*mAP50-95, not by mAP50) produced 0.8590/0.7189/0.8395 (P/R/mAP50), matching epoch 77's logged row to 4 decimal places, not epoch 73's.",
+      "present_in": [
+        "sure-project/MODEL_RAPORU.md:15",
+        "sure-project/README.md:19,384",
+        "sure-project/README.tr.md:19,382",
+        "sure-project/research_task.md:15 (identical copy also present at pipeline/initial_context/research_task.md:15)"
+      ],
+      "re_verified_by": ["EXP06 (fresh val() reproduction, 0.719 exact)", "EXP07 (fine-grained curve confirms 0.719 IS the true F1-argmax, conf=0.341 peak F1=0.7835 vs headline F1=0.7827)"]
+    }
+  ],
+  "stale_and_inconsistent_figures": [
+    {
+      "id": 0,
+      "description": "RAG knowledge-base source file still states live recall as ~0.695, and this file IS ingested into the production RAG vector store.",
+      "value_found": "0.695",
+      "location": "llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58",
+      "severity": "HIGH -- production data-integrity bug, not just a documentation nit",
+      "status": "NOT FIXED (read-only guardrail on sure-project)",
+      "first_found_by": "EXP11 (original 4-of-11 pass)",
+      "re_confirmed_at_finalization": true,
+      "provenance": {
+        "introduced_by_commit": "0e8b414",
+        "introduced_at": "2026-08-26T07:31:43+03:00",
+        "commit_message": "Add RAG: pgvector knowledge base, measured chunking, calibrated threshold",
+        "correction_commit_that_missed_this_file": "9a260af (2026-08-26T08:14:54+03:00) -- corrected MODEL_RAPORU.md/README.md/README.tr.md 43 minutes later but did not touch this knowledge file"
+      },
+      "recommendation": "Must be disclosed in the manuscript's Known Limitations / data-integrity section as a live, unfixed hazard: the deployed RAG-augmented LLM can retrieve and cite a stale recall figure verbatim if asked about detection reliability."
+    },
+    {
+      "id": 1,
+      "description": "Vision recall has TWO distinct, both-genuinely-correct values in play depending on which question is asked, and no manuscript-planning artifact currently distinguishes them: 0.719 is the F1-argmax/headline academic metric; 0.782 is the actual precision/recall at the DEPLOYED confidence threshold (conf=0.20).",
+      "values_found": {"headline_argmax": "0.719 (P=0.858/0.859)", "deployed_operating_point": "0.782 (P=0.720)"},
+      "location": "vision-service/yolo_runner.py:44 (CONF_THRESH=0.20, deliberately lowered from 0.30 for recall) vs. MODEL_RAPORU.md:14-15 / README.md:19 (report the F1-argmax pair, not the deployed-point pair)",
+      "severity": "MEDIUM-HIGH -- not a data-integrity bug (both numbers are real and correctly measured), but an unresolved AMBIGUITY that materially changes the direction of a safety argument (H7's full-frame-miss risk discussion) depending on which number is cited",
+      "status": "NOT YET DISCLOSED anywhere in paper_workspace/ as of this finalization pass -- Known Limitations item #1 in research_proposal.md only covers the 0.695-vs-0.719 issue, not this second, distinct 0.719-vs-0.782 ambiguity",
+      "first_found_by": "EXP07",
+      "recommendation": "MUST be explicitly resolved/disclosed in the manuscript before freeze: state plainly that 0.719/0.858 is the F1-optimal academic operating point (confirmed by EXP07's fine-grained curve, true argmax at conf=0.341, F1=0.7835, functionally identical to the headline's F1=0.7827) while 0.782/0.720 is what the deployed system at CONF_THRESH=0.20 actually runs at, and that H7's full-frame-miss safety discussion should cite the LATTER (0.782), since it is the number that actually governs production behavior -- and it is the more reassuring of the two, not the less reassuring, so this is a correction in the safe direction, not a newly discovered risk."
+    },
+    {
+      "id": 2,
+      "description": "MODEL_RAPORU.md's own summary table (Precision=0.858) is a rounding inconsistency against its own correction narrative's cited raw val() output (0.8590, which rounds to 0.859) two paragraphs earlier in the same document -- propagated unchanged into README.md, README.tr.md, and research_task.md.",
+      "values_found": {"summary_table": "0.858", "own_narrated_raw_val_output": "0.8590 -> rounds to 0.859", "EXP06_fresh_reproduction": "0.859", "EXP07_headline_row": "0.859"},
+      "location": "MODEL_RAPORU.md:14 (table) vs. MODEL_RAPORU.md:28 (narrative, same document) vs. README.md:19, README.tr.md:19, research_task.md:15",
+      "severity": "LOW -- one-thousandths-place rounding nit, not safety-relevant, but a genuine, previously-undocumented internal inconsistency within the sure-project docs themselves",
+      "status": "NOT FIXED (read-only guardrail); disclosed here for the writeup phase",
+      "first_found_by": "EXP06 (fresh reproduction) + EXP07 (headline row), cross-checked against MODEL_RAPORU.md text at finalization time",
+      "recommendation": "If the manuscript cites precision at more than 2 decimal places, use 0.859 (matches both the original raw val() output narrated in MODEL_RAPORU.md itself and two independent fresh reproductions in EXP06/EXP07), not 0.858; if citing 2 decimals (0.86 rounds either way), the distinction is moot."
+    },
+    {
+      "id": 3,
+      "description": "README.md's published agent-benchmark table (AQUA-7B: format 60%, mean steps 3.6) has drifted from a fresh, code-unmodified reproduction on the current repo state (100% format, 2.0 mean steps) -- selection% (50%) and the constant-answer conclusion reproduce exactly, but format-compliance and step-count do not, with no configuration difference found to explain it.",
+      "values_found": {"README_published": "format 60%, mean_steps 3.6, mean_seconds 11.9s", "EXP04_fresh_reproduction": "format 100%, mean_steps 2.0, mean_seconds 14.6s"},
+      "location": "README.md:156-157 vs. EXP04/aqua7b_results.jsonl / aqua7b_stdout.log",
+      "severity": "MEDIUM -- does not affect the negative-result conclusion (AQUA-1B failure, AQUA-7B constant-answer artifact both hold), but is an unexplained, undocumented drift between a shipped README table and current live-repo behavior",
+      "status": "NOT FIXED, NOT YET EXPLAINED -- most likely cause is mlx-lm/model-serving-stack drift between whenever the README table was produced and this run, but this was not confirmed (git-blame on the README table itself was out of EXP04's scope)",
+      "first_found_by": "EXP04",
+      "recommendation": "Report the fresh EXP04 numbers (100%/2.0/9 scenarios) as the authoritative, most-recently-verified figures in the manuscript, footnoted with an explicit disclosed discrepancy against the README's published table -- do not silently prefer one source over the other without the footnote, and do not present the higher n=9 numbers as reproducing the README's original n=5 format/step figures, because they do not."
+    },
+    {
+      "id": 4,
+      "description": "EXP08's own internal PSI sweep table (delta=0.04 quantile PSI=0.728) is inconsistent with the separately-drawn 'significant-drift window' used in its own retrain-gate exercise at the same nominal delta=0.04 (quantile PSI=0.9070) -- both numbers come from EXP08's own g8_psi_sweep.py, using the same fixed-seed rng object but at different draw positions in its call sequence (resampling-with-replacement is inherently stochastic per call; the seed guarantees run-to-run reproducibility of the whole script, not equal values across two separate calls at the 'same' delta).",
+      "values_found": {"sweep_table_delta_0.04": "quantile PSI 0.728", "retrain_gate_significant_window_delta_0.04": "quantile PSI 0.9070"},
+      "location": "EXP08/exp08_output.json (sweep) vs. EXP08/synthetic_significant_drift_window.json + EXP08/results.md 'Retrain gate exercise' section",
+      "severity": "LOW -- self-contained within EXP08's own experiment output, not a cross-document manuscript risk (EXP08/results.md's headline claims are the qualitative curve-shape finding and the categorical decide()/gate() outcomes, neither of which depends on the exact numeric value of this one intermediate PSI figure), but worth flagging as a reproducibility/documentation gap.",
+      "status": "NOT DOCUMENTED in EXP08/results.md as an expected consequence of unseeded-per-call resampling variance -- a reader comparing the two tables in that results.md would reasonably expect the two delta=0.04 values to match and could mistake the difference for an error.",
+      "first_found_by": "EXP11 (this finalization pass, via cross-reading EXP08/results.md's two tables against each other)",
+      "recommendation": "Add one clarifying sentence to EXP08/results.md (or the manuscript's Methodology section, if this sweep is cited numerically) noting that the sweep table and the retrain-gate exercise draw independent stochastic samples at nominal delta=0.04 and are not expected to produce identical PSI values -- no manuscript-facing number needs to change, since neither 0.728 nor 0.9070 is itself proposed as a headline citation."
+    },
+    {
+      "id": 5,
+      "description": "Vision train/val leakage risk (32 near-duplicate frame pairs, 14 adjacent-index) found by EXP05 is not yet reflected as a caveat anywhere the headline mAP50/precision/recall numbers are reported (MODEL_RAPORU.md, README.md).",
+      "values_found": {"strict_threshold_near_duplicate_pairs": 32, "adjacent_index_subset": 14, "exact_duplicate_frames": 0},
+      "location": "EXP05/exp05_summary.json, EXP05/near_duplicate_pairs_full.json",
+      "severity": "MEDIUM -- milder than the already-disclosed ogretmen leakage case (which invalidated a whole reported mAP50 figure), but a real, previously undocumented risk to the SAME headline numbers (mAP50 0.840 / precision 0.858-9 / recall 0.719) the manuscript reports elsewhere without this caveat.",
+      "status": "NOT YET DISCLOSED in any paper_workspace artifact as of this finalization pass",
+      "first_found_by": "EXP05",
+      "recommendation": "Add the caveat EXP05/results.md itself recommends: headline vision metrics should note that ~14-32 validation frames (concentrated in video6/video7) are temporally-adjacent near-duplicates of training frames from the same clip, which may cause a modest, unquantified optimistic bias relative to a fully clip-disjoint split."
+    }
+  ],
+  "exp01_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP01 run)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metrics": {
+      "F1_argmax_threshold": {"value": "0.84", "F1": 0.951, "precision": 0.906, "recall": 1.0},
+      "deployed_threshold": {"value": "0.85", "F1": 0.906, "precision": 1.0, "recall": 0.828},
+      "e5_small_heading": {"hit_at_1": 0.793, "hit_at_3": 0.931, "hit_at_5": 0.931, "MRR": 0.856},
+      "random_baseline_seed42": {"hit_at_1": 0.207, "MRR": 0.418},
+      "margin": {"hit_at_1": "+0.586", "MRR": "+0.438"}
+    },
+    "source_files_and_commits": {
+      "llm-service/rag/calibrate.py": "measured against 3c1b9fa, no commits found specific to calibrate.py logic changes since RAG layer introduction (0e8b414 / 97a688c)",
+      "llm-service/rag/bench.py": "same",
+      "sure_rag Postgres collection (live, read-only queried)": "not a git artifact -- content cross-checked against current knowledge-base files at run time, confirmed current (not stale) for all 4 strategies"
+    },
+    "guardrail_note": "bench.py's own run_combination() writes to the live DB (clear+upsert) -- EXP01 authored a read-only reproduction (bench_readonly.py) instead of running it directly, per this run's DB guardrails."
+  },
+  "exp03_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP03 run)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "4-bucket distribution over n=8 eval.py scenarios", "value": "unparseable-defaulted-to-ok 4/8, agrees 3/8, under-calls-and-escalated 1/8, over-calls 0/8"},
+    "secondary_metric": {"name": "backend/test_decision.py", "value": "18/18 passed"},
+    "source_files_and_commits": {
+      "backend/rules.py": "single source of truth per its own docstring -- exact introducing commit not individually re-verified in this pass beyond 3c1b9fa (current HEAD); traced structurally (not by commit-bisection) via EXP02's identity check",
+      "llm-service/sure-aqua-adapter/adapters.safetensors": "GITIGNORED (.gitignore:58), NOT in git history at all (git log --all returns nothing) -- provenance is mtime-only: Fri Jun 5 00:43:26 2026, disclosed as a limitation, not a commit-hash claim"
+    }
+  },
+  "exp04_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP04 run)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "constant-answer flag, n=5 vs n=9, both models", "value": "AQUA-1B 0%/0% both; AQUA-7B constant_answer=true on both (5/5 and 9/9 get_sensor_trend)"},
+    "source_files_and_commits": {
+      "llm-service/agent/bench_agent.py": "measured against 3c1b9fa",
+      "llm-service/agent/loop.py": "measured against 3c1b9fa (PLAN_MAX_TOKENS=48, MAX_STEPS=4, MAX_SECONDS=45.0 confirmed by direct read)"
+    },
+    "see_also": "stale_and_inconsistent_figures[3] for the README-vs-fresh-run format/mean-steps discrepancy this run surfaced"
+  },
+  "exp05_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP05 run)",
+    "sure_project_commit": "3c1b9fabf7a5de59e83b81965d1a319498baaec5",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "near-duplicate train/val pairs at strict aHash/dHash threshold (<=5 bits of 64)", "value": 32},
+    "source_files_and_commits": {
+      "data/sure_dataset/": "dataset content, not itself individually commit-tracked line-by-line in this pass -- audited by direct file/hash inspection against the live folder at 3c1b9fa"
+    },
+    "see_also": "stale_and_inconsistent_figures[5] for the disclosure gap this run surfaced"
+  },
+  "exp06_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP06 run)",
+    "sure_project_commit": "3c1b9fabf7a5de59e83b81965d1a319498baaec5",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "six-config table + CoreML/ANE 3-session variance + ONNX-vs-TorchScript per-image diff", "value": "pt-mps 0.8395/0.859/0.719 mAP50/P/R; onnx & torchscript both -0.0104 deltaMAP50; CoreML p50 9.03+-0.22ms; 0/98 images meaningfully different ONNX vs TorchScript"},
+    "source_files_and_commits": {
+      "vision-service/export_bench.py": "measured against 3c1b9fa; reused existing export artifacts under sure_models/sure_v1/export/ via --skip-export (not regenerated this run)",
+      "MODEL_RAPORU.md six-config table (baseline for comparison)": "9a260af (2026-08-26T08:14:54+03:00)"
+    }
+  },
+  "exp07_provenance": {
+    "measured_at_utc": "2026-08-26 (this batch's EXP07 run)",
+    "sure_project_commit": "3c1b9fabf7a5de59e83b81965d1a319498baaec5",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "empirical full-frame-miss rate at deployed conf=0.20; fine-grained P/R/F1 curve", "value": "0/98 empirical misses; deployed-point P=0.720/R=0.782; true F1-argmax conf=0.341 P=0.845/R=0.730/F1=0.7835"},
+    "source_files_and_commits": {
+      "vision-service/yolo_runner.py": "measured against 3c1b9fa; CONF_THRESH=0.20 confirmed by direct read of line 44, with inline comment confirming deliberate lowering from 0.30",
+      "backend/rules.py fish_count==0 rule": "traced by direct read, lines 69-75, against 3c1b9fa"
+    },
+    "see_also": "stale_and_inconsistent_figures[1] for the 0.719-vs-0.782 resolution this run requires"
+  },
+  "exp08_provenance": {
+    "measured_at_utc": "2026-08-26T15:00:00+00:00 (approx, see exp08_output.json for exact)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "quantile vs equal-width PSI sweep (16 severities) + retrain gate exercise", "value": "see EXP08/exp08_output.json"},
+    "source_files_and_commits": {
+      "mlops/drift.py": "3c1b9fa (Add MLOps: experiment tracking, drift detection and a gated retrain path) -- confirmed the ONLY commit touching this file (git log --oneline --all -- mlops/drift.py)",
+      "mlops/retrain.py": "3c1b9fa -- same, only commit",
+      "mlops/reference_confidence.json": "3c1b9fa -- same, only commit"
+    },
+    "see_also": "stale_and_inconsistent_figures[4] for an internal reproducibility note this finalization pass adds"
+  },
+  "exp09_provenance": {
+    "measured_at_utc": "2026-08-26T~17:47 local (see EXP09/existing_test_bridge_run.log timestamp)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "existing test_bridge.py suite", "value": "18/19 passed (1 pre-existing float-rounding test-helper bug, documented)"},
+    "metric_2": {"name": "new FakeTwin edge-case tests (this experiment)", "value": "4/4 passed"},
+    "source_files_and_commits": {
+      "twin_bridge/*.py": "UNTRACKED -- no commit exists. `git status` shows `?? twin_bridge/`; `git log --oneline -- twin_bridge` returns nothing. This is itself the headline EXP11 finding for this module: it cannot be cited by commit hash because it has never been committed. Provenance for twin_bridge/* is therefore 'file present on disk, mtime/content as of this session (2026-08-26), no git anchor' rather than a commit hash."
+    }
+  },
+  "exp10_provenance": {
+    "measured_at_utc": "2026-08-26 (this finalization batch's EXP10 run)",
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "metric": {"name": "confirmatory literature search result + framing decision", "value": "no closer prior instance found; CT-3 hybrid framing confirmed, with a refined mechanism-level claim (see EXP10/results.md)"},
+    "note": "Not a codebase-measurement number; no sure-project commit is directly attached to this experiment's output beyond confirming which commit EXP03/04/06/07/08/09 (its dependencies) were measured against (3c1b9fa, uniformly, for all of them)."
+  },
+  "coverage_against_exp11_strong_success_criteria": {
+    "strong_criteria_text": "every re-measured number produced by G1-G9 (RAG sweep, eval.py run, bench_agent.py re-run, export_bench.py re-run, val() re-run, PSI sweep, twin_bridge tests) is recorded alongside the exact git commit hash and date it was measured against",
+    "status": "MET (finalized). All of EXP01-EXP09 plus EXP10 now have provenance entries above, each anchored to sure-project commit 3c1b9fa (2026-08-26T08:57:33+03:00) at measurement time, with per-file commit provenance given wherever a file has its own distinct commit history (e.g. mlops/drift.py's single commit; the recall-figure correction chain's two distinct commits) and explicitly flagged as UNTRACKED where no commit exists (twin_bridge/, the sure-aqua-adapter LoRA weights).",
+    "minimum_viable_criteria_text": "at minimum guarantee the 0.695-vs-0.719 grep check passes ... and record provenance for the highest-priority re-measured numbers (G1's RAG sweep, G3's eval.py run, G6's export_bench.py table)",
+    "minimum_viable_status": "MET AND EXCEEDED. The 0.695-vs-0.719 grep check still PASSES at finalization (re-verified). All three originally-named highest-priority numbers (G1's RAG sweep, G3's eval.py+apply_rule_override run, G6's export_bench.py table) now have full provenance entries above, plus all remaining G1-G9 numbers and G10 (EXP10)."
+  },
+  "manuscript_readiness_note": "No manuscript draft exists yet as of this finalization pass (state.json confirms current_phase='experiment_track', finished=false) -- this provenance table and the stale_and_inconsistent_figures list above are handed to the writeup phase as the authoritative pre-drafting reference; every number the manuscript cites should be checked against this table (or a superseding, re-verified update to it) before freeze."
+}

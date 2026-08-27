@@ -1,0 +1,45 @@
+Evaluation set: 29 queries, k=5 (READ-ONLY reproduction, no reindexing performed)
+
+  -> e5-small   heading      Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7701.79it/s]
+[1mBertModel LOAD REPORT[0m from: intfloat/multilingual-e5-small
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+[3mNotes:
+- UNEXPECTED[3m	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.[0m
+hit@1=0.793  MRR=0.856  (44 chunks in DB)  degenerate=False
+  -> e5-small   fixed-120w   hit@1=0.690  MRR=0.828  (28 chunks in DB)  degenerate=False
+  -> e5-small   fixed-240w   hit@1=0.759  MRR=0.868  (16 chunks in DB)  degenerate=False
+  -> e5-small   fixed-480w   hit@1=0.862  MRR=0.900  (8 chunks in DB)  degenerate=True
+  -> tr-bert    heading      Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7302.10it/s]
+[1mBertModel LOAD REPORT[0m from: emrecan/bert-base-turkish-cased-mean-nli-stsb-tr
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+[3mNotes:
+- UNEXPECTED[3m	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.[0m
+hit@1=0.724  MRR=0.833  (44 chunks in DB)  degenerate=False
+  -> tr-bert    fixed-120w   hit@1=0.621  MRR=0.701  (28 chunks in DB)  degenerate=False
+  -> tr-bert    fixed-240w   hit@1=0.517  MRR=0.638  (16 chunks in DB)  degenerate=False
+  -> tr-bert    fixed-480w   hit@1=0.414  MRR=0.614  (8 chunks in DB)  degenerate=True
+
+| Model | Strategy | Chunks (DB) | hit@1 | hit@3 | hit@5 | MRR | Query(ms) | Degenerate |
+|-------|----------|------------:|------:|------:|------:|----:|----------:|:----------:|
+| e5-small | fixed-480w | 8 | 0.862 | 0.897 | 1.000 | 0.900 | 16.3 | True |
+| e5-small | fixed-240w | 16 | 0.759 | 1.000 | 1.000 | 0.868 | 16.9 | False |
+| e5-small | heading | 44 | 0.793 | 0.931 | 0.931 | 0.856 | 359.3 | False |
+| tr-bert | heading | 44 | 0.724 | 0.931 | 1.000 | 0.833 | 190.4 | False |
+| e5-small | fixed-120w | 28 | 0.690 | 0.966 | 0.966 | 0.828 | 15.8 | False |
+| tr-bert | fixed-120w | 28 | 0.621 | 0.793 | 0.793 | 0.701 | 31.7 | False |
+| tr-bert | fixed-240w | 16 | 0.517 | 0.759 | 0.828 | 0.638 | 32.5 | False |
+| tr-bert | fixed-480w | 8 | 0.414 | 0.828 | 0.931 | 0.614 | 28.8 | True |
+
+JSON written: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP01/bench_readonly_results.json
+
+Cross-check (local chunk_all() count vs DB row count, per strategy):
+  heading: local=44  db(e5-small)=44  MATCH
+  fixed-120w: local=28  db(e5-small)=28  MATCH
+  fixed-240w: local=16  db(e5-small)=16  MATCH
+  fixed-480w: local=8  db(e5-small)=8  MATCH

@@ -1,0 +1,38 @@
+=== 0.695 in sure-project (text/doc files, excluding YOLO label noise + build artifacts) ===
+/Users/batuhancitak/Desktop/sure-project/MODEL_RAPORU.md:25:> (P 0.878 / R 0.695) taşıyordu ve yanlıştı. Ultralytics `best.pt`'yi mAP50'ye
+/Users/batuhancitak/Desktop/sure-project/MODEL_RAPORU.md:135:| Recall | 0.630 | 0.695 | +0.065 |
+/Users/batuhancitak/Desktop/sure-project/llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58:- **Tespit modelinin recall'ı ~0.695'tir**; yoğun karelerde balıkların bir kısmı
+/Users/batuhancitak/Desktop/sure-project/TODOS.md:11:**Ne:** `sure_v1` recall ~0.695 — yoğun/örtüşen karelerde balıkların ~%30'u
+
+=== 0.719 in sure-project (text/doc files, excluding YOLO label noise + build artifacts) ===
+/Users/batuhancitak/Desktop/sure-project/MODEL_RAPORU.md:15:| Recall | **0.719** |
+/Users/batuhancitak/Desktop/sure-project/README.tr.md:19:| Tespit | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
+/Users/batuhancitak/Desktop/sure-project/README.tr.md:382:- **Vision recall 0.719** — yoğun karelerde balıkların ~%28'i kaçırılıyor.
+/Users/batuhancitak/Desktop/sure-project/mlops/reference_confidence.json:172:  0.7195,
+/Users/batuhancitak/Desktop/sure-project/README.md:19:| Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
+/Users/batuhancitak/Desktop/sure-project/README.md:384:- **Vision recall 0.719** — roughly 28% of fish missed in dense frames. The fix
+/Users/batuhancitak/Desktop/sure-project/research_task.md:15:- Vision Accuracy: YOLOv11s achieved an mAP50 of 0.840, precision of 0.858, and recall of 0.719 (trained on 510 labeled images, single class: sturgeon).
+
+=== 0.695 in pipeline initial_context/ ===
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/MODEL_RAPORU.md:25:> (P 0.878 / R 0.695) taşıyordu ve yanlıştı. Ultralytics `best.pt`'yi mAP50'ye
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/MODEL_RAPORU.md:135:| Recall | 0.630 | 0.695 | +0.065 |
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/TODOS.md:11:**Ne:** `sure_v1` recall ~0.695 — yoğun/örtüşen karelerde balıkların ~%30'u
+
+=== 0.695 in pipeline paper_workspace/ (files containing it) ===
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/research_goals.json
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/brainstorm.json
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/persona_narrative_round_3.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/persona_practical_round_3.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/persona_narrative_round_2.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/track_decomposition.json
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/research_plan.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/novelty_assessment.json
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/research_proposal.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/brainstorm.md
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/paper_workspace/brainstorm_partial.md
+
+=== 0.719 in pipeline initial_context/ ===
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/MODEL_RAPORU.md:15:| Recall | **0.719** |
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/README.md:19:| Detection | YOLOv11s · mAP50 **0.840** · precision **0.858** · recall **0.719** |
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/README.md:384:- **Vision recall 0.719** — roughly 28% of fish missed in dense frames. The fix
+/Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/initial_context/research_task.md:15:- Vision Accuracy: YOLOv11s achieved an mAP50 of 0.840, precision of 0.858, and recall of 0.719 (trained on 510 labeled images, single class: sturgeon).

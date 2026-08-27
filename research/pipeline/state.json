@@ -1,0 +1,201 @@
+{
+  "task": "Write a comprehensive, publication-ready academic manuscript on the S.U.R.E. (Aquaculture Welfare Integration) system: an autonomous sturgeon welfare monitoring system in Recirculating Aquaculture Systems (RAS) using Edge-AI (YOLOv11s + ByteTrack), a dual-layer LLM + deterministic rule engine safety architecture, RAG-enhanced retrieval (pgvector + e5-small), and PSI-gated MLOps drift detection. The system is already implemented, deployed, and tested; the paper must contextualize the dual-layer AI safety approach within the precision aquaculture literature and argue it solves LLM unreliability in safety-critical industrial deployments.",
+  "mode": "default",
+  "current_phase": "milestone_review",
+  "phase_history": [
+    {
+      "phase": "persona_council",
+      "rounds": 3,
+      "exit_round": 3,
+      "final_verdicts": { "practical": "ACCEPT", "rigor": "ACCEPT", "narrative": "ACCEPT" },
+      "artifacts": ["paper_workspace/research_proposal.md", "paper_workspace/novelty_assessment.json"],
+      "completed_at": "2026-08-26T10:45:43Z"
+    },
+    {
+      "phase": "literature_review",
+      "passes": 1,
+      "citation_count": 31,
+      "claims_falsified": 11,
+      "artifacts": [
+        "paper_workspace/literature_review.md",
+        "paper_workspace/literature_review_sources.json",
+        "paper_workspace/literature_review_matrix.md",
+        "paper_workspace/references.bib",
+        "paper_workspace/novelty_flags.json"
+      ],
+      "key_finding": "Deterministic-override-of-LLM pattern is EQUIVALENT_KNOWN (Safety Instrumented Systems / RL shielding / LLM-guardrail industry pattern). Recommended novelty framing: cross-layer consistency composition.",
+      "completed_at": "2026-08-26T11:19:54Z"
+    },
+    {
+      "phase": "brainstorm",
+      "passes": 1,
+      "approach_count": 48,
+      "track_recommendation": { "needs_theory_track": false },
+      "artifacts": ["paper_workspace/brainstorm.md", "paper_workspace/brainstorm.json"],
+      "completed_at": "2026-08-26T14:31:00+03:00"
+    },
+    {
+      "phase": "formalize_goals",
+      "nodes": ["formalize_goals_entry", "formalize_goals_agent", "research_plan_writeup", "track_decomposition_gate", "milestone_goals"],
+      "goal_count": 11,
+      "recommended_track": "empirical",
+      "artifacts": ["paper_workspace/research_goals.json", "paper_workspace/track_decomposition.json", "paper_workspace/research_plan.md"],
+      "milestone_goals_human_checkpoint": "approved by user to proceed to empirical track",
+      "completed_at": "2026-08-26T11:51:23Z"
+    },
+    {
+      "phase": "experiment_track",
+      "nodes": ["experiment_design", "experimentation (3 parallel groups + EXP10/EXP11 finalization)", "experiment_verify"],
+      "experiments_run": 11,
+      "verification_summary": { "pass": 8, "partial": 3, "fail": 0 },
+      "artifacts": [
+        "experiment_workspace/experiment_design.json",
+        "experiment_workspace/execution_log.json",
+        "experiment_workspace/verification_results.json",
+        "experiment_workspace/verification_handoff.md",
+        "experiment_workspace/experiment_runs/EXP01..EXP11/"
+      ],
+      "key_findings": [
+        "EXP03 (central experiment, G3): dominant pathway is malformed-LLM-output-defaults-safe (4/8), not rule-catches-LLM-miss (1/8); 6/8 reasoning strings manually coded as containing fabricated sensor values, including inside the 'agrees' bucket -- grounds H2's enumerable/non-enumerable boundary",
+        "EXP04 (G4): AQUA-7B constant-first-tool-selection negative result preserved and strengthened to 9/9 independent scenarios (4 new + original 5)",
+        "EXP07 (G7): actual deployed vision confidence threshold (conf=0.20) has recall=0.782, materially higher than the headline 0.719 (F1-argmax) figure -- both correct, answer different questions, MUST be disclosed distinctly in the manuscript; val set also has zero sparse (k=1/k=2) frames, an untested regime",
+        "EXP05 (G5, partial): 32 near-duplicate frame pairs (14 adjacent-index) found via perceptual hash between train/val; enumerated but no corrected/caveated headline vision number was produced -- OPEN TASK for formalize_results/writeup",
+        "EXP06 (G6): strong support that ONNX/TorchScript 'accuracy loss' is a shared-post-processing artifact (0/98 meaningfully different detections)",
+        "EXP08 (G8, partial): H5 PSI-binning claim needed honest correction -- equal-width is less sensitive at small shifts, more explosive at larger shifts due to a specific bin emptying",
+        "EXP01 (G1): RAG hit@1 margin over random baseline +0.586, MRR margin +0.438; deployed threshold 0.85 confirmed precision-favoring vs F1-argmax 0.84",
+        "EXP09 (G9): twin_bridge 18/19 pre-existing tests pass (1 fail is a test-helper bug); untracked in git, no commit history",
+        "EXP10 (G10): recommends a narrower, honest central-claim framing -- dominant escalation function is unconditional fail-safe defaulting, not sophisticated error-correction; zero protection against fabricated-but-correct-verdict reasoning",
+        "EXP11 (G11): live, unfixed data-integrity bug found -- llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 still states recall ~0.695 and IS ingested into the production RAG vector store; 6 total stale/inconsistent figures catalogued in provenance_table.json"
+      ],
+      "completed_at": "2026-08-26T18:10:00+03:00"
+    },
+    {
+      "phase": "track_merge",
+      "artifacts": ["paper_workspace/track_merge_summary.md", "paper_workspace/theory_track_summary.json", "paper_workspace/experiment_track_summary.json"],
+      "completed_at": "2026-08-26T18:15:00+03:00"
+    },
+    {
+      "phase": "verify_completion",
+      "completion_ratio": 0.95,
+      "recommendation": "COMPLETE",
+      "artifacts": ["paper_workspace/verify_completion.json"],
+      "open_task_for_next_phase": "G5: produce a corrected/caveated headline vision metric reflecting the near-duplicate leakage finding",
+      "completed_at": "2026-08-26T18:20:00+03:00"
+    },
+    {
+      "phase": "formalize_results",
+      "goal_status_counts": { "achieved_strong": 8, "achieved_minimum": 3 },
+      "g5_resolution": "re-ran model.val() on filtered splits excluding near-duplicate images; baseline P=.859/R=.719/mAP50=.8395 (n=98) vs excl-conservative P=.846/R=.712/mAP50=.8335 (n=81); optimistic bias real but modest (0.5-1.3pts)",
+      "emergent_findings_count": 6,
+      "artifacts": ["paper_workspace/formalized_results.md", "paper_workspace/formalized_results.json"],
+      "completed_at": "2026-08-26T20:00:00+03:00"
+    },
+    {
+      "phase": "resource_prep",
+      "artifacts": ["paper_workspace/structure_analysis.txt", "paper_workspace/resource_inventory.tex", "paper_workspace/references.bib"],
+      "figures_planned": 5,
+      "tables_planned": 3,
+      "citation_count": 55,
+      "completed_at": "2026-08-26T20:30:00+03:00"
+    },
+    {
+      "phase": "pre_writeup_council",
+      "rounds": 2,
+      "final_verdicts": { "practical": "ACCEPT", "rigor": "ACCEPT", "narrative": "ACCEPT" },
+      "key_finding": "LoRA adapter provenance resolved: deployed adapter is an 8-record smoke-test artifact (finetune.py's own docstring calls it insufficient), not the 128-sample v2. Strengthens rather than weakens the central claim -- fix written back into formalized_results.json and EXP03/results.md, scoped to G3 only (not G4).",
+      "artifacts": ["paper_workspace/pre_writeup_synthesis.md", "paper_workspace/review_1/pre_writeup_concerns.md"],
+      "completed_at": "2026-08-26T22:50:00+03:00"
+    },
+    {
+      "phase": "narrative_voice",
+      "artifacts": ["paper_workspace/narrative_brief.md"],
+      "vision_drift_assessment": "deepening, not drift",
+      "surprise_markers": 3,
+      "completed_at": "2026-08-27T07:10:00+03:00"
+    },
+    {
+      "phase": "writeup",
+      "cycles": 2,
+      "passes": 12,
+      "final_pages": 31,
+      "artifacts": ["paper_workspace/final_paper.tex", "paper_workspace/final_paper.pdf", "paper_workspace/sections/*.tex"],
+      "compile_status": "0 errors, 0 thebibliography, watermark+pAI-ack+pAIMSc_2026-citation verified present",
+      "completed_at": "2026-08-27T10:00:00+03:00"
+    },
+    {
+      "phase": "proofreading",
+      "ai_voice_violations_found": 0,
+      "fixes_made": ["2 missing LaTeX accent escapes in author names", "1 duplicated sentence between conclusion.tex/discussion.tex"],
+      "artifacts": ["paper_workspace/copyedit_report.tex", "paper_workspace/copyedit_report.pdf"],
+      "completed_at": "2026-08-27T10:20:00+03:00"
+    },
+    {
+      "phase": "reviewer",
+      "overall_score": 8,
+      "hard_blockers": [],
+      "ai_voice_risk": "low",
+      "must_fix_applied": "fixed introduction.tex factual inconsistency (weeks-after-correction -> 43 minutes), recompiled clean 31pg/0 errors",
+      "artifacts": ["paper_workspace/review_report.tex", "paper_workspace/review_report.pdf", "paper_workspace/review_verdict.json"],
+      "completed_at": "2026-08-27T10:35:00+03:00"
+    },
+    {
+      "phase": "persona_post_review",
+      "rounds": 2,
+      "final_verdicts": { "practical": "ACCEPT", "rigor": "ACCEPT", "narrative": "ACCEPT" },
+      "narrative_veto_count": 0,
+      "artifacts": ["paper_workspace/post_review_synthesis.md"],
+      "completed_at": "2026-08-27T11:00:00+03:00"
+    },
+    {
+      "phase": "post_completion_human_revision",
+      "trigger": "user-supplied corrections after milestone_review",
+      "changes": [
+        "Fixed 3 figure rendering bugs: fig2 (F1-argmax annotation collided with markers), fig3 (title/pt-cpu overlap, an out-of-range annotation distorted the y-axis and drew a line through the 10^1 tick label and the x-axis title, onnx/torchscript labels stacked illegibly since their data points nearly coincide), fig4/doc-Figure-5 (PSI curves rode over the SIGNIFICANT/MODERATE threshold-line labels). All fixed in figures/make_figures.py with explicit ylim/xlim, white text bboxes, and diverging leader-line arrows for the near-coincident onnx/torchscript points; verified by rendering each figure to PNG and visually inspecting before/after.",
+        "Corrected a paper-wide factual overclaim about deployment status: the manuscript previously implied S.U.R.E. is a live, field-deployed system. Per the actual authors: no test used real physical sensors or an operating RAS facility (no such sensor hardware exists at all); sensor readings used throughout are synthetically generated, not recorded; the 510-image vision dataset IS real (camera footage of the physical rig, hand-labeled) but intentionally small, with expansion planned; the team did not enter TEKNOFEST (the competition S.U.R.E. was built for) and did not pass its preliminary evaluation round; the actual purpose of the work is a feasibility/resource-management demonstration (testing whether the multi-component pipeline's memory/compute footprint is viable on edge hardware), not a field validation of decision accuracy.",
+        "Reworded 'deployed'/'production'/'real-world' language across abstract, introduction, background, system_architecture, experimental_setup, results, discussion, known_limitations, conclusion, related_work, and acknowledgements sections -- distinguishing legitimate 'configured parameter value' references (kept) from live-field-operation implications (corrected to 'implemented'/'offline, bench-level evaluation').",
+        "Added prominent new disclosures in Known Limitations (first-listed item), Introduction (early scope paragraph), and Experimental Setup (opening paragraph) covering: no field deployment, synthetic sensor data, real-but-small vision dataset with planned expansion, TEKNOFEST non-participation/failed preliminary round, and the feasibility/resource-management framing as the paper's actual contribution type."
+      ],
+      "recompile_status": "32 pages, 0 errors, pAI acknowledgement + pAIMSc_2026 citation + watermark verified intact",
+      "completed_at": "2026-08-27T12:15:00+03:00"
+    }
+  ],
+  "gates": {
+    "feasibility_check": {
+      "result": "passed",
+      "reasoning": "0 of 11 claims are both KNOWN and blocking:true (C9 is KNOWN but blocking=false)",
+      "checked_at": "2026-08-26T11:19:54Z"
+    },
+    "track_decomposition_gate": {
+      "result": "passed",
+      "reasoning": "recommended_track=empirical is a valid enum value; empirical_questions has 11 entries; theory_questions=0 is acceptable since track is not theory/both",
+      "checked_at": "2026-08-26T11:51:23Z"
+    },
+    "duality_check": {
+      "result": "passed",
+      "reasoning": "only one track (empirical) ran; per skill routing rule, 'only one track ran' auto-passes this gate",
+      "checked_at": "2026-08-26T18:25:00+03:00"
+    },
+    "review_quality": {
+      "result": "passed",
+      "reasoning": "overall_score=8 >= 6, no hard_blockers",
+      "checked_at": "2026-08-27T10:35:00+03:00"
+    },
+    "persona_post_review": {
+      "result": "passed",
+      "reasoning": "all three personas ACCEPT in both rounds; narrative_veto_count=0",
+      "checked_at": "2026-08-27T11:00:00+03:00"
+    }
+  },
+  "retry_counts": { "novelty_gate": 0, "duality_gate": 0, "review_gate": 0 },
+  "ideation_cycle": 0,
+  "narrative_veto_count": 0,
+  "verify_rework_attempts": 0,
+  "brainstorm_cycle": 0,
+  "verify_completion_result": { "completion_ratio": 0.95, "recommendation": "COMPLETE" },
+  "verify_completion_history": [ { "cycle": 1, "ratio": 0.95, "recommendation": "COMPLETE" } ],
+  "recommended_track": "empirical",
+  "vision_locked": true,
+  "finished": true,
+  "created_at": "2026-08-26T10:05:07Z",
+  "last_updated": "2026-08-27T11:00:00+03:00"
+}

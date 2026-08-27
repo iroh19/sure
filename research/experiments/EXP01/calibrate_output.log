@@ -1,0 +1,40 @@
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 14146.41it/s]
+[1mBertModel LOAD REPORT[0m from: intfloat/multilingual-e5-small
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+[3mNotes:
+- UNEXPECTED[3m	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.[0m
+Collection: e5-small:heading (44 chunks)
+
+positive   n= 29  min=0.841  p25=0.856  median=0.867  p75=0.879  max=0.892
+negative   n= 12  min=0.813  p25=0.822  median=0.833  p75=0.837  max=0.847
+
+Separation: negative max 0.847 >= positive min 0.841  ->  OVERLAP
+
+| Threshold | Positives | Negatives | Precision | Recall | F1 |
+|-----------|----------:|----------:|----------:|-------:|---:|
+| 0.80 |        29 |        12 |     0.707 |  1.000 | 0.829 |
+| 0.81 |        29 |        12 |     0.707 |  1.000 | 0.829 |
+| 0.82 |        29 |         9 |     0.763 |  1.000 | 0.866 |
+| 0.83 |        29 |         7 |     0.806 |  1.000 | 0.892 |
+| 0.84 |        29 |         3 |     0.906 |  1.000 | 0.951 |
+| 0.85 |        24 |         0 |     1.000 |  0.828 | 0.906 |
+| 0.86 |        19 |         0 |     1.000 |  0.655 | 0.792 |
+| 0.87 |        13 |         0 |     1.000 |  0.448 | 0.619 |
+| 0.88 |         7 |         0 |     1.000 |  0.241 | 0.389 |
+| 0.89 |         2 |         0 |     1.000 |  0.069 | 0.129 |
+| 0.90 |         0 |         0 |     1.000 |  0.000 | 0.000 |
+
+Best F1  : 0.84 (F1 0.951, precision 0.906, recall 1.000)
+Selected : 0.85 — lowest threshold with precision 1.000 (no negatives pass, 83% of positives kept)
+  Trade-off: 5/29 valid queries lose context. There the model answers from its weights and the rule engine still decides.
+
+The distributions overlap: some negatives score above some positives, so a
+similarity threshold alone cannot reject out-of-domain queries. It still
+removes the worst of them, but the prompt instruction to decline unknown
+questions is the real defence. A cross-encoder reranker would separate them
+better than this corpus size justifies.
+
+  RAG_MIN_SIMILARITY=0.85

@@ -1,0 +1,25 @@
+Random-retrieval baseline (uniform over all heading chunks, seed=42, k=5, no DB access)
+
+{
+  "strategy": "heading",
+  "chunks": 44,
+  "k": 5,
+  "seed": 42,
+  "hit_at_1": 0.207,
+  "hit_at_3": 0.655,
+  "hit_at_5": 0.724,
+  "mrr": 0.418
+}
+
+Seed-stability check (same strategy/k, seeds 1,2,3,42,100):
+  seed=   1  hit@1=0.138  MRR=0.293
+  seed=   2  hit@1=0.310  MRR=0.368
+  seed=   3  hit@1=0.207  MRR=0.385
+  seed=  42  hit@1=0.207  MRR=0.418
+  seed= 100  hit@1=0.138  MRR=0.244
+
+e5-small/heading (real retriever): hit@1=0.793  MRR=0.856
+random baseline (seed=42):       hit@1=0.207  MRR=0.418
+Margin: hit@1 +0.586  MRR +0.438  (real retriever exceeds random by this much)
+
+JSON written: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP01/random_baseline_results.json

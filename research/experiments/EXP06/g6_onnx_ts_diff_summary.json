@@ -1,0 +1,21 @@
+{
+  "experiment_id": "EXP06",
+  "sub_experiment": "onnx_vs_torchscript_per_image_diff",
+  "iou_agreement_threshold": 0.9,
+  "matching_algorithm": "greedy (confidence-descending, highest-IoU unclaimed)",
+  "conf_threshold_used": 0.25,
+  "nms_iou_used": 0.7,
+  "n_val_images": 98,
+  "n_images_meaningfully_different": 0,
+  "pct_images_meaningfully_different": 0.0,
+  "n_images_same_detection_count": 98,
+  "n_images_different_detection_count": 0,
+  "n_total_matched_pairs": 1479,
+  "n_total_unmatched_detections": 0,
+  "matched_iou_median": 0.9999997573034989,
+  "matched_iou_mean": 0.9999994823476014,
+  "matched_iou_min": 0.9999949601893645,
+  "matched_iou_p05": 0.9999981171679002,
+  "pct_matched_pairs_below_0.9_iou": 0.0,
+  "wall_time_seconds": 10.323724031448364
+}

@@ -1,0 +1,84 @@
+[
+  {
+    "experiment_id": "EXP05",
+    "goal_id": "G5",
+    "status": "partial",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP05",
+    "primary_metric": {
+      "name": "near-duplicate train/val pairs at strict aHash/dHash threshold (<=5 bits of 64)",
+      "value": 32
+    },
+    "secondary_metrics": [
+      {"name": "cross-split source-group collisions (videoN_ groups appearing in both train and val)", "value": "6/10"},
+      {"name": "exact same-frame-index collisions within colliding groups", "value": 0},
+      {"name": "near-duplicate pairs at loose threshold (<=16 bits)", "value": 902},
+      {"name": "minimum hash distance found (bits of 64)", "value": 2},
+      {"name": "ogretmen positive-control leak detection", "value": "confirmed (train==val folder by construction)"}
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 5.9,
+    "open_decisions_resolved": [
+      "Filename source-identity encoding: sure_dataset mixes videoN_frame_MMMM.jpg (source-encoded) with a pooled contiguous plain frame_MMMM.jpg range (0000-0034), confirmed byte-identical via md5 to data/frames/ files of the same name -- treated as one pooled source group 'frame_source0'.",
+      "imagehash library availability: NOT installed in anaconda env (import fails) -- implemented minimal 64-bit aHash + dHash inline with PIL+numpy only, exactly per the design doc's own fallback plan."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Strong criterion (zero cross-split leakage) NOT met: perceptual hashing found 32 near-duplicate candidate pairs at a strict threshold, 14 of which are literally adjacent frame indices (gap=1) of the same source video split across train/val -- a real temporal-adjacency leakage risk distinct from and milder than the already-excluded ogretmen case (no exact-duplicate frames; 0/0 exact index overlaps). Minimum-viable criterion met: affected videos and exact file pairs are fully enumerated in exp05_summary.json. Recommend the paper add an explicit caveat to headline vision metrics rather than claim a fully clip-disjoint split."
+  },
+  {
+    "experiment_id": "EXP06",
+    "goal_id": "G6",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP06",
+    "primary_metric": {
+      "name": "CoreML/ANE p50 latency across 3 separate process invocations (mean +/- std, ms)",
+      "value": "9.03 +/- 0.22 (p95: 9.60 +/- 0.18)"
+    },
+    "secondary_metrics": [
+      {"name": "six-config table reproduction vs MODEL_RAPORU.md (mAP50/precision/recall/deltaMAP50)", "value": "reproduced within rounding: pt-mps 0.8395/0.859/0.719; onnx & torchscript both -0.0104 deltaMAP50, mAP50-95 0.5867 identical to 4dp"},
+      {"name": "ONNX vs TorchScript per-image detection agreement (98 val images, greedy IoU match)", "value": "0/98 images meaningfully different; median matched-pair IoU 0.99999976; 0 unmatched detections"},
+      {"name": "fresh val() on best.pt vs epoch-77 headline", "value": "matches, no new epoch-73-style discrepancy"}
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 149,
+    "open_decisions_resolved": [
+      "coremltools availability: confirmed installed (v9.0) in /opt/anaconda3.",
+      "export_bench.py val()-only path: confirmed --skip-export reuses existing export artifacts but still runs the full benchmark() (val() + latency) path -- no separate script needed.",
+      "IoU-matching algorithm + agreement threshold for the new ONNX-vs-TorchScript diff: greedy confidence-descending matching, strict 0.9 IoU bar for 'agreement' -- documented rationale in g6_onnx_torchscript_diff.py."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Per-image ONNX-vs-TorchScript agreement is far stronger than the design doc's success criterion anticipated (near-bit-identical boxes, not just 'high IoU-overlap') -- strong direct evidence the shared -0.0104 mAP50 loss is systematic, not coincidental per-toolchain noise. Honest caveat added to results.md: this confirms the two exports agree with EACH OTHER almost perfectly, which does not by itself isolate NMS specifically (vs. other export-vs-eager numeric differences) as the mechanism -- both formats share the same Ultralytics AutoBackend wrapper, so full isolation would need a pre-NMS raw-output comparison against pt/mps, which was out of scope here."
+  },
+  {
+    "experiment_id": "EXP07",
+    "goal_id": "G7",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP07",
+    "primary_metric": {
+      "name": "empirical full-frame-miss rate on val set at deployed conf=0.20",
+      "value": "0/98 (0.0%)"
+    },
+    "secondary_metrics": [
+      {"name": "fish-per-frame distribution: min/avg/max ground-truth fish per val frame", "value": "min=3, avg=15.56, matches MODEL_RAPORU's ~15.6"},
+      {"name": "independence-approximation expected full-frame misses across val set", "value": 0.053},
+      {"name": "true F1-argmax on fine-grained confidence curve", "value": "conf=0.341, P=0.845, R=0.730, F1=0.7835 (headline F1=0.7827, effectively the same point)"},
+      {"name": "actual precision/recall AT the deployed conf=0.20 operating point", "value": "P=0.720, R=0.782 (materially different from the headline P=0.858/R=0.719)"}
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 57,
+    "open_decisions_resolved": [
+      "Full-frame-miss estimation approach: implemented direct empirical count (primary) via best.pt inference on actual val frames at the deployed threshold, plus the independence approximation as a secondary sanity-check, per the design doc's own recommendation.",
+      "Confidence sweep points: read vision-service/yolo_runner.py directly, found CONF_THRESH=0.20 (not the assumed 0.25 default) with an inline comment confirming it was deliberately lowered from 0.30 for recall -- swept {0.10,0.15,0.20,0.25,0.30,0.35,0.40} around the confirmed deployed value."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Two findings beyond the original hypothesis, both important for the write-up: (1) the val set contains NO frames with 1-2 fish (minimum is k=3) -- the sparse-frame regime H7 worried about is entirely untested by this dataset, not merely 'found to be rare'; extrapolated (untested) independence-approximation miss risk at k=1 is ~22-28% depending on which recall figure is used, a real quantified gap to flag. (2) model.val(conf=X) does NOT pin box.mp/box.mr to conf=X for X below the internal argmax (methodological trap, documented) -- reading the fine-grained per-confidence curve directly revealed the DEPLOYED operating point (conf=0.20) actually runs at P=0.720/R=0.782, not the headline P=0.858/R=0.719. Production recall is thus HIGHER (more reassuring for full-frame-miss risk) than the number the paper has been citing for this discussion; the paper's H7 section should cite the deployed-point recall (0.782), not the academic-argmax headline (0.719), when discussing real-world full-frame-miss risk."
+  }
+]

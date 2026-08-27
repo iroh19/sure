@@ -1,0 +1,53 @@
+{
+  "generated_by": "research-goal-formalization-specialist agent",
+  "recommended_track": "empirical",
+  "rationale": "brainstorm.json's track_recommendation states needs_theory_track = false, with justification: 'the only formalization this paper needs (a monotonicity property final_severity = max(severity_rule, severity_llm) over a severity lattice; a precise enumerable vs. non-enumerable failure-mode distinction; the PSI-gating three-way decision rule; the vision operating-point-as-tradeoff framing) is expository restatement of already-implemented code, not new derivation -- there is no unresolved mathematical question (no convergence, statistical-learning-theory, or optimization-theory claim) anywhere in the proposal that would benefit from a dedicated proof track.' This is confirmed by direct review of research_proposal.md's own 'Analysis/Theory-equivalent Plan' section, which describes each formalization item as restating code that already exists (backend/main.py's apply_rule_override, mlops/drift.py's PSI pipeline, mlops/retrain.py's MIN_IMPROVEMENT gate) rather than deriving a new result. All 11 research goals (G1-G11) are therefore assigned track \"experiment\" in research_goals.json, and the four short formalization items are folded as expository Methodology-subsection prose into G3 (H1/H2 monotonicity + enumerable/non-enumerable distinction), G7 (H7 vision operating-point tradeoff framing), and G8 (H5 PSI three-way rule) rather than spun out as a parallel theory track, per brainstorm.json's explicit warning that doing so 'would add apparatus without content, directly contradicting Known Limitations #11's own warning about unchecked proposal growth.'",
+  "theory_questions": [],
+  "empirical_questions": [
+    {
+      "goal_id": "G1",
+      "question": "Does recovering the full RAG threshold sweep confirm 0.84 as the true F1-argmax, and does retrieval performance (MRR 0.856, hit@1 0.793) exceed a random/no-retrieval baseline by a quantifiable margin on the 8-document/44-chunk corpus?"
+    },
+    {
+      "goal_id": "G2",
+      "question": "Do llm-service/eval.py's rule-computation path and backend/main.py's apply_rule_override path remain consistent (no residual eval/production drift) after the drift-bug fix that motivates the paper's opening narrative?"
+    },
+    {
+      "goal_id": "G3",
+      "question": "When AQUA-1B's raw eval.py output is actually passed through apply_rule_override, what is the observed four-bucket distribution (agrees / under-calls-and-escalated / over-calls / unparseable-defaulted-to-ok), and does manual coding of the model's reasoning text reveal at least one non-enumerable failure mode the rule engine cannot catch, grounding H2's scope boundary?"
+    },
+    {
+      "goal_id": "G4",
+      "question": "Do bench_agent.py's existing AQUA-1B (0%/0%) and AQUA-7B (60%/50%-constant-answer) figures reproduce on re-run, does the constant-answer detection logic hold up against the actual run log, and does genuinely growing the scenario count past n=5 preserve or soften the 'small LLMs fail at tool-calling' negative result?"
+    },
+    {
+      "goal_id": "G5",
+      "question": "Does a clip/video-level leakage audit of the full 510-image vision dataset confirm no train/val leakage beyond the already-caught ogretmen case, protecting the headline mAP50/precision/recall figures?"
+    },
+    {
+      "goal_id": "G6",
+      "question": "Is the CoreML/ANE 9.0ms p50 latency figure stable across multiple sessions, does a fresh val() run on best.pt reproduce the current headline vision numbers with no new epoch-73-style discrepancy, and does a per-image ONNX-vs-TorchScript detection diff support or refute the shared-post-processing-path causal explanation for their matching accuracy loss?"
+    },
+    {
+      "goal_id": "G7",
+      "question": "How rare is a full-frame miss (fish_count==0) under 0.719 per-instance recall given the actual val-set fish-per-frame distribution, and does a confidence-threshold sweep confirm precision=0.858/recall=0.719 as the true F1-argmax operating point?"
+    },
+    {
+      "goal_id": "G8",
+      "question": "Does a systematic synthetic-degradation sweep confirm quantile-edge PSI binning grades smoothly where equal-width binning saturates, and does mlops/retrain.py's three-way decision path (none/review/retrain) plus its MIN_IMPROVEMENT gate behave as designed against synthetic no-drift and significant-drift windows?"
+    },
+    {
+      "goal_id": "G9",
+      "question": "What does twin_bridge/test_bridge.py's existing unit-test suite, plus a new FakeTwin-scripted synthetic edge-case integration test, actually establish about compare_once()'s mechanism correctness -- and can this evidence be reported honestly as unit-tested-only without ever implying live cross-implementation corroboration that has not occurred?"
+    },
+    {
+      "goal_id": "G10",
+      "question": "Does one additional targeted literature search confirm (or force a narrowing of) the central cross-layer thesis (C2) as the paper's headline framing, and which of the three framing options (foreground/separate/hybrid) best matches the evidence actually produced by G3, G4, G6, G7, G8, and G9?"
+    },
+    {
+      "goal_id": "G11",
+      "question": "Does a manuscript-wide grep pass confirm the stale 0.695 recall figure never ships, and is every re-measured number across G1-G9 traceable to an exact git commit hash and date?"
+    }
+  ],
+  "cross_track_dependencies": []
+}

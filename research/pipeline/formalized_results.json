@@ -1,0 +1,275 @@
+{
+  "generated_by": "results-formalization-specialist agent",
+  "overall_status": "11/11 goals achieved evidence sufficient to write Results; 8 achieved_strong, 3 achieved_minimum, 0 partially_achieved, 0 not_achieved, 0 blocked, 0 not_attempted. 0 of 11 experiments failed. G5's previously-open item (a corrected/caveated headline vision number) is resolved in this pass via direct recomputation (option a). Six emergent findings identified beyond the 11 planned goals; none require re-running an experiment before manuscript freeze, but several require explicit disclosure language before freeze (see missing_inputs).",
+  "goal_results": [
+    {
+      "goal_id": "G1",
+      "title": "RAG Retrieval Calibration Reliability",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP01/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP01/calibrate_output.log", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP01/random_baseline_results.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong (research_goals.json G1.success_criteria.strong): calibrate.py sweep reproduces F1-argmax at 0.84 (F1=0.951) vs deployed 0.85 (F1=0.906) exactly; a new random/no-retrieval baseline (bench_readonly.py + random_baseline.py, authored this run because bench.py's own path writes to the live DB) shows e5-small/heading clears random by hit@1 +0.586 (0.793 vs 0.207) and MRR +0.438 (0.856 vs 0.418), seed-stable across 5 seeds; paragraph cites sources 16/17.",
+      "gaps": ["Random-baseline margin is diluted at k>=3 by the corpus's small size (8 documents) -- disclosed by EXP01 itself, not concealed."],
+      "surprises": [],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G2",
+      "title": "Eval-Harness / Production Rule-Path Consistency Audit",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP02/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP02/exp02_output.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong, exceeded: eval.py and backend/main.py's apply_rule_override confirmed to import and resolve to the exact same in-memory `rules` module object (Python `is` identity check, not just output equality); 8/8 scenario agreement; SEVERITY table also confirmed identity-equal. Stronger evidence than the criterion's own 'produce identical severity' requirement.",
+      "gaps": ["This audit only proves rule-evaluation-path consistency; it does not itself exercise apply_rule_override against live model output (that is G3's scope) -- disclosed explicitly in results.md."],
+      "surprises": [],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G3",
+      "title": "Behavioral Measurement of the Dual-Layer Decision System & Its Enumerable-Threshold Boundary",
+      "status": "achieved_minimum",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP03/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP03/g3_results.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "minimum_viable (research_goals.json G3.success_criteria.minimum_viable) is fully and cleanly met: the 4-bucket distribution over AQUA-1B's 8 eval.py scenarios is unparseable-defaulted-to-ok 4/8 (50%), parseable-and-agrees 3/8 (38%), parseable-and-under-calls-and-escalated 1/8 (12%), parseable-and-over-calls 0/8 (0%) -- this is exactly the pre-registered minimum_viable fallback ('malformed-output fail-safe is the dominant observed pathway, not severity-correction'). The strong criterion's implicit expectation of clean severity-correction dominance is NOT met (only 12% under-call-and-escalate). backend/test_decision.py (18/18) kept correctly separate from the behavioral finding. H2's non-enumerable-failure-mode requirement is exceeded, not merely met: 6/8 (not just >=1) reasoning strings contain fabricated sensor values.",
+      "gaps": [
+        "n=8 is eval.py's entire fixed scenario population -- percentages carry no confidence interval and must not be reported with implied statistical power.",
+        "Adapter provenance CORRECTED (pre-freeze fix, Rigor Round 2): the deployed adapter's training data -- llm-service/sure-aqua-adapter/_mlx_data/train.jsonl (7 records) + valid.jsonl (1 record), 8 total -- content-matches llm-service/sure_finetune_data.jsonl (8 lines) record-for-record (same sensor snapshots, reasoning, recommendations, re-templated for MLX chat format). llm-service/finetune.py's own docstring names this exact file 'el yazimi 8 ornek (yetersiz, sadece duman testi)' -- '8 handwritten examples (insufficient, smoke-test only)' -- and states the 128-example llm-service/sure_finetune_data_v2.jsonl is the documented default ('VARSAYILAN v2'dir. LoRA icin 8 ornek underfitting uretir'). Mtimes show v2 already existed (Jun 5 00:06:33) before the deployed adapter's _mlx_data files were written (Jun 5 00:42:58) and adapters.safetensors was produced (Jun 5 00:43:26) -- v2 was on disk, unused. docker-compose.yml mounts ./llm-service/sure-aqua-adapter:/adapter:ro against AQUA_ADAPTER_PATH=/adapter, and EXP03/results.md independently confirms this exact path was exported for the G3 run -- so every AQUA-1B number in G3/EXP03 (including EF1's fabrication finding) reflects this self-documented-as-insufficient 8-example adapter, not the untested 128-example v2. This is not a commit-hash claim (the directory is gitignored, so that remains unavailable) but is a record-count-plus-content-match-plus-mtime-ordering argument, which is strong, free, already-available evidence. Framing: this makes the safety-property finding STRONGER, not weaker -- the architecture held against a component its own training pipeline calls inadequate. SCOPE: this caveat applies to G3/EXP03 and everything derived from it (EF1's fabrication finding, any Discussion claim characterizing 'the LLM component' using G3 evidence) ONLY. It does NOT apply to G4/EXP04, which ran with AQUA_ADAPTER_PATH left unset (base model, no adapter at all, per EXP04/results.md open decision #2) -- attaching this caveat to G4 would be factually wrong.",
+        "Manual reasoning-string coding is single-rater, qualitative -- a second coder was not used."
+      ],
+      "surprises": ["Fabricated numeric sensor values appear even inside the 'parseable-and-agrees' bucket -- the ostensibly cleanest outcome category -- meaning a scenario can reach the categorically correct status label via an entirely invented causal narrative (T05, T08)."],
+      "confidence": "high (the malformed-defaults-safe finding); medium (the n=8 qualitative fabrication coding, by the coding's own single-rater nature)"
+    },
+    {
+      "goal_id": "G4",
+      "title": "Agentic Tool-Routing Negative-Result Robustness",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP04/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP04/aqua7b_results.jsonl", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP04/aqua1b_results.jsonl", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong: fresh re-run confirms AQUA-1B 0%/0% and AQUA-7B's constant-answer artifact; constant-answer audit against the real per-scenario log (not just the aggregate) confirms it is genuine, not a coincidence; 4 new, genuinely independent scenarios authored (n=5->n=9) and the negative result is preserved and strengthened (9/9 constant-answer, up from 5/5); source 21 cited to scope the novelty claim; `--repeat N` explicitly confirmed NOT a valid sample-size increase (greedy decoding is byte-identical on repeat).",
+      "gaps": ["Published README's AQUA-7B format%/mean-steps (60%/3.6) does not reproduce in this fresh, code-unmodified run (100%/2.0) -- no configuration difference found to explain it; disclosed as a footnoted discrepancy, does not affect the constant-answer conclusion."],
+      "surprises": ["Selection accuracy nominally rose from 50% to 71.4% on the expanded scenario set, but this is diagnosed as an artifact of the new scenarios' answer-key skew toward get_sensor_trend, not genuine discrimination -- the constant-answer flag, not the selection percentage, is the metric with actual evidentiary weight."],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G5",
+      "title": "Vision Dataset Leakage Audit",
+      "status": "achieved_minimum",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP05/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP05/exp05_summary.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP05/near_duplicate_pairs_full.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive", "note": "verify_completion.json originally scored this 'partial' (not 'met') because the minimum_viable clause's second half -- 'state a corrected, caveated headline vision number' -- was outstanding at verification time."},
+        {"source_file": "experiment_workspace/experiment_runs/EXP05/g5_resolution_corrected_metrics.py", "type": "new_analysis_this_audit", "strength": "conclusive", "note": "G5 RESOLUTION (option a): this audit's own new script, run against sure_models/sure_v1/weights/best.pt, closes the previously-open item."},
+        {"source_file": "experiment_workspace/experiment_runs/EXP05/g5_resolution_corrected_metrics_full.json", "type": "new_raw_output_this_audit", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "minimum_viable, now fully met including the previously-outstanding half. Strong criterion ('zero cross-split leakage beyond ogretmen') is NOT met: perceptual hashing (aHash+dHash, <=5-bit threshold) found 32 near-duplicate train/val pairs across videos 2/4/5/6/7 and frame_source0, 14 of them adjacent frame indices of the same source video (0 exact frame-index overlaps -- distinct from, and milder than, the already-corrected ogretmen exact-duplicate leak). Minimum_viable's first clause (enumerate affected files/videos) was already met by EXP05. Minimum_viable's second clause (state a corrected, caveated headline number) is met by THIS AUDIT: re-running model.val() on best.pt with the 13 val images touched by the 14 adjacent-index pairs excluded (85-image val set) gives P=0.852/R=0.712/mAP50=0.8345/mAP50-95=0.5877, vs. the unfiltered 98-image baseline (measured in this same session) P=0.859/R=0.719/mAP50=0.8395/mAP50-95=0.5952 -- a delta of -0.007/-0.007/-0.005/-0.007. A more conservative bound excluding all 17 val images touched by any of the 32 strict-threshold pairs (81-image val set) gives P=0.846/R=0.712/mAP50=0.8335/mAP50-95=0.5869 (delta -0.013/-0.007/-0.006/-0.008 vs baseline).",
+      "gaps": [
+        "This is a same-checkpoint re-evaluation on a smaller val set, not a retrain on a re-split, clip-disjoint dataset -- it estimates the DIRECTION and rough MAGNITUDE of the leakage's optimistic bias (a small, real effect: roughly 0.5-1.3 points across metrics) but does not produce a fully leakage-free number, since the flagged val images' near-duplicate counterparts remain in the training set that produced best.pt's weights.",
+        "17-distinct-val-image exclusion (81 images) is itself an approximation of 'all leakage' -- the near-duplicate detection method (perceptual hash) has its own threshold sensitivity (32 hits at <=5 bits, 202 at <=10 bits, 902 at <=16 bits); a looser threshold would flag more images and likely show a larger, not smaller, corrected delta."
+      ],
+      "surprises": [],
+      "confidence": "high (that leakage exists and the correction direction is negative/small); medium (that this specific magnitude is the exact bias a full clip-disjoint re-split would show, since retraining on a corrected split -- not merely re-evaluating -- was out of scope)"
+    },
+    {
+      "goal_id": "G6",
+      "title": "Export-Format Accuracy Loss: Mechanism and Reproducibility",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP06/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP06/run1_full_table.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP06/g6_onnx_ts_diff_summary.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong: six-configuration table reproduced with commit hash (3c1b9fa); CoreML/ANE latency measured across 3 independent process invocations, p50 9.03+/-0.22ms, p95 9.60+/-0.18ms (genuine multi-session variance, not a single sample); fresh model.val() confirms no new epoch-73-style discrepancy; new per-image ONNX-vs-TorchScript diff script finds 0/98 images meaningfully different, median matched-pair IoU 0.99999976 -- stronger direct evidence for the shared-post-processing-path claim than the design anticipated; sources 8/9 cited.",
+      "gaps": ["Near-bit-identical ONNX/TorchScript agreement confirms the two exports match EACH OTHER, but does not by itself isolate NMS specifically as the causal mechanism vs. other generic export-vs-eager numeric differences -- full isolation would need a pre-NMS raw-output comparison against pt/mps, explicitly out of scope and disclosed as such."],
+      "surprises": ["INT8 quantization (deltaMAP50=-0.0082) loses LESS accuracy than fp32 ONNX/TorchScript export (deltaMAP50=-0.0104) -- counter to a naive expectation that quantization should be the more lossy operation. See Emergent Findings."],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G7",
+      "title": "Vision Operating-Point Safety Trace",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP07/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP07/exp07_fish_per_frame_summary.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP07/exp07_conf_curve_summary.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong: fish-per-frame distribution computed directly from val labels (min k=3, avg 15.56, matching MODEL_RAPORU's ~15.6); full-frame-miss rarity quantified both empirically (0/98 at deployed conf=0.20) and via an independence approximation (0.053 expected misses); confidence-threshold sweep confirms 0.858/0.719 is (within curve resolution, F1 delta 0.0008) the true F1-argmax; H7 stated with confident language per its OPEN/C7 novelty status; Known Limitations #2 text carried forward and traced to backend/rules.py's fish_count==0 rule.",
+      "gaps": ["The val set contains zero frames with k=1 or k=2 ground-truth fish -- the sparse-frame regime is untested, not merely rare (see Emergent Findings); the 21.8-28.1% extrapolated miss-risk at k=1 is an untested extrapolation from the independence approximation, never a measurement."],
+      "surprises": [
+        "Ultralytics' `model.val(conf=X)` does not pin box.mp/box.mr to X -- it reports an argmax-over-the-retained-curve figure regardless of a low passed conf, a tooling trap that would silently mislead anyone trying to read P/R 'at' a specific low threshold this way.",
+        "The deployed operating point (conf=0.20) actually runs at P=0.720/R=0.782 -- materially different from, and more recall-favorable than, the headline academic-argmax P=0.858/R=0.719 the rest of the manuscript cites (see Emergent Findings)."
+      ],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G8",
+      "title": "MLOps PSI Drift-Binning Systematic Sweep & Three-Way Gate Exercise",
+      "status": "achieved_minimum",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP08/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP08/exp08_output.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "minimum_viable fully met, both sub-clauses: (a) the sweep precisely reports where quantile-vs-equal-width does and does not separate cleanly -- quantile is MORE sensitive at delta<=0.06 (e.g. delta=0.02: 0.164 vs 0.078), the literal opposite of H5's naive wording, with equal-width only overtaking and becoming more explosive from delta>=0.08 onward (delta=0.30: 4.844 vs 7.649), mechanism confirmed via per-bin decomposition (one large fixed equal-width bin, holding 30.1% of reference mass, emptying); (b) the equal-width curve is explicitly and correctly labeled a reconstruction, not recovered history, since `git log --oneline --all -- mlops/drift.py` returns exactly 1 commit. The strong criterion's implicit qualitative-shape claim ('equal-width jumps early, quantile grades smoothly') is NOT confirmed as stated -- it is corrected, not confirmed. retrain.py's three-way decide() gate (no-drift->none PSI=0.0048; significant-drift->retrain PSI=0.9070) and the three-case gate() MIN_IMPROVEMENT exercise both behave exactly as designed, exceeding minimum_viable into most of the strong criterion.",
+      "gaps": ["Self-flagged internal inconsistency: the sweep table's own delta=0.04 entry (quantile PSI=0.7279) differs from the separately-drawn significant-drift window at the same nominal delta (PSI=0.9070), due to unseeded per-call resampling inside an otherwise fixed-seed script. No headline manuscript number depends on the exact value of either."],
+      "surprises": ["The direction of H5's core qualitative claim is inverted at low severities -- quantile binning is the MORE sensitive scheme in the 'moderate' band, not equal-width."],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G9",
+      "title": "twin_bridge Mechanism-Evidence Inventory & Honest Cross-Validation Status Reporting",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP09/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP09/existing_test_bridge_run.log", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP09/new_edge_case_test_run.log", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "This fallback goal's own success criteria equal its minimum_viable form, and it is fully reached: twin_bridge/test_bridge.py run (18 passed, 1 failed, root-caused to a test-helper float-truncation bug -- int(8.12*100)==811 in IEEE-754 -- not a production registers.py decode() defect); 4 new FakeTwin-scripted edge-case tests authored and passed, targeting a previously-unreached compare_once() branch (unmapped alarm string with do_low==sure_critical); Results 5.6 paragraph states twin_bridge status exactly as 'designed and unit-tested, not exercised against a live twin session,' with 'validated' never used.",
+      "gaps": ["twin_bridge/ is untracked in git (zero commit history) -- provenance for this module can only ever be 'file contents as of session date,' never a commit hash.", "No live Godot/CODESYS session exists anywhere in the repo -- TB-3 correctly excluded as a required goal, not attempted, consistent with the pre-registered go/no-go plan."],
+      "surprises": [],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G10",
+      "title": "Cross-Layer Thesis Framing & Confirmatory Literature Check",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP10/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP10/exp10_literature_search.md", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP10/exp10_cross_layer_synthesis.md", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong: confirmatory literature search (2 queries) found no closer prior instance of the cross-layer thesis (C2); C2 correctly kept OPEN/medium confidence, not over-claimed off a negative search; framing CT-3 (hybrid hook + hedged thesis) selected and refined against the REAL EXP03/EXP07/EXP08 findings rather than the idealized pre-run narrative; draft Abstract/Conclusion paragraph produced, explicitly hedged; all 11 novelty_flags.json claims (C1-C11) cross-checked against real data with zero status changes, one framing refinement (C2's specific instantiation).",
+      "gaps": [],
+      "surprises": [],
+      "confidence": "high"
+    },
+    {
+      "goal_id": "G11",
+      "title": "Manuscript-Wide Data-Integrity & Provenance Discipline",
+      "status": "achieved_strong",
+      "evidence": [
+        {"source_file": "experiment_workspace/experiment_runs/EXP11/results.md", "type": "results_narrative", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP11/provenance_table.json", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/experiment_runs/EXP11/grep_output.txt", "type": "raw_output", "strength": "conclusive"},
+        {"source_file": "experiment_workspace/verification_results.json", "type": "independent_verification", "strength": "conclusive"}
+      ],
+      "success_criteria_met": "strong, substantially satisfied: manuscript-wide grep confirms the stale 0.695 recall figure never ships as a live claim inside paper_workspace itself; provenance coverage reaches 10/10 experiments plus G10, each anchored to commit 3c1b9fa (finer per-file commits given where they exist, e.g. 45d42c7 for G2, 9a260af/d709836 for the recall correction chain). The one live/unfixed 0.695 occurrence found (inside the production RAG knowledge base) is a disclosed FINDING this goal exists to catch, not a failure of the goal itself.",
+      "gaps": ["provenance_table.json's machine-readable section lacks a distinct exp02_provenance key (the number is present instead in results.md's summary tables) -- cosmetic, not a missing claim, per verification_results.json."],
+      "surprises": ["Six total stale/inconsistent figures identified in the finalization pass, five of them newly surfaced by this goal's own audit discipline (beyond the originally-scoped 0.695 check): the 0.719-vs-0.782 recall ambiguity, the 0.858-vs-0.859 rounding inconsistency, the README agent-benchmark table drift, EXP08's internal PSI resampling inconsistency, and EXP05's leakage caveat not yet propagated to headline numbers."],
+      "confidence": "high"
+    }
+  ],
+  "goal_status_summary": {
+    "achieved_strong": 8,
+    "achieved_minimum": 3,
+    "partially_achieved": 0,
+    "not_achieved": 0,
+    "blocked": 0,
+    "not_attempted": 0
+  },
+  "g5_open_item_resolution": {
+    "chosen_option": "a",
+    "rationale": "Raw val-set labels (data/sure_dataset/val/{images,labels}) and the exact checkpoint used for all headline vision numbers (sure_models/sure_v1/weights/best.pt) are both present and directly usable with Ultralytics' existing model.val() -- no retraining, no new labeling, and no monkeypatching of production code was required. This makes a defensible, directly-computed corrected number strictly better evidence than a caveat sentence alone, and it was completed within this audit's own scope (a filtered val split built via symlinks in a scratch directory; sure-project's data/ and weights were never modified).",
+    "method": "Two exclusion sets were built from EXP05's exp05_summary.json strict_threshold_hits_detail (32 near-duplicate train/val pairs at <=5-bit aHash/dHash distance): (1) the 13 distinct val images touched by the 14 adjacent-frame-index pairs (the textbook temporal-adjacency leak pattern), giving an 85-image filtered val set; (2) the 17 distinct val images touched by all 32 strict-threshold pairs (a more conservative bound), giving an 81-image filtered val set. model.val() was re-run against sure_models/sure_v1/weights/best.pt for the unfiltered 98-image baseline and both filtered sets in the same session, using data/sure_dataset/train unchanged in every run (only val was filtered).",
+    "corrected_numbers": {
+      "baseline_98_images_uncorrected": {"precision": 0.859, "recall": 0.719, "map50": 0.8395, "map50_95": 0.5952},
+      "corrected_85_images_excl_14_adjacent_pairs": {"precision": 0.852, "recall": 0.712, "map50": 0.8345, "map50_95": 0.5877, "delta_vs_baseline": {"precision": -0.0073, "recall": -0.0069, "map50": -0.0050, "map50_95": -0.0074}},
+      "corrected_81_images_excl_all_32_pairs_conservative_bound": {"precision": 0.846, "recall": 0.712, "map50": 0.8335, "map50_95": 0.5869, "delta_vs_baseline": {"precision": -0.0127, "recall": -0.0065, "map50": -0.0059, "map50_95": -0.0083}}
+      },
+    "recommended_manuscript_caveat_sentence": "After excluding the 13-17 validation frames identified as near-duplicate (temporally adjacent) with training frames from the same source video, re-evaluation of the deployed checkpoint yields precision=0.846-0.852 / recall=0.712 / mAP50=0.8335-0.8345 (vs. the unfiltered headline 0.859/0.719/0.8395) -- a modest, quantified optimistic bias of roughly 0.5-1.3 points depending on the exclusion threshold used, smaller than the already-disclosed ogretmen exact-duplicate leak and not conclusion-changing, but real and now measured rather than merely flagged.",
+    "caveat_sentence_still_required": "Even with the corrected number in hand, this is a same-checkpoint re-evaluation on a smaller held-out set, not a retrain on a clip-disjoint re-split (the near-duplicate training frames themselves remain in the training set that produced best.pt) -- the manuscript should present the corrected numbers as a bias estimate, and note that a fully leakage-free number would require retraining on a re-split dataset, which remains future work.",
+    "source_file_pointers": [
+      "experiment_workspace/experiment_runs/EXP05/g5_resolution_corrected_metrics.py",
+      "experiment_workspace/experiment_runs/EXP05/g5_resolution_corrected_metrics_full.json",
+      "experiment_workspace/experiment_runs/EXP05/exp05_summary.json",
+      "experiment_workspace/experiment_runs/EXP05/near_duplicate_pairs_full.json"
+    ]
+  },
+  "theory_track_summary": {
+    "status": "intentionally not run -- empirical-only decision, not a gap",
+    "source_file": "paper_workspace/theory_track_summary.json",
+    "note": "track_decomposition.json sets recommended_track=empirical and theory_questions=[], honoring brainstorm.json's own needs_theory_track=false. The paper's four formalization needs (the max(severity_rule, severity_llm) monotonicity property, the enumerable/non-enumerable failure-mode distinction, the PSI three-way gating rule, and the vision operating-point tradeoff framing) are expository restatements of already-implemented code, not new derivations, and were folded as short Methodology prose into G3, G7, and G8 rather than spun into a parallel proof track. No math_workspace/ directory exists, confirmed on disk -- this is the expected, correct state."
+  },
+  "emergent_findings": [
+    {
+      "id": "EF1",
+      "title": "AQUA-1B fabricates specific numeric sensor values inside otherwise-correctly-labeled reasoning",
+      "description": "6 of 8 eval.py scenarios contain a free-text reasoning string with a fabricated sensor value that does not match the actual input snapshot (e.g. claiming DO=6.0 mg/L when the actual reading was 5.7 or 7.8) -- in 2 of those cases (T05, T08) the model reaches the categorically correct final status via an entirely invented causal narrative. This is invisible to apply_rule_override, rule_based_decision, and the four-bucket classification itself, all of which compare only the enumerable status field, never reasoning content.",
+      "source_file": "experiment_workspace/experiment_runs/EXP03/results.md",
+      "not_a_restatement_of": "G3's planned deliverable was to find >=1 non-enumerable failure mode illustrating H2's scope boundary; the specific mechanism found (fabrication surviving inside the 'agrees' bucket) and its rate (6/8, not merely 1) were not predicted in research_goals.json or experiment_design.json."
+    },
+    {
+      "id": "EF2",
+      "title": "A stale, superseded detection-recall figure (0.695) is live inside the production RAG knowledge base",
+      "description": "llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 states recall as '~0.695' (the incorrect epoch-73 figure) as a live fact. This file is ingested by llm-service/rag/ingest.py into the production pgvector store, making the stale number retrievable and potentially surfaceable verbatim by the deployed LLM -- a live data-integrity bug distinct from (and more severe than) the already-known, self-flagged-stale TODOS.md occurrence. Git-verified: introduced by commit 0e8b414, not corrected when 9a260af fixed the figure elsewhere 43 minutes later.",
+      "source_file": "experiment_workspace/experiment_runs/EXP11/results.md",
+      "not_a_restatement_of": "G11's planned deliverable was a grep pass confirming 0.695 does not ship in the manuscript; finding a live leak inside a production data source (not a manuscript artifact) was an unplanned discovery of the grep's own scope."
+    },
+    {
+      "id": "EF3",
+      "title": "Vision recall has two both-correct, materially different numbers depending on the question asked",
+      "description": "The headline academic F1-argmax operating point is P=0.858/R=0.719, but the actual deployed system (yolo_runner.py, CONF_THRESH=0.20) runs at P=0.720/R=0.782 -- a substantially higher-recall, lower-precision point, deliberately chosen (per an inline code comment) to reduce misses on crowded frames. The manuscript, prior to this pipeline, had no language distinguishing which number governs the H7 safety discussion; 0.782, not 0.719, is the number that actually governs real-world full-frame-miss risk, and it is the MORE reassuring of the two.",
+      "source_file": "experiment_workspace/experiment_runs/EXP07/results.md",
+      "not_a_restatement_of": "G7's planned deliverable was to confirm 0.858/0.719 as the F1-argmax (which it does); discovering that this argmax point is NOT the deployed operating point, and that Ultralytics' val(conf=X) will not reveal this by naive use, was an unplanned methodological and substantive finding."
+    },
+    {
+      "id": "EF4",
+      "title": "The validation set contains zero sparse frames (k=1 or k=2 fish) -- the safety-relevant regime is untested, not merely rare",
+      "description": "All 98 val images have k>=3 ground-truth fish (min=3, avg=15.56). The design phase's hypothesis worried about a 'materially sparse subset' of frames; no such frames exist to check. The reassuring empirical 0/98 full-frame-miss result therefore says nothing about the sparse-frame regime, where the independence-approximation extrapolated miss-risk is highest (21.8-28.1% at k=1, untested).",
+      "source_file": "experiment_workspace/experiment_runs/EXP07/results.md",
+      "not_a_restatement_of": "This is a dataset-coverage gap discovered while computing G7's planned fish-per-frame distribution, not a result G7 was designed to produce -- verification_results.json's own reviewer explicitly flagged it as a 7th, newly-added Known Limitations item beyond EXP11's original 6."
+    },
+    {
+      "id": "EF5",
+      "title": "AQUA-7B's agentic-benchmark format-compliance and step-count figures do not reproduce from a fresh, code-unmodified run",
+      "description": "A fresh re-run of bench_agent.py against AQUA-7B measures 100% format compliance and 2.0 mean steps, vs. the published README's 60% format / 3.6 mean steps -- selection% and the constant-answer conclusion reproduce exactly, but format%/step-count do not, with no configuration difference (adapter path, PLAN_MAX_TOKENS, MAX_STEPS) found to explain the gap. Most likely cause: undocumented mlx-lm / model-serving-stack version drift between whenever the original README table was produced and this run.",
+      "source_file": "experiment_workspace/experiment_runs/EXP04/results.md",
+      "not_a_restatement_of": "G4's planned deliverable was to reproduce the existing figures and grow the scenario count; an unexplained partial non-reproduction of a previously-published number is a genuinely unplanned reproducibility finding, independently reconfirmed in EXP11's provenance audit (item 4 of its 6-item stale-figure list)."
+    },
+    {
+      "id": "EF6",
+      "title": "INT8 quantization loses LESS accuracy than fp32 ONNX/TorchScript export",
+      "description": "The INT8-quantized ONNX export has deltaMAP50=-0.0082, smaller in magnitude than the fp32 ONNX/TorchScript exports' deltaMAP50=-0.0104 -- counter to the naive expectation that a lower-precision, more aggressively optimized export format should lose more accuracy, not less. Consistent with GitHub-issue-thread reports (source 8) that export/NMS-path mismatches, not weight precision, dominate small-model detection accuracy loss at export time.",
+      "source_file": "experiment_workspace/experiment_runs/EXP06/results.md",
+      "not_a_restatement_of": "G6's planned deliverable was to reproduce the six-configuration table and test the shared-post-processing-path causal claim for the fp32 formats; the INT8-vs-fp32 ordering itself is a secondary, counter-intuitive pattern surfaced by reading the full table, not something G6's hypothesis (H6) specifically predicted or was designed to detect."
+    }
+  ],
+  "missing_inputs": [
+    "No manuscript draft exists yet (state.json: current_phase=experiment_track, finished=false) -- every disclosure item below is a required addition to a document that does not yet exist, not a fix to an existing sentence.",
+    "[HIGH] The live, unfixed 0.695 recall figure inside llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 (EF2) -- not fixed, per the read-only guardrail on sure-project during the experiment track; requires an actual repo commit to correct, or an explicit manuscript disclosure if left unfixed at time of writing.",
+    "[MEDIUM-HIGH] Explicit manuscript language distinguishing 0.719 (F1-argmax) from 0.782 (deployed operating point) is required wherever vision recall is cited in the H7 safety discussion (EF3) -- currently absent from all paper_workspace artifacts.",
+    "[MEDIUM] G5's leakage caveat (now with a computed corrected range, see g5_open_item_resolution) needs an explicit sentence next to every place the headline vision numbers (0.858/0.719/0.840) are reported.",
+    "[MEDIUM] The AQUA-7B format%/step-count reproducibility drift (EF5) needs a footnote wherever the agent-benchmark README table is cited.",
+    "[LOW] The 0.858-vs-0.859 precision rounding inconsistency (propagated from MODEL_RAPORU.md into README.md/README.tr.md/research_task.md) should be normalized to one value before freeze.",
+    "[LOW] EXP08's internal PSI resampling inconsistency (delta=0.04 sweep-table value 0.7279 vs. the separately-drawn significant-drift-window value 0.9070) should be footnoted if both numbers are ever quoted together."
+  ],
+  "followup_recommendations": [
+    "Retrain (not merely re-evaluate) on a clip-disjoint re-split of data/sure_dataset to obtain a fully leakage-free headline vision number, superseding both the uncorrected 0.858/0.719 and this audit's same-checkpoint corrected estimate (0.846-0.852 / 0.712).",
+    "Fix the stale 0.695 figure at llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 and re-run llm-service/rag/ingest.py so the production RAG knowledge base no longer serves a superseded metric.",
+    "Add an explicit sentence to the manuscript's Discussion/Known Limitations distinguishing 0.719 (F1-argmax) from 0.782 (deployed conf=0.20 recall), directing readers to 0.782 for the real-world full-frame-miss safety discussion.",
+    "Collect or synthetically construct genuinely sparse (k=1, k=2 fish) validation frames to empirically test the full-frame-miss rate in the regime where the independence-approximation extrapolation currently stands in for a real measurement.",
+    "Investigate the mlx-lm/model-serving-stack version drift behind AQUA-7B's non-reproducing format%/step-count figures (EF5) -- currently unexplained; would strengthen or correct the agent-benchmark table's credibility.",
+    "Re-seed EXP08's synthetic-window generator (or accept and footnote the current unseeded-resampling variance) so the sweep table's delta=0.04 entry and the separately-drawn significant-drift window are internally consistent.",
+    "If a fully isolated mechanism test for G6's shared-post-processing-path claim is wanted, compare raw pre-NMS regression/objectness outputs between pt/mps and the export formats directly, rather than relying on post-NMS per-image IoU agreement alone.",
+    "Pursue TB-3 (a live Godot/CODESYS session) only as an optional upgrade to G9's baseline, per its own pre-registered fallback-goal status -- not a requirement for manuscript freeze.",
+    "Normalize the 0.858-vs-0.859 precision figure to a single value across MODEL_RAPORU.md/README.md/README.tr.md/research_task.md before freeze."
+  ]
+}

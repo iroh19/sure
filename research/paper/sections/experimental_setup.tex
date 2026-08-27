@@ -1,0 +1,152 @@
+\section{Experimental Setup and Edge Metrics}
+\label{sec:experimental-setup}
+
+All methodology described in this section -- sample sizes, hardware, and measurement procedures --
+refers to offline, bench-level evaluation run against synthetically generated sensor data, static
+labeled images, and scripted or synthetic scenarios executed against the codebase. None of it refers
+to live sensor telemetry from an operating recirculating aquaculture facility; no such facility or
+live sensor feed was used anywhere in this paper, and no physical water-quality sensor hardware
+exists for this system at all -- every dissolved-oxygen, temperature, and other water-chemistry
+value referenced anywhere in this paper, including in Section~\ref{sec:results}'s fabrication
+analysis, was synthetically generated for a scripted test scenario, not recorded from a real sensor.
+This is a deliberate scope choice, not an incidental one: absent physical sensor hardware, the
+purpose of this evaluation is to demonstrate the architectural feasibility of running this system's
+multi-component pipeline -- LLM, vision, retrieval, and rule engine together -- and specifically to
+test whether its space and memory footprint is viable on realistic edge hardware, rather than to
+validate decision-making accuracy against a live water body. Every number in Section~\ref{sec:results}
+comes from one of eleven experiments run directly against the S.U.R.E. codebase's own already-running
+local configuration at git commit \texttt{3c1b9fa}, not from a synthetic benchmark constructed to
+flatter the architecture. This section states, honestly, what each experiment measured, on what
+sample, with what hardware, and what its own stated limitations are -- the same discipline the paper
+asks of its own headline numbers is applied here to how they were obtained.
+
+\subsection{General methodology and guardrails}
+
+All experiments ran read-only against the running codebase and, where applicable, the live
+\texttt{sure\_rag} database: no experiment inserted, updated, or deleted a database record, and
+no experiment modified \texttt{sure-project} source files. Three experiments (RAG calibration,
+vision leakage, and export benchmarking) required new, purpose-built analysis scripts rather than
+reusing an existing one, because the existing scripts either wrote to a live database
+(\texttt{rag/bench.py}) or the needed diagnostic did not exist yet (perceptual-hash leakage
+detection, per-image ONNX-versus-TorchScript agreement). Every script and its raw output is
+preserved alongside its experiment's \texttt{results.md} file for audit. Hardware for every vision
+and edge-latency measurement was a single Apple M4 Pro; no claim in this paper generalizes across
+device classes, and none is presented as if it did.
+
+\subsection{Decision-fusion audit and behavioral trace (G2, G3)}
+
+The claim that the evaluation harness and the system's decision path compute severity
+identically was checked at the strongest available level: not by comparing outputs, but by
+confirming, via Python's \texttt{is} identity operator, that both paths import and hold a reference
+to the exact same in-memory \texttt{rules} module object. This was verified across all 8 of the
+evaluation harness's built-in scenarios, with 8/8 agreement.
+
+The dual-layer decision system's actual behavior was then traced across those same 8 scenarios
+($n=8$, the harness's entire fixed scenario population -- this is not a subsample, and no
+confidence interval is implied by or should be read into this count). For each scenario, the real,
+unmodified \texttt{apply\_rule\_override} function was invoked against AQUA-1B's live output and
+the rule engine's independently computed status, and each of the 8 outcomes was classified into one
+of four mutually exclusive buckets (unparseable-defaulted-to-\texttt{ok}, parseable-and-agrees,
+parseable-and-under-calls-and-escalated, parseable-and-over-calls). A separate mechanism-correctness
+check (\texttt{backend/test\_decision.py}, 18/18 passing under synthetic fixtures) was run and is
+reported strictly apart from this behavioral trace, per this project's own methodological
+discipline: a unit test confirming the override logic is implemented correctly is not evidence
+about how the real model's output actually distributes across that logic's branches, and the two
+are never substituted for one another anywhere in this paper. All 8 free-text reasoning strings
+were additionally hand-coded for factual accuracy against the true sensor snapshot each scenario
+supplied -- a qualitative, single-rater judgment, reported as illustrative rather than a
+statistically powered claim, but checkable in principle by any reader against the same 8 published
+snapshots.
+
+\subsection{Agentic tool-routing benchmark (G4)}
+
+The agentic tool-calling benchmark ran two models (AQUA-1B and AQUA-7B, base weights, no LoRA
+adapter loaded for either) against a closed menu of three read-only tools, first reproducing the
+original 5-scenario benchmark, then extending it with 4 newly authored scenarios designed
+specifically to stress a different failure mode than the original 5 already covered (a different
+sensor parameter's trend, a recovering rather than degrading trend, a combined vision-and-sensor
+cue, and a borderline-but-safe restraint case), for a total $n=9$ scenarios $\times$ 2 models = 18
+independent agent runs. Greedy decoding (temperature 0) was used throughout, so no scenario was run
+by simple repetition -- reported effect sizes are entirely a function of scenario diversity, not
+resampling the same input.
+
+\subsection{Vision dataset leakage audit (G5)}
+
+Cross-split leakage between the 412-image training set and 98-image validation set was checked two
+ways: an exact frame-index overlap check (trivial to compute, and confirming zero exact
+duplicates), and a perceptual near-duplicate check using 64-bit average-hash and difference-hash
+fingerprints computed for every image (the \texttt{imagehash} library was unavailable in this
+environment; a minimal equivalent was implemented directly from PIL and NumPy). A known-positive
+control -- a separate, already-documented dataset with training and validation splits pointing at
+the identical folder -- was run through the same pipeline first, to confirm the method actually
+detects a leak it is known to contain, before trusting a null or partial result on the real split.
+
+\subsection{Export-format benchmark and edge latency (G6)}
+
+Six export configurations of the same trained checkpoint (\texttt{best.pt}, epoch 77) were
+benchmarked against the identical 98-image validation split: native PyTorch on both MPS and CPU,
+ONNX (fp32 and INT8), CoreML (dispatched to the Apple Neural Engine), and TorchScript. Latency was
+measured as p50/p95 over pre-decoded validation frames (avoiding disk I/O inside the timed loop),
+discarding warm-up runs, following the same protocol the system's own export benchmarking script
+uses by default. Because a single latency session can be affected by thermal state or scheduler
+noise, the CoreML/ANE configuration -- the one actually configured for use -- was re-measured across three
+independent process invocations rather than reported from a single run. A new per-image diff
+between the ONNX and TorchScript exports' detections (greedy IoU-matched, 0.9 IoU bar for
+agreement) was run across the full 98-image set to test directly whether their shared accuracy loss
+reflects a shared mechanism rather than independent numerical noise.
+
+\subsection{Vision operating-point safety trace (G7)}
+
+The configured detection confidence threshold was confirmed directly from the vision service's own
+source (\texttt{CONF\_THRESH=0.20}) rather than assumed from documentation. Two complementary
+methods were used to characterize precision and recall as a function of confidence: sweeping
+\texttt{model.val(conf=X)} over a coarse grid, and separately reading Ultralytics' underlying
+fine-grained (1000-point) precision/recall/F1 curve directly from a single validation call. The
+first method was found, over the course of this audit, to have a methodological trap worth
+recording for other practitioners: it reports an argmax-over-the-retained-curve figure regardless
+of the requested confidence, so it cannot answer ``what is precision/recall \emph{at} this specific
+threshold'' -- only the second, curve-reading method can, and it is the one this paper's headline
+numbers rely on. The full-frame-miss rate (a frame producing zero detections despite containing
+ground-truth fish) was measured empirically across all 98 validation frames at the configured
+threshold, and separately estimated via an independence approximation
+$P(\text{miss}\mid k) = (1-\text{recall})^k$ for comparison. Because the validation set's minimum
+ground-truth fish-per-frame count is $k=3$ -- it contains zero frames with $k=1$ or $k=2$ fish --
+the sparse-frame regime most relevant to a welfare check involving a small or isolated fish could
+only be estimated by extrapolation, never measured directly; this is reported as a dataset-coverage
+gap, not folded silently into the headline result.
+
+\subsection{PSI drift-binning sweep (G8)}
+
+A 16-point severity sweep ($\delta \in \{0.00, 0.02, \ldots, 0.30\}$) was constructed by resampling
+the reference confidence distribution ($n=1467$) with replacement and applying a mean shift of
+$\delta$, clipped to $[0,1]$, then computing PSI under both quantile-edge and fixed equal-width
+binning at every severity level. This is a mean-shift-only perturbation model; variance inflation
+was not layered in and is noted as a natural extension rather than attempted here. The three-way
+\texttt{decide()} gate and the promotion \texttt{gate()} function were each additionally exercised
+directly against two hand-constructed synthetic windows (no-drift and significant-drift) and three
+hand-constructed promotion-margin cases, to confirm the gate's documented behavior end-to-end.
+
+\subsection{twin\_bridge mechanism-evidence inventory (G9)}
+
+The existing PLC/CODESYS bridge test suite (\texttt{twin\_bridge/test\_bridge.py}) was run as-is,
+and four new edge-case tests were authored against a scripted \texttt{FakeTwin} test double to
+exercise a comparison-logic branch the existing suite never reached. No live Godot or CODESYS
+session was available in this environment, and none was constructed for this audit; every test in
+this subsystem, existing and new, is team-authored mechanism evidence run against a scripted
+double, not evidence from an independently produced external system.
+
+\subsection{RAG threshold calibration (G1) and manuscript-wide provenance audit (G10, G11)}
+
+The RAG threshold sweep and the e5-small-versus-\texttt{tr-bert} retrieval comparison were
+reproduced read-only against the live 44-chunk indexed corpus. Because the original benchmark
+script clears and re-populates the live collection (a write operation forbidden under this audit's
+read-only guardrail), a new script reproduced only the query-and-scoring half of that benchmark
+against whatever was already indexed, after first confirming the indexed content matched the
+current knowledge-base files exactly. A new random-retrieval baseline (uniform selection over all
+44 chunks, evaluated across 5 seeds for stability) was authored specifically to establish that
+e5-small's measured retrieval skill is a real effect and not an artifact of the corpus's small
+size. Separately, a full manuscript-wide provenance and stale-figure audit re-verified every
+headline number cited in this paper against its raw source file and git commit, and re-ran a
+repository-wide grep for the specific superseded recall figure (0.695) this project's own history
+required guarding against; that audit is what surfaced the still-unfixed occurrence of that figure
+inside the system's RAG knowledge base reported in Section~\ref{sec:results}.

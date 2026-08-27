@@ -1,0 +1,105 @@
+\appendix
+\section{Supplementary Tables}
+\label{sec:appendix}
+
+This appendix carries derivation-style detail that would otherwise bloat
+Section~\ref{sec:results}: the full per-scenario record behind the four-bucket classification, and
+the full 16-point PSI severity sweep summarized in Figure~\ref{fig:exp08-psi}.
+
+\subsection{EXP03: full per-scenario record}
+
+% SOURCE_CLAIM: experiment_workspace/experiment_runs/EXP03/results.md,
+% experiment_workspace/experiment_runs/EXP03/g3_results.json
+\begin{table}[h]
+\centering
+\footnotesize
+\caption{All 8 evaluation-harness scenarios: rule-engine status, AQUA-1B's pre-override status,
+the post-override final status, the resulting bucket, and the manual reasoning-accuracy coding.}
+\label{tab:exp03-full}
+\begin{tabular}{@{}lp{2.6cm}lllp{2.4cm}p{2.9cm}@{}}
+\toprule
+ID & Scenario & Rule & Pre & Post & Bucket & Reasoning coding \\
+\midrule
+T01 & Normal conditions & ok & ok & ok & agrees & accurate \\
+T02 & Critical DO (5.7 mg/L) & critical & ok & \textbf{critical} & under-calls, escalated & \textbf{fabricated} (6.0 vs.\ 5.7) \\
+T03 & pH warning & warning & ok (default) & warning & unparseable & inaccurate, not fabricated \\
+T04 & Optimal conditions & ok & ok (default) & ok & unparseable & uncodable (empty) \\
+T05 & Cold water + low pH & warning & warning & warning & agrees & \textbf{fabricated}, right label \\
+T06 & High O2, high activity & ok & ok (default) & ok & unparseable & inaccurate, not fabricated \\
+T07 & Multi-parameter emergency & critical & ok (default) & \textbf{critical} & unparseable & inaccurate, severe, not fabricated \\
+T08 & No fish detected & warning & warning & warning & agrees & \textbf{fabricated}, right label \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tally across all 8 reasoning strings: 1 accurate, 1 uncodable (empty generation), and 6 inaccurate
+in some respect against the true sensor snapshot -- of which exactly 3 (T02, T05, T08, bolded
+above) fabricate a specific numeric sensor value that was never in the input; the other 3 (T03,
+T06, T07) are inaccurate without inventing a number (an unsupported blanket claim, or an
+internally incoherent reading of a plausibly real value).
+Note T07: even though the raw model output was unparseable, the safe default (\texttt{ok}) was
+still correctly escalated to \texttt{critical} by \texttt{apply\_rule\_override}, because the
+override compares the \emph{defaulted} status against the rule engine's, not the raw text -- the
+escalate-only safety net functions even when the model's output is garbage.
+
+\subsection{EXP08: full 16-point PSI severity sweep}
+
+% SOURCE_CLAIM: experiment_workspace/experiment_runs/EXP08/exp08_output.json
+\begin{table}[h]
+\centering
+\small
+\caption{Full mean-shift severity sweep ($n=1467$ reference/current window), quantile (decile) vs.
+equal-width PSI, underlying Figure~\ref{fig:exp08-psi}.}
+\label{tab:exp08-full}
+\begin{tabular}{@{}rrr@{}}
+\toprule
+$\delta$ & Quantile PSI & Equal-width PSI \\
+\midrule
+0.00 & 0.0050 & 0.0049 \\
+0.02 & 0.1639 & 0.0776 \\
+0.04 & 0.7279 & 0.3059 \\
+0.06 & 1.4778 & 0.9057 \\
+0.08 & 2.1842 & 2.1412 \\
+0.10 & 2.6520 & 3.0270 \\
+0.12 & 3.3716 & 3.4738 \\
+0.14 & 3.4993 & 3.8634 \\
+0.16 & 3.9860 & 4.2552 \\
+0.18 & 4.0302 & 5.1331 \\
+0.20 & 4.1238 & 5.9264 \\
+0.22 & 4.3192 & 6.2131 \\
+0.24 & 4.6096 & 6.3534 \\
+0.26 & 4.8597 & 6.7538 \\
+0.28 & 4.8228 & 7.3928 \\
+0.30 & 4.8444 & 7.6493 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{EXP04: full 9-scenario agentic tool-routing record}
+
+% SOURCE_CLAIM: experiment_workspace/experiment_runs/EXP04/results.md,
+% aqua1b_results.jsonl, aqua7b_results.jsonl
+\begin{table}[h]
+\centering
+\footnotesize
+\caption{Aggregate agentic tool-routing results, original 5-scenario set vs.\ the expanded
+9-scenario set (5 original + 4 newly authored, adversarial-by-design scenarios).}
+\label{tab:exp04-full}
+\begin{tabular}{@{}p{3.4cm}lrrrp{3.6cm}@{}}
+\toprule
+Model & Set & Format \% & Sel.\ \% & Steps & Constant answer \\
+\midrule
+AQUA-1B & $n{=}5$ & 0\% & 0\% & 0.0 & false \\
+AQUA-1B & $n{=}9$ & 0\% & 0\% & 0.0 & false \\
+AQUA-7B & $n{=}5$ & 100\% & 50\% & 2.0 & true (5/5 \texttt{get\_sensor\_trend}) \\
+AQUA-7B & $n{=}9$ & 100\% & 71.4\% & 2.0 & true (9/9 \texttt{get\_sensor\_trend}) \\
+AQUA-7B (published README, historical) & $n{=}5$ & 60\% & 50\% & 3.6 & true (5/5) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+AQUA-7B's rise from 50\% to 71.4\% raw selection accuracy on the expanded set is not evidence of
+improved discrimination -- it follows directly from three of the four new scenarios being
+sensor-trend-relevant by design, so a model emitting a single constant answer scores well on any
+test whose answer key frequently contains that answer. The constant-answer flag, confirmed true on
+both sets, is the metric this paper treats as load-bearing; the raw selection percentage is not.

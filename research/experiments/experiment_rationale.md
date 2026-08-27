@@ -1,0 +1,57 @@
+# Experiment Design Rationale — S.U.R.E. Cross-Layer Deterministic-Override Study
+
+This document explains the design choices behind `experiment_design.json`'s 11 experiment specs (EXP01-EXP11, one per research goal G1-G11). All specs are ANALYSIS/MEASUREMENT procedures against the real, already-deployed S.U.R.E. codebase at `/Users/batuhancitak/Desktop/sure-project/` — nothing here trains a new model from scratch or picks an ML architecture. Every script, file, and code path cited below was independently re-verified with `ls`/`find`/`cat`/`grep`/`git log` against the live repository during this design pass, not taken on trust from `brainstorm.json`.
+
+## Environment facts that shaped every spec
+
+Three environment discoveries changed the design materially from what a naive reading of `brainstorm.json` would suggest:
+
+1. **The repo's own `./venv` is empty of every relevant dependency.** `pytest`, `torch`, `mlx-lm`, `ultralytics`, and `mlflow` all live in the global Anaconda Python (`/opt/anaconda3/bin/python3`), not the project venv. Every `required_environment` field below points at the Anaconda interpreter, not `./venv/bin/python`.
+2. **Both AQUA-1B and AQUA-7B are fully cached locally** (~1.9GB and ~14GB respectively, under `~/.cache/huggingface/hub/`), on an Apple M4 Pro that resolves to the `mlx` backend. This means G3's and G4's local-LLM-inference experiments (EXP03, EXP04) are genuinely runnable today, not blocked on missing infrastructure — a materially different risk profile than "assume it might not be runnable."
+3. **`AQUA_ADAPTER_PATH` defaults to empty and is NOT auto-set outside `docker-compose.yml`.** Any script that runs `eval.py`, `bench_agent.py`, or `inference.py` directly from a shell (as every experiment below does) must explicitly `export AQUA_ADAPTER_PATH=./llm-service/sure-aqua-adapter` or it will silently measure the un-adapted base model and mis-describe the result as "AQUA-1B + LoRA adapter." This is flagged as an open_decision on EXP03 and EXP04.
+
+A fourth finding directly resolves one of `brainstorm.json`'s own open questions: `git log --oneline --all -- mlops/drift.py` returns exactly **one** commit — the same commit that added the whole `mlops/` tree. The equal-width-binning failure story (PSI jumping 0.06→1.05) is narrated only as a code comment inside that commit, not as an actual earlier implementation. **G8's equal-width comparison must therefore be reported as a faithful reconstruction, never as "recovered from git history"** — this was genuinely ambiguous in the source documents and is now settled.
+
+## Per-goal rationale
+
+**G1 (EXP01) — RAG Threshold Sweep + Random Baseline.** `llm-service/rag/calibrate.py` and `llm-service/rag/bench.py` both exist exactly as brainstorm.json describes, and a live Postgres `sure_rag` database is already running locally, so this experiment is directly executable, not merely designable. The one real gap: no random/no-retrieval baseline retriever exists yet anywhere in the repo — `bench.py`'s `run_combination` must be adapted (not rewritten) to swap `store.search(...)` for uniform-random chunk selection. Rated end_stage=4 because the strong criterion combines an inherent threshold sweep with a genuinely new baseline-comparison arm.
+
+**G2 (EXP02) — Rule-Path Consistency Audit.** This turned out to be the most already-answered goal in the whole set: `eval.py`'s own docstring narrates the historical drift bug and states it is fixed, and direct inspection confirms both `eval.py` and `backend/main.py` import the identical `backend/rules.py` module by path manipulation, not by copy. The experiment is essentially a verification script that makes this explicit and checkable (8/8 scenario agreement) rather than a discovery process. Pure code trace, no ablation, end_stage=3.
+
+**G3 (EXP03) — Dual-Layer Behavioral Measurement.** The largest genuine engineering gap in the whole set: `eval.py`'s `model_status()` never actually calls `apply_rule_override()` — it only compares to a bare rule status for pass/fail. A new script must construct `backend.main.VisionFrame`/`SensorReading` objects from `eval.py`'s scenario dicts and wire `inference.generate_decision()`'s output through `apply_rule_override()` for real. The four-bucket taxonomy also needs care: the "over-calls" bucket is not visible from the `rule_override` flag alone (which only fires on escalation) and requires a separate severity comparison. Two open_decisions flagged: adapter-path env var (see above) and an unexplained second adapter directory (`llm-service/test-adapter/`) whose provenance nobody has documented.
+
+**G4 (EXP04) — Agentic Tool-Routing Robustness.** Confirmed `bench_agent.py --repeat N` cannot substitute for new scenarios: the code path (`make_generator`) calls `inference._generate(prompt, temp=0.0, ...)`, i.e. greedy decoding, so repeats are byte-identical — this is not an assumption, it's read directly from the generation call. The four new scenarios must be authored using the existing `Scenario`/`StaticDataSource`/`_falling()`/`_vision()` helpers, following the style of the existing five. Flagged as the highest-latency experiment (AQUA-7B at ~14GB, historically ~11.9s/scenario) — recommend a 1-scenario timing dry run before committing to the full ≥9-scenario × 2-model matrix.
+
+**G5 (EXP05) — Vision Dataset Leakage Audit.** Confirmed the 412/98 train/val split exactly matches MODEL_RAPORU.md's stated counts. The one real open question: whether `sure_dataset/{train,val}/images` filenames encode source-video identity the way `data/frames/`'s `videoN_frame_NNNN` naming does, or whether they've been renumbered/anonymized — this determines whether a simple filename-adjacency check suffices or a perceptual-hash check must be the primary (not secondary) method. Flagged as an open_decision requiring one more `ls` before implementation.
+
+**G6 (EXP06) — Export-Format Mechanism & Reproducibility.** The full six-configuration table, its exact numbers, and the "shared post-processing path" causal narrative are all already documented verbatim in `vision.md` / `MODEL_RAPORU.md`. This experiment's genuine new work is (a) repeating the CoreML/ANE measurement across ≥3 separate process invocations for real variance (not simulated), and (b) a new per-image ONNX-vs-TorchScript IoU diff script that does not exist yet. `coremltools` availability was not confirmed in the Anaconda env during this pass — flagged as an open_decision to check before assuming the CoreML leg needs no new installs. Rated end_stage=4 (multi-configuration sweep + dedicated mechanism-diff sub-experiment).
+
+**G7 (EXP07) — Vision Operating-Point Safety Trace.** `backend/rules.py`'s `fish_count == 0` rule was independently re-read and confirmed to raise severity specifically because a monitor reporting zero fish is itself alarming — this is the mechanism G7's safety framing traces to, not an assumption. The full-frame-miss-rate calculation needs an explicit note that a naive per-instance-independence approximation is just that — an approximation — and should be cross-checked against directly running the model on the actual sparse (1-2 fish) val frames and counting empirical zero-detection outcomes. Rated end_stage=4 for its explicit confidence-threshold PR-curve sweep requirement.
+
+**G8 (EXP08) — PSI Binning Sweep & Retrain Gate.** `mlops/drift.py`'s `histogram()` function already accepts arbitrary bin edges as a parameter, so implementing the equal-width comparison arm is a one-line call, not new infrastructure — a pleasant discovery that lowers this experiment's risk relative to what "reconstruct an entire alternate binning implementation" might suggest. As noted above, git history does NOT contain the historical equal-width failure as an actual prior commit, settling one of `brainstorm.json`'s own open questions. This is the task instructions' own canonical end_stage=4 example, and is treated as such.
+
+**G9 (EXP09) — twin_bridge Mechanism-Evidence Inventory.** Direct reading of `twin_bridge/compare.py` and `twin_bridge/test_bridge.py` found a genuine, currently-untested code path: the "unmapped alarm string while `do_low == sure_critical`" branch inside `compare_once()` (reachable only via a raw `inputs` dict with an alarm string outside the three `EXPECTED_DIVERGENCE` keys — `decode_alarms()` itself can never produce such a string since only 4 fixed bits exist, but `compare_once()` accepts any list, so a `FakeTwin`-scripted test can reach it directly). This is a concrete, previously-unidentified target for the new edge-case test the goal calls for, not a generic "add more tests" instruction. No live Godot/CODESYS infrastructure was found anywhere in the repo, confirming `research_plan.md`'s own "High likelihood" risk assessment that TB-3 will not materialize before freeze — this experiment's scope does not depend on that resolving either way.
+
+**G10 (EXP10) — Cross-Layer Thesis Framing.** This is a literature-search-and-synthesis goal that hard-depends on EXP03/04/06/07/08/09's actual results (not this design document's predictions of them) — it is explicitly marked as not executable until those land, and this design pass does not pre-guess its outcome.
+
+**G11 (EXP11) — Manuscript-Wide Data Integrity.** Confirmed the stale `0.695` recall figure is still present in `TODOS.md` line 11 today — but `TODOS.md` is a pre-existing, already-self-flagged-as-stale planning document, not manuscript output, so this is expected and not itself a failure; the experiment's actual job starts once a manuscript draft exists. Recommends that EXP01–EXP09 each log their own git commit hash/date live at run time rather than reconstructing provenance after the fact.
+
+## Batching decision
+
+All 11 goals were kept as 11 separate, 1:1 experiment specs. The one pair that looked batchable at first glance — G6 and G7, since both call Ultralytics `val()` against the same `best.pt` — was deliberately kept separate: they invoke `val()` with different arguments for different purposes (G6: one fixed-config reproducibility check; G7: a multi-point confidence-threshold sweep) and produce attributionally distinct manuscript subsections. Merging them would blur which goal a given number belongs to, which the task's own batching instructions warn against. `research_goals.json` had already performed all the real batching at the goal-formation stage (e.g., G3 merges 6 brainstorm approach-ids, G8 merges 5); re-batching at the experiment-design stage would just re-derive boundaries that already exist.
+
+## end_stage summary
+
+| Experiment | Goal | end_stage | Why |
+|---|---|---|---|
+| EXP01 | G1 | 4 | threshold sweep + new random-baseline comparison arm |
+| EXP02 | G2 | 3 | single static consistency trace, no sweep |
+| EXP03 | G3 | 3 | one behavioral run + manual coding, no sweep (v2-adapter retrain explicitly excluded from scope) |
+| EXP04 | G4 | 3 | scenario-count growth is a robustness check, not a parametric sweep |
+| EXP05 | G5 | 3 | single audit, optional secondary check |
+| EXP06 | G6 | 4 | six-config sweep + multi-session variance + dedicated mechanism diff |
+| EXP07 | G7 | 4 | explicit confidence-threshold PR-curve sweep |
+| EXP08 | G8 | 4 | canonical sweep example named directly in the task instructions |
+| EXP09 | G9 | 3 | test-coverage goal, own success criteria already its own floor |
+| EXP10 | G10 | 3 | literature/framing decision, no sweep structure |
+| EXP11 | G11 | 3 | manuscript QA pass, no sweep structure |

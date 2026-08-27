@@ -1,0 +1,32 @@
+{
+  "overall_score": 8,
+  "soundness": 3,
+  "presentation": 4,
+  "contribution": 3,
+  "clarity": 4,
+  "concision": 3,
+  "ai_voice_risk": "low",
+  "hard_blockers": [],
+  "must_fix_actions": [
+    {
+      "priority": 1,
+      "action": "Reconcile the Introduction's claim that the stale RAG knowledge-base recall figure (0.695) was found 'weeks after the correction' with Section 6.6 and Known Limitations, which both correctly state the gap as '43 minutes' worth of commits' (verified against the actual git log: commit 0e8b414 introduced the stale value, 9a260af corrected the figure elsewhere 43 minutes later on the same day). The Introduction's 'weeks' framing is not only internally inconsistent but factually wrong.",
+      "target_files": ["sections/introduction.tex"],
+      "acceptance_test": "grep -n 'weeks after' sections/*.tex returns no matches, and the Introduction's stated timeframe for the RAG-leak disclosure matches (or omits, if imprecision is a concern) the '43 minutes' figure stated in sections/results.tex and sections/known_limitations.tex.",
+      "fix_type": "writeup"
+    }
+  ],
+  "nice_to_fix_actions": [
+    {"action": "Add one clause to the Abstract or early Introduction stating explicitly that deterministic override of a probabilistic component is known prior art (SIS/IEC 61508-61511, RL shielding), so a reader who does not reach Related Work (Section 2.2) cannot momentarily overestimate the architectural novelty."},
+    {"action": "Fix the live production RAG knowledge-base file (llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58, still showing recall ~0.695 as of this review) and re-run llm-service/rag/ingest.py, per the paper's own first-listed followup_recommendation; optionally add a one-line addendum once corrected."},
+    {"action": "In Known Limitations' 'A live, unfixed data-integrity issue' paragraph, state one half-sentence more explicitly that the figure was left unfixed specifically because of a read-only guardrail on the live system during the audit, rather than leaving the reader to infer this from a single trailing clause."},
+    {"action": "Consider whether Sections 6.3-6.6's numeric density (five distinct, similar-looking recall/precision figures in close proximity: 0.719, 0.782, 0.720, 0.858, 0.859) could be aided by a single early forward-pointer to Table 2 before the numbers are first introduced, rather than only after."}
+  ],
+  "intro_compliance": {
+    "has_questions": true,
+    "has_takeaways": true,
+    "has_spine_sentence_early": true,
+    "questions_answered": true,
+    "takeaways_supported": true
+  }
+}

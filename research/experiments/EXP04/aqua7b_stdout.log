@@ -1,0 +1,20 @@
+Model: KurmaAI/AQUA-7B
+AQUA_ADAPTER_PATH: (unset)
+Scenarios: 5 original + 4 new = 9 total
+
+[generator constructed in 0.5s -- model itself loads lazily on first _generate() call]
+
+[AQUA/mlx] Yükleniyor: KurmaAI/AQUA-7B
+Fetching 11 files:   0%|          | 0/11 [00:00<?, ?it/s]Fetching 11 files: 100%|██████████| 11/11 [00:00<00:00, 9574.05it/s]
+[AQUA/mlx] Hazır.
+  [1/9] (original) ok oxygen falling                   format=ok tool=get_sensor_trend       steps=2  20.9s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [2/9] (original) XX fish inactive, sensors normal    format=ok tool=get_sensor_trend       steps=2  13.1s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [3/9] (original) XX no fish detected                 format=ok tool=get_sensor_trend       steps=2  13.0s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [4/9] (original) ok pH at the edge                   format=ok tool=get_sensor_trend       steps=2  13.1s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [5/9] (original) -  everything normal                format=ok tool=get_sensor_trend       steps=2  13.0s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [6/9] (new     ) ok temperature rising (new-A)       format=ok tool=get_sensor_trend       steps=2  12.9s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [7/9] (new     ) ok pH improving (new-B)             format=ok tool=get_sensor_trend       steps=2  12.8s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [8/9] (new     ) ok low activity + falling TDS (new-C) format=ok tool=get_sensor_trend       steps=2  13.0s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+  [9/9] (new     ) -  borderline but safe on all axes (new-D) format=ok tool=get_sensor_trend       steps=2  13.0s  tekrar: get_sensor_trend aynı argümanlarla yeniden istendi
+
+Written: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP04/aqua7b_results.jsonl

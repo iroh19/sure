@@ -1,0 +1,85 @@
+\documentclass[11pt]{article}
+
+% ---------------------------------------------------------------------------
+% Preamble
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[english]{babel}
+
+\input{style_macros}
+
+% ---------------------------------------------------------------------------
+% Mandatory watermark: near-invisible background text on every page.
+% Uses the `background' package's \backgroundsetup mechanism (works with
+% pdflatex; degrades gracefully to no-op if the package is unavailable is not
+% attempted here -- background is a standard, small, dependency-free package).
+% ---------------------------------------------------------------------------
+\usepackage[pages=all,scale=1]{background}
+\definecolor{watermarkgray}{gray}{0.94}
+\SetBgScale{1}
+\SetBgAngle{45}
+\SetBgColor{watermarkgray}
+\SetBgOpacity{1.0}
+\SetBgContents{Generated with a research agent created by Pierfrancesco Beneventano}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black,
+  pdftitle={S.U.R.E. (Aquaculture Welfare Integration)},
+  pdfauthor={\c{C}\i tak, Veli}
+}
+
+\title{S.U.R.E.\ (Aquaculture Welfare Integration): Autonomous Sturgeon Welfare Monitoring in
+Recirculating Aquaculture Systems via Edge-AI and RAG-Enhanced Deterministic Fusion}
+
+\author{
+Batuhan \c{C}\i tak \and Erdem Sabri Veli
+}
+
+\date{}
+
+% ---------------------------------------------------------------------------
+% Document
+% ---------------------------------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\input{sections/abstract}
+
+\input{sections/introduction}
+
+\input{sections/related_work}
+
+\input{sections/background}
+
+\input{sections/system_architecture}
+
+\input{sections/experimental_setup}
+
+\input{sections/results}
+
+\input{sections/discussion}
+
+\input{sections/known_limitations}
+
+\input{sections/conclusion}
+
+\input{sections/acknowledgements}
+
+\input{sections/appendix}
+
+\bibliography{references}
+\bibliographystyle{plainnat}
+
+\end{document}

@@ -1,0 +1,45 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.9, pytest-8.4.2, pluggy-1.5.0 -- /opt/anaconda3/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/batuhancitak/Desktop/sure-project
+plugins: anyio-4.10.0
+collecting ... collected 19 items
+
+twin_bridge/test_bridge.py::test_scaling_is_applied FAILED               [  5%]
+twin_bridge/test_bridge.py::test_unscaled_registers_pass_through PASSED  [ 10%]
+twin_bridge/test_bridge.py::test_short_frame_is_rejected PASSED          [ 15%]
+twin_bridge/test_bridge.py::test_alarm_bits_decode[0-expected0] PASSED   [ 21%]
+twin_bridge/test_bridge.py::test_alarm_bits_decode[1-expected1] PASSED   [ 26%]
+twin_bridge/test_bridge.py::test_alarm_bits_decode[2-expected2] PASSED   [ 31%]
+twin_bridge/test_bridge.py::test_alarm_bits_decode[5-expected3] PASSED   [ 36%]
+twin_bridge/test_bridge.py::test_alarm_bits_decode[15-expected4] PASSED  [ 42%]
+twin_bridge/test_bridge.py::test_advice_code_is_translated PASSED        [ 47%]
+twin_bridge/test_bridge.py::test_snapshot_carries_only_what_the_rule_engine_knows PASSED [ 52%]
+twin_bridge/test_bridge.py::test_vision_channel_is_deliberately_empty PASSED [ 57%]
+twin_bridge/test_bridge.py::test_both_engines_agree_when_oxygen_is_fine PASSED [ 63%]
+twin_bridge/test_bridge.py::test_both_engines_agree_when_oxygen_is_low PASSED [ 68%]
+twin_bridge/test_bridge.py::test_ammonia_alarm_is_expected_divergence_not_a_bug PASSED [ 73%]
+twin_bridge/test_bridge.py::test_real_disagreement_is_flagged_unexplained PASSED [ 78%]
+twin_bridge/test_bridge.py::test_the_other_direction_is_also_flagged PASSED [ 84%]
+twin_bridge/test_bridge.py::test_run_tallies_agreement_over_a_session PASSED [ 89%]
+twin_bridge/test_bridge.py::test_run_stops_cleanly_when_the_twin_disappears PASSED [ 94%]
+twin_bridge/test_bridge.py::test_missing_twin_raises_a_readable_error PASSED [100%]
+
+=================================== FAILURES ===================================
+___________________________ test_scaling_is_applied ____________________________
+
+    def test_scaling_is_applied():
+        """812 on the wire is 8.12 mg/L, not 812. Getting this wrong produces a
+        plausible-looking number that is off by two orders of magnitude."""
+        decoded = decode_holding(_holding(do=8.12, temp=19.4, ph=7.35, nh3=0.23))
+>       assert decoded["dissolved_oxygen_mgl"] == pytest.approx(8.12)
+E       assert 8.11 == 8.12 ± 8.1e-06
+E         
+E         comparison failed
+E         Obtained: 8.11
+E         Expected: 8.12 ± 8.1e-06
+
+twin_bridge/test_bridge.py:51: AssertionError
+=========================== short test summary info ============================
+FAILED twin_bridge/test_bridge.py::test_scaling_is_applied - assert 8.11 == 8...
+========================= 1 failed, 18 passed in 0.03s =========================

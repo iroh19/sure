@@ -1,0 +1,100 @@
+\section{Discussion}
+\label{sec:discussion}
+
+The results in Section~\ref{sec:results} support a narrower claim than the architecture's original
+design intuition promised, and the narrower claim is the more useful one. ``The rule engine catches
+the model's mistakes'' turns out to describe only 12\% of what actually happens; ``the system
+defaults to a safe state whenever the model's output cannot be trusted, and never lets a trusted
+output fall below what the rule engine alone would say'' describes all of it. That the first,
+catchier framing is wrong is not a weakness in the finding -- it is the finding. A reader who
+walks away believing the rule engine spends most of its time correcting nuanced severity
+misjudgments would misunderstand what this system's safety property actually rests on, and would
+likely misjudge how well the same pattern would hold up in their own deployment if they assumed
+the model would usually produce something parseable to correct in the first place.
+
+\subsection{What a better-tuned model would and would not change}
+
+The most obvious objection to the central result is that AQUA-1B was tested under close to the
+worst plausible version of itself: an 8-example adapter its own training pipeline calls
+insufficient, with a properly sized alternative sitting unused. Whether the documented 128-example
+adapter would reduce the 50\% unparseable rate is genuinely untested, and this paper does not
+claim to know the answer -- it is stated here as open future work, not as a hedge against the
+current result. What is not open, and would not change regardless of which adapter is loaded, is
+the architecture's independence from the model's free-text reasoning: \texttt{apply\_rule\_override}
+never reads the \texttt{reasoning} field under either adapter, so a better-tuned model could raise
+the agreement rate without touching the property this paper actually measured. The two questions
+-- does the model produce more parseable, more accurate output, and does the safety property hold
+regardless -- are separable by design, and conflating them would understate how load-bearing the
+narrow-interface choice actually is.
+
+A second, related question this system's own agentic-routing result raises but cannot answer:
+whether the same escalation-only, narrow-interface discipline holds for agentic tool-routing at a
+larger on-device model scale. Both models tested here either failed outright (AQUA-1B) or produced
+a constant-answer artifact (AQUA-7B); neither result licenses a claim about where on the capability
+curve a model would need to sit before deterministic routing stops being the safer choice. That
+threshold, if it exists, was not found here, because it was not this paper's question to answer --
+the negative result stands on its own terms, for these two models, on this scenario set.
+
+\subsection{The sparse-frame gap, stated as a gap}
+
+The reassuring empirical result that zero of 98 validation frames produced a full-frame miss is
+conditional on a property of the validation set that nobody designed in: every one of those 98
+frames contains at least three ground-truth fish. Whether the same detector would miss a genuinely
+sparse frame -- one or two fish, the case a welfare check most needs to catch, since an isolated or
+missing fish is itself a potential welfare signal -- is a question this dataset cannot answer in
+either direction. The extrapolated 22--28\% miss-risk estimate at $k=1$ is exactly that: an
+extrapolation from an independence approximation, not a measurement, and it should not be read
+with the same confidence as the empirical 0/98 result it sits beside. Closing this gap requires
+collecting or synthesizing frames the current dataset simply does not contain, and that is stated
+here as a concrete, actionable follow-up rather than a general caveat about validation-set size.
+
+\subsection{Practitioner rules this paper's evidence actually supports}
+
+Four rules survive scrutiny against the specific evidence behind them, and are stated here at that
+scale rather than inflated into general design advice.
+
+\emph{Architect a safety-critical LLM-plus-validator pipeline assuming the model will frequently
+produce nothing usable, verify that your fallback default is the conservative one, and never let
+your validator read anything from the model beyond the one enumerable field it is designed to
+certify.} This is the paper's central practitioner takeaway, and it follows directly from
+Section~\ref{sec:results-dual-layer}: the property that held was never ``the model reasons well
+enough,'' it was ``the validator only ever looks at one field, and that field defaults safe.''
+
+\emph{Tune a retrieval threshold for hallucination-averse domains against asymmetric cost, not raw
+F1.} Section~\ref{sec:results-rag}'s 0.85-over-0.84 choice sacrifices measurable recall
+specifically to drive hard-negative pass-through to zero, because a fabricated, confidently cited
+context actively misinforms while a missed document only weakens reasoning a downstream
+deterministic layer still adjudicates. The transferable lesson is the cost function a practitioner
+should write down before tuning, not this specific threshold value.
+
+\emph{Choose a drift-detection binning scheme by sweeping your own confidence distribution's
+severity range, not by copying a convention.} Section~\ref{sec:results-mlops}'s crossover means
+``use quantile binning'' is not a universal rule -- it is a consequence of this particular
+detector's confidence outputs being concentrated in a narrow band. A practitioner adopting PSI for
+a differently shaped output distribution should check for the same crossover before assuming either
+binning convention behaves as expected across their own severity range.
+
+\emph{Benchmark the whole exported inference pipeline before attributing an accuracy loss to
+quantization.} Section~\ref{sec:results-vision}'s INT8-loses-less-than-fp32 finding means the
+standard mental model -- lower numeric precision costs more accuracy -- can be wrong for a given
+toolchain when the real loss sits in a shared post-processing path common to every export target.
+The actionable version of this rule is to measure the full configuration matrix, not to reason
+about precision loss in isolation.
+
+A fifth pattern is worth naming even though it is not a design rule so much as a discipline: the
+adapter-provenance finding and the live 0.695 leak inside the system's own RAG knowledge base
+(Section~\ref{sec:results-audit}) are the same phenomenon at two different layers of the stack --
+an artifact silently drifted, or was mis-identified, between being produced and being used to
+support a conclusion. Both were caught by cheap, simple file-level checks (a record count and an
+mtime comparison; a repository-wide grep) that most teams skip because ``we deployed the right
+thing'' is treated as an assumption rather than a fact worth checking.
+
+\subsection{A hedged conjecture}
+
+These results suggest, but do not demonstrate beyond this one system, that narrow-enumerable-field
+validator interfaces may be a generally transferable safety-design principle for LLM-plus-validator
+pipelines outside aquaculture monitoring. The support for this is the consistency of the same
+underlying discipline across five architecturally distinct layers measured here -- decision fusion,
+agentic tool routing, retrieval, MLOps retraining, and edge vision -- not any test conducted outside
+this one system. This is offered as a direction worth testing in other domains, not as a
+demonstrated generalization, and a reader should weight it accordingly.

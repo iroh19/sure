@@ -1,0 +1,177 @@
+\section{System Architecture: the LLM-vs-Rule-Engine Paradigm}
+\label{sec:system-architecture}
+
+The central design decision in S.U.R.E. is not any individual model choice. It is where final
+authority over a safety-relevant decision is allowed to live. This section states that decision
+precisely, formalizes the two properties it depends on, and then walks the other three subsystems
+-- edge vision, RAG, and MLOps drift gating -- that inherit the same discipline at a different
+layer.
+
+\subsection{The dual-layer decision system}
+\label{sec:dual-layer}
+
+Every decision cycle produces two independent status proposals. The LLM, AQUA-1B, receives the
+fused sensor-and-vision state and returns a status label (\texttt{ok}/\texttt{warning}/
+\texttt{critical}) plus a free-text \texttt{reasoning} field explaining it. Simultaneously, the
+rule engine (\texttt{backend/rules.py}, defined in Section~\ref{sec:background}) computes its own
+status label directly from the same sensor and vision thresholds, by a call path that shares no
+runtime state with the LLM at all. A single function, \texttt{apply\_rule\_override}, then compares
+the two: if the LLM's proposed severity is lower than the rule engine's, the final severity is
+raised to the rule engine's value and the rule engine's reasoning is appended; the LLM's status is
+never allowed to override the rule engine downward, and the rule engine's own decision path is
+never blocked or delayed by the LLM being slow, malformed, or unavailable.
+
+\begin{formalization}[Severity monotonicity (escalate-only invariant)]
+\label{form:monotonicity}
+% SOURCE_CLAIM: research_proposal.md line 61; empirically grounded by EXP02
+% (experiment_workspace/experiment_runs/EXP02/results.md, module-identity check, 8/8 scenario
+% agreement) and EXP03 (experiment_workspace/experiment_runs/EXP03/results.md, behavioral trace:
+% no scenario's final severity fell below the rule-only computation).
+Let $\preceq$ be the total order $\texttt{ok} \prec \texttt{warning} \prec \texttt{critical}$ on the
+system's finite severity lattice. Writing $\mathrm{sev}_\mathrm{rule}$ for the rule engine's
+computed severity and $\mathrm{sev}_\mathrm{llm}$ for the LLM's proposed severity, the system's
+final decision satisfies
+\[
+\mathrm{sev}_\mathrm{final} \;=\; \max_{\preceq}\bigl(\mathrm{sev}_\mathrm{rule},\,
+\mathrm{sev}_\mathrm{llm}\bigr).
+\]
+This is not a proved theorem; it is a restatement, in one line, of what
+\texttt{apply\_rule\_override} already does in code, offered as a formal name for the
+``escalate-only, never downgrade'' invariant the rest of the paper refers back to. Its correctness
+as a \emph{safety} property depends entirely on one further condition that is not visible in the
+formula itself: that \texttt{backend/rules.py} is the single source computing
+$\mathrm{sev}_\mathrm{rule}$ everywhere it is consumed, with no independently maintained copy to
+drift out of sync. That is exactly the property this system's own history violated once -- an
+evaluation harness once carried its own copy of the rule logic, and the copy disagreed with
+the system's real decision path on the single scenario that matters most
+(\texttt{fish\_count==0}: the copy said \texttt{warning}, the real decision path said \texttt{ok})
+-- and exactly the property
+Section~\ref{sec:results} verifies directly, at the level of Python object identity, not
+output-matching.
+\end{formalization}
+
+This distinction between \emph{how} a threshold is escalated and \emph{whether the free-text
+justification for it can be trusted} is the boundary the second formalization exists to name.
+
+\begin{formalization}[Enumerable vs.\ non-enumerable failure modes]
+\label{form:enumerable}
+% SOURCE_CLAIM: research_proposal.md line 63; empirically grounded by EXP03
+% (experiment_workspace/experiment_runs/EXP03/results.md: 6/8 scenarios contain reasoning that
+% materially misrepresents the true sensor snapshot, invisible to the status-only override; 3 of
+% those 6 (T02/T05/T08) fabricate a specific numeric sensor value never present in the input,
+% including 2 cases inside the "agrees" bucket -- see Section~5.1).
+An \emph{enumerable} failure mode is a finite, coded, checkable predicate over sensor or state
+variables -- for instance, dissolved oxygen falling below 6~mg/L. A \emph{non-enumerable} failure
+mode is an open-ended natural-language judgment: a causal narrative that may be internally
+incoherent or factually wrong about the input it claims to describe, while still landing on the
+categorically correct status label. Formalization~\ref{form:monotonicity}'s escalate-only override
+is a sound, verifiable safety net for the former, by construction -- it only ever reads the
+enumerable \texttt{status} field. It provides \emph{no} protection whatsoever against the latter,
+because \texttt{apply\_rule\_override} never inspects the \texttt{reasoning} field at all. This
+distinction is not a hedge added after the fact; it bounds exactly what
+Formalization~\ref{form:monotonicity} is entitled to claim, and Section~\ref{sec:results} reports
+the first concrete, in-system evidence that both failure classes actually occur on this system's
+own scenario set, not merely that they are conceivable.
+\end{formalization}
+
+\paragraph{AQUA-1B and adapter provenance.} AQUA-1B is a Gemma-3-1B-class model fine-tuned with a
+LoRA domain adapter for this system's Turkish-language reasoning task. It is worth stating plainly,
+at first mention, what that adapter actually is: the adapter loaded in the running configuration
+(\texttt{sure-aqua-adapter}) was trained on eight handwritten examples, and the project's own
+fine-tuning script documents this exact dataset as insufficient -- \emph{``8 handwritten examples,
+smoke-test only''} -- while a properly sized, 128-example alternative dataset sat unused on disk,
+predating this adapter's own training run. This is disclosed here, not as an apology, but as the honest scope of
+what is measured: every AQUA-1B result reported for the decision layer in this paper
+(Section~\ref{sec:results}) reflects this smoke-test adapter, not the untested larger one. Framed
+as a stress test rather than a limitation, this is the more informative condition to have measured
+first -- if the architecture's safety property holds against a model given close to no fair chance
+to reason well, that is stronger evidence for the property's independence from model quality than
+a result obtained against a carefully tuned model would have been. This scope note applies strictly
+to results derived from this adapter (Section~\ref{sec:results}'s decision-layer findings); it does
+not apply to the agentic tool-routing results reported in the same section, which use the base
+model with no adapter loaded at all.
+
+\subsection{Edge vision pipeline}
+\label{sec:vision-pipeline}
+
+Detection runs YOLOv11s over each incoming frame, with ByteTrack \citep{zhang2022bytetrack}
+maintaining per-fish tracks across frames so that a single occluded or re-detected fish is not
+double-counted. The detector was trained on 510 labeled images (412 train / 98 validation, single
+class \texttt{sturgeon}). These are real photographs, captured from the project's own physical
+camera and system setup and hand-labeled by the team -- not synthetic or scraped imagery -- but the
+dataset is intentionally small at this stage, and expanding it is planned as future work, not
+treated here as already sufficient. The detector runs via CoreML on the Apple Neural Engine for
+on-device inference; Section~\ref{sec:experimental-setup} details the training and export methodology, and
+Section~\ref{sec:results} reports the accuracy and latency measurements across every export format
+this system was benchmarked on. The configured confidence threshold that gates which detections are
+kept is a separate design choice from the threshold that maximizes F1 on a held-out curve, and the
+two do not coincide here -- a fact this paper's own re-measurement surfaced rather than assumed.
+
+\begin{formalization}[Vision operating-point tradeoff framing]
+\label{form:operatingpoint}
+% SOURCE_CLAIM: synthesized in formalized_results.md's G7 section from
+% experiment_workspace/experiment_runs/EXP07/results.md (0.782 deployed vs. 0.719
+% headline-argmax); not present verbatim in research_proposal.md prior to EXP07 -- elevated here
+% because it recurs as an emergent finding, not merely a planned deliverable.
+A detector's configured confidence threshold selects one specific point on its precision--recall
+curve. That point is, in general, distinct from the threshold that maximizes F1 on a held-out
+curve -- the two coincide only by construction or by coincidence, never by default. For a
+downstream binary safety rule that consumes recall directly (here, \texttt{fish\_count==0}
+triggering a \texttt{warning}), the quantity that governs operational risk is the recall
+\emph{at the configured threshold}, not the recall at the academic-style F1-argmax that a validation
+report typically headlines. Section~\ref{sec:results} shows this is not a merely theoretical
+distinction for this system: the two numbers differ materially (0.782 versus 0.719), and citing
+the wrong one understates, not overstates, the system's safety margin.
+\end{formalization}
+
+\subsection{Retrieval-augmented generation}
+\label{sec:rag-pipeline}
+
+The RAG layer indexes eight domain-specific Turkish-language documents in \texttt{pgvector},
+chunked by document heading rather than by a fixed word count, and embedded with \texttt{e5-small}
+\citep{wang2022e5}. A query is answered by retrieving the highest-similarity chunks above a
+minimum-similarity threshold and supplying them to the LLM as grounding context with an inline
+citation marker; below the threshold, nothing is retrieved and the model reasons without external
+context. The threshold is set to 0.85 in the running configuration, one step above the empirical F1-optimum of
+0.84 (Section~\ref{sec:results}), a deliberate choice to favor precision -- suppressing a marginal,
+possibly-irrelevant retrieval entirely -- over recall, because a fabricated, confidently cited
+context is judged more costly in this domain than a missed one the rule engine can still act on
+independently. Tool routing for the agent layer described in Section~\ref{sec:results} is
+deterministic code, not LLM reasoning, for the same underlying reason: correctness of \emph{which}
+tool is called is treated as an enumerable decision the system should not delegate to a model whose
+tool-selection reliability has not been established.
+
+\subsection{MLOps and drift-gated retraining}
+\label{sec:mlops}
+
+Because frames processed at inference time carry no ground-truth labels, drift in the vision model
+is inferred from the model's own output: the distribution of detection confidence scores, compared
+against a reference distribution captured when the reference window was first established, via the
+Population Stability Index
+(Section~\ref{sec:background}). A drift signal alone only says the world changed; it says nothing
+about whether a retrained candidate would actually be better, so a second, independent gate stands
+between a drift alert and a registry update.
+
+\begin{formalization}[PSI three-way gate]
+\label{form:psigate}
+% SOURCE_CLAIM: research_proposal.md line 64; empirically grounded by EXP08
+% (experiment_workspace/experiment_runs/EXP08/results.md: no-drift window -> none, PSI=0.0048;
+% significant-drift window -> retrain, PSI=0.9070; gate()'s three cases all behave as designed).
+Given a reference distribution, quantile-edge (decile) binning of that reference, and a PSI value
+computed over a sliding current window against those bins, the system maps the resulting PSI value
+to a three-way decision $\{\texttt{none}, \texttt{review}, \texttt{retrain}\}$ at fixed thresholds
+(\texttt{MODERATE}=0.10, \texttt{SIGNIFICANT}=0.25). A \texttt{retrain} decision does not by itself
+promote a new model: any retrained candidate must additionally beat the incumbent by more than a
+fixed \texttt{MIN\_IMPROVEMENT} margin (0.005 mAP50, absolute) before it is registered, a guard
+against shipping a delta indistinguishable from ordinary training noise. Section~\ref{sec:results}
+reports both halves of this gate exercised directly -- the drift decision and the promotion gate --
+and reports a genuine correction to how sensitively the two candidate binning schemes (quantile
+versus equal-width) actually behave across a severity sweep, rather than assuming either
+convention's textbook behavior.
+\end{formalization}
+
+The choice between quantile and equal-width binning is not a cosmetic implementation detail: the
+detector's confidence scores cluster narrowly (roughly 0.5--0.9), so a small number of equal-width
+bins can each hold a large, uneven share of the reference mass, and Section~\ref{sec:results}
+traces exactly how that structural property changes PSI's sensitivity as a function of drift
+severity.

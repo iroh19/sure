@@ -1,0 +1,76 @@
+==============================================================================
+AQUA-1B  (adapter unset -- base model, matching bench_agent.py's own 'test the base model' framing)
+==============================================================================
+{
+  "label": "original n=5",
+  "n": 5,
+  "format_pct": 0.0,
+  "n_scored_for_selection": 4,
+  "selection_pct": 0.0,
+  "mean_steps": 0.0,
+  "mean_seconds": 2.17,
+  "chosen_tools": [],
+  "distinct_tools_chosen": [],
+  "constant_answer": false
+}
+{
+  "label": "expanded n=9",
+  "n": 9,
+  "format_pct": 0.0,
+  "n_scored_for_selection": 7,
+  "selection_pct": 0.0,
+  "mean_steps": 0.0,
+  "mean_seconds": 1.74,
+  "chosen_tools": [],
+  "distinct_tools_chosen": [],
+  "constant_answer": false
+}
+
+==============================================================================
+AQUA-7B  (adapter unset -- base model, matching bench_agent.py's own 'test the base model' framing)
+==============================================================================
+{
+  "label": "original n=5",
+  "n": 5,
+  "format_pct": 100.0,
+  "n_scored_for_selection": 4,
+  "selection_pct": 50.0,
+  "mean_steps": 2.0,
+  "mean_seconds": 14.59,
+  "chosen_tools": [
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend"
+  ],
+  "distinct_tools_chosen": [
+    "get_sensor_trend"
+  ],
+  "constant_answer": true
+}
+{
+  "label": "expanded n=9",
+  "n": 9,
+  "format_pct": 100.0,
+  "n_scored_for_selection": 7,
+  "selection_pct": 71.4,
+  "mean_steps": 2.0,
+  "mean_seconds": 13.86,
+  "chosen_tools": [
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend",
+    "get_sensor_trend"
+  ],
+  "distinct_tools_chosen": [
+    "get_sensor_trend"
+  ],
+  "constant_answer": true
+}
+

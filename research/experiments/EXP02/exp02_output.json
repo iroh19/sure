@@ -1,0 +1,93 @@
+{
+  "experiment_id": "EXP02",
+  "measured_at_utc": "2026-08-26T14:44:14.456570+00:00",
+  "git_provenance": {
+    "repo_head_short": "3c1b9fa",
+    "repo_head_date": "2026-08-26T08:57:33+03:00"
+  },
+  "structural_checks": {
+    "eval_py_imports_rules_via_syspath": true,
+    "main_py_imports_same_rules_module_object": true,
+    "main_py_SEVERITY_is_rules_SEVERITY": true
+  },
+  "structural_checks_all_pass": true,
+  "scenario_results": [
+    {
+      "scenario_id": "T01",
+      "name": "Normal koşullar",
+      "eval_py_rule_status": "ok",
+      "backend_main_rule_based_decision_status": "ok",
+      "agree": true
+    },
+    {
+      "scenario_id": "T02",
+      "name": "Kritik oksijen",
+      "eval_py_rule_status": "critical",
+      "backend_main_rule_based_decision_status": "critical",
+      "agree": true
+    },
+    {
+      "scenario_id": "T03",
+      "name": "pH uyarısı",
+      "eval_py_rule_status": "warning",
+      "backend_main_rule_based_decision_status": "warning",
+      "agree": true
+    },
+    {
+      "scenario_id": "T04",
+      "name": "Optimal koşullar",
+      "eval_py_rule_status": "ok",
+      "backend_main_rule_based_decision_status": "ok",
+      "agree": true
+    },
+    {
+      "scenario_id": "T05",
+      "name": "Soğuk su + düşük pH",
+      "eval_py_rule_status": "warning",
+      "backend_main_rule_based_decision_status": "warning",
+      "agree": true
+    },
+    {
+      "scenario_id": "T06",
+      "name": "Yüksek oksijen, yüksek aktivite",
+      "eval_py_rule_status": "ok",
+      "backend_main_rule_based_decision_status": "ok",
+      "agree": true
+    },
+    {
+      "scenario_id": "T07",
+      "name": "Acil durum — çoklu parametre",
+      "eval_py_rule_status": "critical",
+      "backend_main_rule_based_decision_status": "critical",
+      "agree": true
+    },
+    {
+      "scenario_id": "T08",
+      "name": "Balık tespit edilmedi — sensör normal",
+      "eval_py_rule_status": "warning",
+      "backend_main_rule_based_decision_status": "warning",
+      "agree": true
+    }
+  ],
+  "scenario_agreement": "8/8",
+  "overall_pass": true,
+  "file_line_references": {
+    "llm-service/eval.py": {
+      "sys_path_insert_backend": "line 29 (`sys.path.insert(0, str(_BACKEND))`)",
+      "import_rules": "line 31 (`import rules`)",
+      "rule_status_fn": "line 95-97, calls `rules.evaluate_status(sc['sensor'], sc['vision'])`"
+    },
+    "backend/main.py": {
+      "import_rules": "line 31 (`import rules`)",
+      "SEVERITY_alias": "line 62 (`SEVERITY = rules.SEVERITY`)",
+      "rule_based_decision_fn": "line 303-310, calls `rules.evaluate(...)`",
+      "apply_rule_override_fn": "line 329-344, calls `rule_based_decision()` then compares `SEVERITY.get(rule['status'],0) > SEVERITY.get(parsed.get('status'),0)`"
+    },
+    "backend/rules.py": {
+      "module_docstring": "lines 1-13, explicitly narrates the historical eval/production drift bug this experiment re-verifies is fixed",
+      "SEVERITY_table": "line 32",
+      "evaluate_fn": "line 50-88",
+      "evaluate_status_fn": "line 91-93"
+    }
+  }
+}
