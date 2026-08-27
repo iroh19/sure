@@ -196,13 +196,22 @@ sahte modelle, hiç LLM olmadan sürüyor.
 | Model | Format | Seçim | Adım | Süre |
 |---|--:|--:|--:|--:|
 | AQUA-1B (Gemma 3 1B) | 0% | 0% | 0.0 | 2.7 sn |
-| AQUA-7B (Mistral, 4-bit) | 60% | 50% | 3.6 | 11.9 sn |
+| AQUA-7B (Mistral, 4-bit) | 100% | 50% | 2.0 | 15.8 sn |
 
 AQUA-1B ayrıştırılabilir tek bir eylem üretmiyor: talimatı tekrarlıyor ya da JSON
 şablonunu kopyalıyor, ve prefill testinde dört farklı senaryoda birebir aynı
-çıktıyı verdi. 7B biçimi daha sık tutturuyor ama **beş senaryonun hepsinde**
+çıktıyı verdi. 7B biçimi her seferinde tutturuyor ama **beş senaryonun hepsinde**
 `get_sensor_trend` seçti — sabit cevap, yani %50 tesadüfi. `bench_agent.py` bunu
-`CONSTANT ANSWER` olarak raporluyor, yüzdenin yanıltmasına izin vermiyor.
+`CONSTANT ANSWER` olarak raporluyor, yüzdenin yanıltmasına izin vermiyor. Aynı
+çağrı tekrarlandığı için `loop.py`'nin tekrar koruması her senaryoyu 2. adımda
+durduruyor — buradaki adım sayısı o taban, planlama derinliğinin ölçüsü değil.
+
+_2026-08-27'de commitlenmiş kodla yeniden ölçüldü; makalenin denetimindeki
+bağımsız koşumla ([EXP04](research/experiments/EXP04/)) birebir aynı çıktı. Bu
+tablonun önceki hâli 60% / 3.6 adım diyordu; bu sayı commitlenen `loop.py` ile
+üretilemez, çünkü sabit cevap tekrar korumasını 2. adımda tetikler. Beş senaryo
+üzerinde tek bir greedy (`temp=0.0`) geçiş — seçim yüzdesini oran olarak okumak
+için fazla az._
 
 Bunun yerine `agent/router.py` üretimde: yönlendirme deterministik kod, model
 yalnızca anlatıyor. Araçlar, doğrulama ve çalıştırma döngüyle ortak; yalnızca
