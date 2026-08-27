@@ -196,14 +196,23 @@ LLM at all.
 | Model | Format | Selection | Steps | Time |
 |---|--:|--:|--:|--:|
 | AQUA-1B (Gemma 3 1B) | 0% | 0% | 0.0 | 2.7 s |
-| AQUA-7B (Mistral, 4-bit) | 60% | 50% | 3.6 | 11.9 s |
+| AQUA-7B (Mistral, 4-bit) | 100% | 50% | 2.0 | 15.8 s |
 
 AQUA-1B never emits a parseable action — it echoes the instruction or copies the
 JSON template, and a prefill test produced identical output across four different
-scenarios. The 7B model holds the format more often but chose `get_sensor_trend`
-in **all five** scenarios: a constant answer, so its 50% is incidental.
+scenarios. The 7B model always holds the format but chose `get_sensor_trend` in
+**all five** scenarios: a constant answer, so its 50% is incidental.
 `bench_agent.py` reports that as `CONSTANT ANSWER` rather than letting the
-percentage flatter it.
+percentage flatter it. Because the same call repeats, `loop.py`'s repetition
+guard stops every scenario at step 2 — the step count here is that floor, not a
+measurement of planning depth.
+
+_Re-measured 2026-08-27 against the committed code, matching an independent
+re-run during the paper's audit ([EXP04](research/experiments/EXP04/)). An
+earlier version of this table reported 60% / 3.6 steps; that cannot come from
+`loop.py` as committed, since a constant answer trips the repetition guard at
+step 2. One greedy (`temp=0.0`) pass over five scenarios — too few to read the
+selection percentage as a rate._
 
 `agent/router.py` ships instead: routing is deterministic code, the model only
 narrates. Tools, validation and execution are shared with the loop; only the
