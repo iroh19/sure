@@ -8,12 +8,15 @@ Ertelenen işler. Kapatılanlar en altta arşivde.
 
 ### 1. Vision recall'ını yükselt (P2)
 
-**Ne:** `sure_v1` recall ~0.695 — yoğun/örtüşen karelerde balıkların ~%30'u
-kaçırılıyor. `NMS time limit exceeded` uyarıları bunu doğruluyor.
+**Ne:** `sure_v1` recall, koştuğumuz `conf=0.20` eşiğinde 0.782 — yoğun/örtüşen
+karelerde balıkların ~%22'si kaçırılıyor. `NMS time limit exceeded` uyarıları
+bunu doğruluyor. (Bu madde önceden 0.695 diyordu; o sayı epoch 73'e aitti ve
+`best.pt` epoch 77. Ayrıntı `MODEL_RAPORU.md`.)
 
 **Çözüm yönü:** yoğun karelerde etiket gözden geçirme + `imgsz` 960/1280 ile
-yeniden eğitim, ya da demo için inference'ta `conf` düşürüp `max_det` artırma.
-En etkili adım veri setini büyütmek.
+yeniden eğitim, ya da inference'ta `max_det` artırma. En etkili adım veri setini
+büyütmek — bu aynı zamanda EXP05'in bulduğu 32 yakın-kopya train/val çiftini de
+temizler.
 
 **Dosyalar:** `vision-service/train_sure.py`, `vision-service/yolo_runner.py`.
 **Bağımlılık:** Yok. Ayrıntı: [`MODEL_RAPORU.md`](MODEL_RAPORU.md).

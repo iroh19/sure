@@ -433,9 +433,10 @@ comments and commits are English.
   regime, quantified in the paper.
 - **32 near-duplicate frame pairs** between train and val, found by perceptual
   hash. Enumerated, not yet folded into a corrected headline metric.
-- **A superseded figure is live in the RAG corpus** —
-  `llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58` still states
-  recall ~0.695 and is ingested into the vector store.
+- **The vector store has to be re-ingested when the corpus changes.** A
+  superseded recall figure sat in `knowledge/06-davranis-ve-refah-gostergeleri.md`
+  for a day before EXP11 found it — corrected in the source and re-ingested, but
+  nothing enforces that the index matches the files on disk.
 - **TensorRT rows are unmeasured** — no CUDA device available yet.
 - **AQUA-1B has never been run through the eval in model mode**; `--rule-only`
   verifies the rule engine, not the model.

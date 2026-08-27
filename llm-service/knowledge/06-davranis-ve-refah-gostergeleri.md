@@ -55,8 +55,9 @@ hesaplanır. İki bilinen zayıflık vardır:
 
 - **Kalabalık karelerde takip kimliği karışabilir**; bu, gerçekte olmayan yüksek
   hareket üretir.
-- **Tespit modelinin recall'ı ~0.695'tir**; yoğun karelerde balıkların bir kısmı
-  kaçırılır, ortalama gerçekte olduğundan farklı çıkabilir.
+- **Tespit modelinin recall'ı, sistemin koştuğu `conf=0.20` eşiğinde 0.782'dir**;
+  yoğun karelerde balıkların bir kısmı kaçırılır, ortalama gerçekte olduğundan
+  farklı çıkabilir.
 
 Bu yüzden aktivite metriği tek başına `critical` üretmez; yalnızca uyarı
 seviyesindedir ve sensör verisiyle birlikte yorumlanır.
