@@ -1,0 +1,20 @@
+{
+  "seed42_result": {
+    "strategy": "heading",
+    "chunks": 44,
+    "k": 5,
+    "seed": 42,
+    "hit_at_1": 0.207,
+    "hit_at_3": 0.655,
+    "hit_at_5": 0.724,
+    "mrr": 0.418
+  },
+  "e5_small_heading_real": {
+    "hit_at_1": 0.793,
+    "mrr": 0.856
+  },
+  "margin": {
+    "hit_at_1": 0.586,
+    "mrr": 0.438
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "generated_by": "literature-review-specialist agent",
+  "method": "Adversarial novelty check: for each core claim extracted from research_proposal.md, searched for (i) direct prior art, (ii) known adjacent/special cases under different terminology, (iii) equivalent formulations in other fields, via WebSearch across arXiv, vendor/practitioner blogs, industry standards references, and academic surveys. Goal was to find evidence claims are NOT novel, not to confirm they are.",
+  "overall_summary": "No claim is BLOCKING. The paper's central 'deterministic override of an LLM' pattern is EQUIVALENT_KNOWN under at least three prior names (Safety Instrumented Systems / IEC 61508-61511 interlocks in industrial safety engineering; 'shielding' in the safe-RL literature; and an already-circulating 2025-2026 LLM-guardrail industry pattern with near-identical wording, 'LLM generates, rules engine validates'). Several individual mechanism-level claims (H5's PSI quantile-binning fix, the MIN_IMPROVEMENT champion-challenger retrain gate) are similarly KNOWN or PARTIAL against established credit-scoring-PSI and MLOps literature. This is consistent with, and does not threaten, the paper's own stated framing (vision.md, research_proposal.md Expected Contributions) that novelty is claimed at the level of INTEGRATION, MEASUREMENT, and CROSS-LAYER CONSISTENCY of a known design discipline in a new domain (aquaculture RAS, sturgeon-specific, LLM-mediated), not invention of any individual mechanism. The one claim classified OPEN with reasonable confidence -- the cross-layer generalization itself (the same escalation-only-deterministic-authority discipline consistently, independently applied and measured across five architecturally distinct layers within one deployed, production system, including one full disclosed negative result) -- is the paper's real, defensible novelty locus and should be foregrounded accordingly in the Introduction and Conclusion.",
+  "claims": [
+    {
+      "claim_id": "C1",
+      "claim_text": "A deterministic rule engine holds sole, escalation-only final authority over a locally-hosted LLM's severity reasoning in a safety-critical domain (H1); the LLM never has the final word.",
+      "status": "EQUIVALENT_KNOWN",
+      "blocking": false,
+      "search_queries_used": [
+        "safety instrumented system SIS interlock final authority automation industrial safety layer",
+        "LLM guardrails deterministic rule engine override safety-critical industrial agent architecture",
+        "shielding reinforcement learning safety override formal verification runtime monitor LLM agent",
+        "IEC 61508 IEC 61511 functional safety standard independent protection layer"
+      ],
+      "evidence": [
+        {"source_id": 11, "note": "Safety Instrumented Systems (SIS): decades-old, industry-standard 'last line of defense' layer with deterministic override authority over an upstream (probabilistic-in-effect) control system.", "url": "https://en.wikipedia.org/wiki/Safety_instrumented_system"},
+        {"source_id": 26, "note": "IEC 61508/61511 formally codify SIS/Independent Protection Layer independence and override-authority requirements.", "url": "https://en.wikipedia.org/wiki/IEC_61511"},
+        {"source_id": 12, "note": "'Shielding' in safe-RL literature: an external runtime filter vetoes/corrects a probabilistic agent's proposed action before execution -- structurally identical mechanism.", "url": "https://dl.acm.org/doi/10.1145/3715958"},
+        {"source_id": 13, "note": "2025-2026 LLM-guardrail industry blogs already articulate 'LLM generates -> rules engine validates -> if validation passes, deliver' in near-identical language to S.U.R.E.'s own 'model proposes, rule engine disposes' refrain.", "url": "https://rulebricks.com/blog/deterministic-guardrails-for-llms-building-safe-auditable-ai-systems"},
+        {"source_id": 14.1, "note": "2024-2025 academic work on LLM agents in industrial process control already proposes 'every LLM proposal checked by an external validator before actuation' -- closest same-domain-class prior art, though simulation/framework-level, not a measured deployed system.", "url": "https://arxiv.org/abs/2409.18009"}
+      ],
+      "confidence": "high",
+      "recommendation": "REFORMULATE (framing only, not the architecture)",
+      "notes": "This is the single most important adversarial finding of the review. The pattern must be presented in Related Work/Introduction as an application of established safety-engineering and safe-RL doctrine to a new (LLM-mediated, software-only, aquaculture-domain) setting -- explicitly citing SIS/IEC 61511 and shielding -- rather than implying the override-authority concept itself originates with this paper. The defensible differentiator is that S.U.R.E. is a measured, deployed instance with a documented real near-miss (eval-harness drift bug), not a proposed or simulated architecture. Per vision.md's own non-negotiable framing, this is not a blocking finding -- it must be reported honestly, as instructed."
+    },
+    {
+      "claim_id": "C2",
+      "claim_text": "The same 'deterministic authority over probabilistic component' design principle is independently and consistently applied and empirically tested across five architecturally distinct layers (LLM severity reasoning, agentic tool routing, RAG retrieval, MLOps retrain triggering, edge vision) within a single deployed production system, including one full disclosed negative result -- this cross-layer consistency, not any single layer, is the paper's central contribution.",
+      "status": "OPEN",
+      "blocking": false,
+      "search_queries_used": [
+        "LLM guardrails deterministic rule engine override safety-critical industrial agent architecture",
+        "large language model agent industrial process control interlock case study 2025",
+        "computer vision fish counting tracking deep learning aquaculture survey 2024 2025",
+        "AI-Driven Monitoring for Fish Welfare in Aquaponics"
+      ],
+      "evidence": [
+        {"source_id": 2, "note": "Fitzgerald et al. 2025 welfare-monitoring review states the field generally lacks closure from vision/sensor output to an actionable, safety-graded decision -- i.e. no reviewed source performs this closure at even one layer, let alone five consistently.", "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/aff2.70036"},
+        {"source_id": 14.1, "note": "Closest same-domain-class prior art (LLM + external validator in industrial control) addresses one layer (control-action validation), not a consistently-applied cross-layer discipline spanning retrieval, retraining, and vision as well.", "url": "https://arxiv.org/abs/2409.18009"}
+      ],
+      "confidence": "medium",
+      "recommendation": "PROCEED",
+      "notes": "No source found in this search integrates deterministic-override discipline across this many architecturally distinct layers of one deployed system, nor combines it with a fully disclosed negative result (the agentic tool-calling failure) as design evidence. This should be the paper's foregrounded, most heavily defended novelty claim. Confidence is medium rather than high because the search, while broad, cannot exhaustively rule out an unindexed or non-English prior system; recommend one targeted follow-up search at the writeup stage specifically for 'multi-layer AI governance case study deployed system' before finalizing this as the headline claim."
+    },
+    {
+      "claim_id": "C3",
+      "claim_text": "The deterministic-override mechanism holds for enumerable, threshold-based failure modes but does not extend to non-enumerable, open-ended judgment failures (H2) -- this boundary condition is itself part of the contribution.",
+      "status": "EQUIVALENT_KNOWN",
+      "blocking": false,
+      "search_queries_used": [
+        "shielding reinforcement learning safety override formal verification runtime monitor LLM agent"
+      ],
+      "evidence": [
+        {"source_id": 12, "note": "RL-safety shielding literature independently states shields require a formally specifiable, enumerable safety specification -- the same scope boundary H2 states from direct system observation.", "url": "https://arxiv.org/pdf/2406.06507"}
+      ],
+      "confidence": "medium",
+      "recommendation": "PROCEED",
+      "notes": "Not a novel boundary condition in the abstract (shielding literature already scopes itself this way), but this is good news for the paper: independent theoretical corroboration from a different literature strengthens H2's credibility. Cite the shielding-literature scope limit as corroborating precedent rather than presenting the enumerable/non-enumerable boundary as an original theoretical distinction."
+    },
+    {
+      "claim_id": "C4",
+      "claim_text": "Deterministic code-based tool routing outperforms LLM-driven agentic tool selection at the deployed (~1B parameter) model scale, adopted as an evidence-driven design decision after a benchmark showed near-total failure (H3); the benchmark's own 'constant-answer' artifact-detection technique is a small, transferable evaluation-methodology contribution.",
+      "status": "PARTIAL",
+      "blocking": false,
+      "search_queries_used": [
+        "small language model function calling tool use reliability benchmark failure on-device",
+        "LLM agent autonomy reliability trade-off constant answer artifact evaluation bias",
+        "LLM benchmark constant answer artifact majority class bias evaluation detection"
+      ],
+      "evidence": [
+        {"source_id": 19, "note": "SLM-agent tool-calling reliability is an active, contested research area with mixed findings across studies -- some report SLMs matching larger models under strict schemas, others report near-total failure.", "url": "https://arxiv.org/pdf/2510.03847"},
+        {"source_id": 20, "note": "Independent 2025-2026 benchmarks (Llama 3B) report comparably severe small-model tool-calling failure, corroborating the negative result's plausibility.", "url": "https://dev.to/anak_wannaphaschaiyong_11/why-small-llms-fail-at-tool-calling-the-shocking-discovery-from-our-llama-3b-benchmark-5lg"},
+        {"source_id": 21, "note": "'Artifacts or Abduction' (arXiv:2402.12483) establishes that constant/majority-class-answer artifacts inflating aggregate benchmark scores is an already-named, general concern in NLP benchmark evaluation (choices-only baselines, majority-class bias) -- the general principle behind the 'constant answer' check is known, though S.U.R.E.'s specific application (flagging len(set(chosen_tool))==1 in an agentic tool-selection benchmark) is a narrower, novel instantiation.", "url": "https://arxiv.org/pdf/2402.12483"}
+      ],
+      "confidence": "high",
+      "recommendation": "PROCEED (REFORMULATE the methodology sub-claim only)",
+      "notes": "The negative result itself (AQUA-1B failing at tool-calling) is a plausible, literature-consistent finding, not requiring reframing beyond H3's own stated scope ('this model, this prompt, this scenario set'). The 'constant-answer-detection technique... named as a small, transferable evaluation-methodology contribution' claim (Expected Contributions/Systems) should be softened: cite the general majority-class/constant-answer artifact literature (item 21) and frame S.U.R.E.'s contribution as applying this known evaluation-hygiene principle to a new task type (agentic tool-selection benchmarking), not inventing artifact-aware evaluation."
+    },
+    {
+      "claim_id": "C5",
+      "claim_text": "A precision-biased RAG similarity threshold (0.85), selected via an explicit hard-negative sweep and an asymmetric cost function (fabrication vs. omission), reduces hallucinated-citation risk at a quantified, disclosed recall cost (H4).",
+      "status": "PARTIAL",
+      "blocking": false,
+      "search_queries_used": [
+        "RAG retrieval similarity threshold hallucination precision recall trade-off calibration",
+        "e5 embedding model text retrieval asymmetric query passage benchmark"
+      ],
+      "evidence": [
+        {"source_id": 16, "note": "Per-corpus similarity-threshold calibration against a precision/recall or coverage target is established RAG-deployment practice, not novel in the abstract.", "url": "https://www.researchgate.net/publication/397055775_Evaluating_Precision_and_Recall_at_Retrieval_Time_in_Retrieval-Augmented_Generation_RAG_Systems"},
+        {"source_id": 17, "note": "Formal literature exists on certified limits of embedding-similarity-based hallucination detection/mitigation -- similarity thresholding is a partial mitigation only, a caveat S.U.R.E. must state.", "url": "https://arxiv.org/pdf/2512.15068"}
+      ],
+      "confidence": "medium",
+      "recommendation": "PROCEED",
+      "notes": "The practice of per-corpus threshold calibration is known; the specific explicit hard-negative-sweep-plus-named-asymmetric-cost-function methodology (accepting F1 0.906 over an F1-optimal 0.951 specifically to drive fabrication risk to zero) is a more disciplined, more explicitly justified instance than most calibration literature reports, but is not a wholly new technique. State the 0.85 threshold value itself as corpus-specific (not a general finding), consistent with H4's own stated conditions."
+    },
+    {
+      "claim_id": "C6",
+      "claim_text": "Export-format accuracy loss in the YOLOv11s pipeline (ONNX/TorchScript export) is systematic and attributable to a shared post-processing/NMS code path, not a stochastic 'quantization tax'; INT8 quantization on top of this export path adds less loss than the fp32 export path already pays (H6).",
+      "status": "PARTIAL",
+      "blocking": false,
+      "search_queries_used": [
+        "object detection model export format accuracy degradation ONNX TorchScript post-processing",
+        "YOLO INT8 quantization accuracy latency trade-off edge deployment ONNX TensorRT"
+      ],
+      "evidence": [
+        {"source_id": 8, "note": "GitHub issue threads (ultralytics/yolov5#8772, onnx/onnx#6287, microsoft/onnxruntime#21689) independently, informally document that NMS/post-processing does not export cleanly from PyTorch to ONNX/TensorRT and causes accuracy/behavior discrepancies -- the same causal mechanism H6 diagnoses.", "url": "https://github.com/ultralytics/yolov5/issues/8772"},
+        {"source_id": 9, "note": "TensorRT/INT8 quantization literature reports typical accuracy costs (0.5-2.0pp calibrated) that S.U.R.E.'s figure (-0.0082 mAP50) falls within/below, but this literature generally compares INT8 to the fp32-native (not fp32-exported) baseline, missing the specific comparison H6 makes.", "url": "https://arxiv.org/pdf/2508.19600"}
+      ],
+      "confidence": "high",
+      "recommendation": "PROCEED (with honest attribution)",
+      "notes": "The underlying mechanism (NMS/post-processing causes export accuracy loss) is already informally suspected/documented by the practitioner community (GitHub issues), so this is not a discovery of a new phenomenon. S.U.R.E.'s genuine contribution is the *rigorous, controlled, same-validation-set, six-configuration quantification and formal attribution* of this previously-informal community suspicion -- a methodological novelty, not a discovery-level one. Cite the GitHub issues explicitly in Related Work as prior informal evidence of the same mechanism."
+    },
+    {
+      "claim_id": "C7",
+      "claim_text": "The vision layer's detection operating point (precision 0.858/recall 0.719) is itself a probabilistic input that a deterministic rule (fish_count==0) must tolerate; because that rule triggers on total-frame absence rather than per-instance count, the ~28% per-instance miss rate does not currently trip any explicit safety escalation, exposing a disclosed, unaddressed safety-relevant blind spot (H7).",
+      "status": "OPEN",
+      "blocking": false,
+      "search_queries_used": [
+        "Machine Vision Applications for Welfare Monitoring in Aquaculture Challenges and Opportunities",
+        "Fish Tracking Counting Behaviour Analysis Digital Aquaculture Comprehensive Survey"
+      ],
+      "evidence": [
+        {"source_id": 2, "note": "Fitzgerald et al. 2025 explicitly identifies 'translation of vision benchmark numbers to actionable welfare decisions' as the field's largest unresolved gap -- consistent with, but not itself performing, the specific trace H7 makes.", "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/aff2.70036"}
+      ],
+      "confidence": "medium",
+      "recommendation": "PROCEED",
+      "notes": "No source found performs this specific trace (a stated detector recall figure -> the exact downstream rule's trigger semantics -> an honestly disclosed coverage gap). This is a genuine, if narrow, novelty claim, directly responsive to a gap the field's own reviews (item 2) explicitly name as unaddressed. Recommend this be one of the more confidently stated OPEN claims in the manuscript."
+    },
+    {
+      "claim_id": "C8",
+      "claim_text": "Quantile-edge (decile) PSI binning detects graded drift where equal-width binning over a narrow-band confidence output produces a degenerate, saturating binary signal (H5).",
+      "status": "PARTIAL",
+      "blocking": false,
+      "search_queries_used": [
+        "Population Stability Index PSI drift detection model monitoring production machine learning",
+        "PSI binning method quantile equal-width credit scoring model drift"
+      ],
+      "evidence": [
+        {"source_id": 23, "note": "Standard PSI/credit-scoring literature already documents the equal-width vs. quantile/equal-frequency binning distinction and explicitly warns that PSI is 'sensitive to binning choices' and can be 'inaccurate or misleading' under poor binning -- this is established best practice, not a new discovery.", "url": "https://arize.com/blog-course/data-binning-production/"}
+      ],
+      "confidence": "high",
+      "recommendation": "REFORMULATE",
+      "notes": "This should be reclassified from 'novel diagnosis' to 'application of known PSI best practice to a new, previously-unexamined signal type.' S.U.R.E.'s genuine contribution is narrower than the proposal's current framing implies: it is documenting this known binning pitfall concretely manifesting in YOLO detection-confidence distributions (narrow-banded for different structural reasons than credit scores) and wiring the fix into an automated three-way retrain-gating decision for a vision-model MLOps pipeline. Cite the credit-scoring PSI-binning literature explicitly in Related Work/Methodology rather than presenting the quantile-vs-equal-width finding as original."
+    },
+    {
+      "claim_id": "C9",
+      "claim_text": "A candidate retrained model ships only if it beats the incumbent by more than a minimum-improvement margin (0.005 mAP50), rather than being promoted on any positive delta -- a decision-theoretic guard against shipping training-noise-level deltas as genuine improvements (part of the MLOps/H5 contribution).",
+      "status": "KNOWN",
+      "blocking": false,
+      "search_queries_used": [
+        "champion challenger model promotion gate minimum improvement threshold retrain production ML"
+      ],
+      "evidence": [
+        {"source_id": 22, "note": "Champion-challenger with a minimum-improvement promotion margin (commonly cited as e.g. >=5% in some industry sources) is standard, widely-documented MLOps practice, independently and repeatedly named across multiple vendor/practitioner sources (DataRobot, Snowflake, FluxForce, DagsHub).", "url": "https://www.datarobot.com/blog/introducing-mlops-champion-challenger-models/"}
+      ],
+      "confidence": "high",
+      "recommendation": "REFORMULATE",
+      "notes": "This is directly KNOWN, established MLOps practice under the name 'champion-challenger.' It is not blocking (per vision.md's framing) because S.U.R.E.'s contribution is applying this standard gate, with a small, decision-theoretically justified margin, specifically to a vision-model registry combined with the PSI drift-gate -- but the manuscript MUST cite champion-challenger explicitly by name and must not present the minimum-improvement-margin concept itself as original."
+    },
+    {
+      "claim_id": "C10",
+      "claim_text": "This is a rare (implicitly, by some readings of the narrative arc, the first) sturgeon-specific and/or RAS-specific deployed system combining edge vision, an LLM reasoning layer, and a deterministic safety-escalation architecture.",
+      "status": "OPEN",
+      "blocking": false,
+      "search_queries_used": [
+        "sturgeon monitoring aquaculture welfare sensor deep learning",
+        "fish behavior welfare indicators water quality sensor fusion machine learning RAS",
+        "YOLO fish detection recirculating aquaculture system monitoring"
+      ],
+      "evidence": [
+        {"source_id": 6, "note": "Closest sturgeon-specific prior work found (CM-SCN) is a lab-scale, cross-modal stress-classification study, not a deployed real-time decision-support system with an LLM+rule-engine safety architecture.", "url": "https://www.sciencedirect.com/science/article/abs/pii/S0168169924002941"},
+        {"source_id": 5, "note": "Aquaponics welfare-prediction system (PMC12527044) is the closest sensor-fusion-to-decision pattern found in the broader aquaculture literature, but uses pure ML classification, not an LLM + deterministic-override architecture, and is not sturgeon/RAS-specific.", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12527044/"}
+      ],
+      "confidence": "medium",
+      "recommendation": "REFORMULATE",
+      "notes": "No directly prior instance was found in this search, but a 'first-ever' claim cannot be asserted with high confidence from web search alone (indexing gaps, non-English regional publications, unpublished industry systems are all plausible blind spots). Recommend the manuscript state this claim cautiously as 'no evidence of a directly prior instance was found in a systematic literature search' rather than an unqualified 'first system' claim -- consistent with the paper's own stated discipline of not overclaiming beyond measured/verified evidence."
+    },
+    {
+      "claim_id": "C11",
+      "claim_text": "Literal code-sharing between the production decision path and the evaluation harness (the eval harness imports rules.py directly, catching a real drift bug where a stale copy silently diverged) is presented as a safety-integrity mechanism/practice contribution ('never let an evaluation harness re-implement business/safety logic that must stay synchronized with production').",
+      "status": "PARTIAL",
+      "blocking": false,
+      "search_queries_used": [
+        "LLM guardrails deterministic rule engine override safety-critical industrial agent architecture"
+      ],
+      "evidence": [
+        {"source_id": 13, "note": "General LLM-guardrail industry writing discusses rules-engine validation architectures but does not specifically emphasize eval-harness/production code-sharing as its own named integrity practice with a documented real caught-bug motivating example.", "url": "https://rulebricks.com/blog/deterministic-guardrails-for-llms-building-safe-auditable-ai-systems"}
+      ],
+      "confidence": "low",
+      "recommendation": "PROCEED",
+      "notes": "This is fundamentally an instance of the decades-old general software-engineering 'single source of truth' / DRY (don't-repeat-yourself) principle, which long predates this system and was not itself separately, exhaustively searched as a computer-science-history claim (out of scope for this review's six target literatures). What is more narrowly defensible as a contribution is the *documented, real, caught-in-CI motivating incident* (an eval harness silently drifting from production and reporting green on a safety-relevant scenario) as a concrete illustration of why this discipline matters specifically for LLM-safety evaluation harnesses -- this narrative/evidentiary framing, not the code-sharing principle itself, is what should be presented as the contribution. Confidence is marked low because this claim was not adversarially searched with the same depth as C1-C9; a follow-up search on 'evaluation harness drift test validity software engineering' is recommended if this claim is elevated to a headline contribution."
+    }
+  ]
+}

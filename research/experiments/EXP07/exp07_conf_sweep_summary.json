@@ -1,0 +1,88 @@
+{
+  "experiment_id": "EXP07",
+  "sub_experiment": "confidence_threshold_sweep",
+  "deployed_conf_thresh": 0.2,
+  "unconstrained_val_result": {
+    "precision": 0.8589679256591463,
+    "recall": 0.7188889049222116,
+    "f1": 0.7827104455515016,
+    "map50": 0.8394782259318897
+  },
+  "sweep_points": [
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4
+  ],
+  "sweep_results": [
+    {
+      "conf": 0.1,
+      "precision": 0.8589679256591463,
+      "recall": 0.7188889049222116,
+      "f1": 0.7827104455515016,
+      "map50": 0.8428181043882261,
+      "is_deployed": false
+    },
+    {
+      "conf": 0.15,
+      "precision": 0.8589679256591463,
+      "recall": 0.7188889049222116,
+      "f1": 0.7827104455515016,
+      "map50": 0.8404189851029295,
+      "is_deployed": false
+    },
+    {
+      "conf": 0.2,
+      "precision": 0.8589679256591463,
+      "recall": 0.7188889049222116,
+      "f1": 0.7827104455515016,
+      "map50": 0.8365672646623706,
+      "is_deployed": true
+    },
+    {
+      "conf": 0.25,
+      "precision": 0.8589679256591463,
+      "recall": 0.7188889049222116,
+      "f1": 0.7827104455515016,
+      "map50": 0.8347038409894034,
+      "is_deployed": false
+    },
+    {
+      "conf": 0.3,
+      "precision": 0.8589679256591463,
+      "recall": 0.7188889049222116,
+      "f1": 0.7827104455515016,
+      "map50": 0.8329362401117062,
+      "is_deployed": false
+    },
+    {
+      "conf": 0.35,
+      "precision": 0.8514241724403387,
+      "recall": 0.7252459016393442,
+      "f1": 0.78328611898017,
+      "map50": 0.8297942571003782,
+      "is_deployed": false
+    },
+    {
+      "conf": 0.4,
+      "precision": 0.8809523809523809,
+      "recall": 0.7036065573770491,
+      "f1": 0.7823550856726211,
+      "map50": 0.8246985876304908,
+      "is_deployed": false
+    }
+  ],
+  "f1_argmax_among_swept_points": {
+    "conf": 0.35,
+    "precision": 0.8514241724403387,
+    "recall": 0.7252459016393442,
+    "f1": 0.78328611898017,
+    "map50": 0.8297942571003782,
+    "is_deployed": false
+  },
+  "is_unconstrained_headline_the_true_argmax": false,
+  "wall_time_seconds": 31.997225046157837
+}

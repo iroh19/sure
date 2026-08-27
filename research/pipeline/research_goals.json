@@ -1,0 +1,261 @@
+{
+  "generated_by": "research-goal-formalization-specialist agent",
+  "source_documents": [
+    "paper_workspace/brainstorm.md",
+    "paper_workspace/brainstorm.json",
+    "paper_workspace/research_proposal.md",
+    "paper_workspace/literature_review_matrix.md",
+    "paper_workspace/novelty_flags.json",
+    "vision.md",
+    "live codebase at /Users/batuhancitak/Desktop/sure-project/ (backend/, llm-service/, vision-service/, mlops/, twin_bridge/)"
+  ],
+  "track_recommendation_honored": "brainstorm.json's track_recommendation.needs_theory_track = false is honored unchanged; all goals below are assigned track \"experiment\". The paper's only formalization need (monotonicity property final_severity = max(severity_rule, severity_llm); enumerable vs. non-enumerable failure-mode distinction; PSI-gating three-way rule; vision operating-point tradeoff framing) is expository restatement of already-implemented code and is written into Goal G3 (H1/H2), Goal G7 (H7), and Goal G8 (H5)'s deliverables as short Methodology-subsection prose, not spun out as a separate theory goal or track.",
+  "goals": [
+    {
+      "id": "G1",
+      "title": "RAG Retrieval Calibration Reliability",
+      "description": "Recover the full similarity-threshold sweep behind the deployed 0.85 RAG threshold, quantify retrieval skill above a random baseline against the small (8-document/44-chunk) corpus, and scope the threshold claim with per-corpus-calibration and hallucination-mitigation-limits literature.",
+      "hypothesis_id": "H4",
+      "approach_ids": ["H4-1", "H4-2", "H4-3", "H4-4", "H4-5"],
+      "merge_rationale": "H4-1 (recover the full threshold sweep), H4-2 (report bench.py's own corpus-size degenerate flag), H4-3 (add a random/no-retrieval baseline), H4-4 (cite per-corpus threshold-calibration and hallucination-mitigation-limits literature), and H4-5 (report calibrate.py's asymmetric-cost reasoning as methodology) all operate on the same two scripts (llm-service/rag/calibrate.py, llm-service/rag/bench.py) and the same H4 claim; merging avoids five near-duplicate goals measuring facets of one script pair.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Running `python -m rag.calibrate` (llm-service/rag/calibrate.py) reproduces the full precision/recall/F1 sweep across thresholds and confirms F1 is maximized at 0.84 (F1=0.951) vs. the deployed 0.85 (F1=0.906); `python -m rag.bench` (llm-service/rag/bench.py) is extended with a random/no-retrieval baseline retriever and its output reports the existing `degenerate` corpus-size flag (BenchResult.degenerate) alongside MRR/hit@1, showing e5-small's MRR (0.856)/hit@1 (0.793) clears the random baseline by a stated margin; a paragraph citing per-corpus threshold-calibration literature (literature_review_sources.json id 16) and hallucination-mitigation-limits literature (id 17, Semantic Illusion/HALT-RAG) scopes the 0.85 threshold claim to this corpus.",
+        "minimum_viable": "If a random-baseline retriever cannot be authored in time, report calibrate.py's sweep table verbatim (confirming or correcting the 0.84 argmax) and bench.py's existing `degenerate` flag output as disclosed corpus-size caveats without a quantified baseline comparison; still cite sources 16 and 17."
+      },
+      "deliverables": [
+        "full threshold-sweep table from llm-service/rag/calibrate.py",
+        "random/no-retrieval baseline script + result against llm-service/rag/bench.py's EVAL_QUERIES",
+        "one paragraph citing sources 16/17 scoping the 0.85 threshold"
+      ],
+      "dependencies": [],
+      "priority": 1,
+      "novelty_reframed": true,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G2",
+      "title": "Eval-Harness / Production Rule-Path Consistency Audit",
+      "description": "Confirm llm-service/eval.py and backend/main.py's apply_rule_override share the same rule logic with no residual drift, protecting the credibility of the eval-harness-drift narrative that opens the paper before any behavioral measurement is trusted.",
+      "hypothesis_id": "H1",
+      "approach_ids": ["H1-2"],
+      "merge_rationale": "Single approach at this granularity; no overlapping approach exists. Sequenced before G3 because G3's eval.py + apply_rule_override run is only trustworthy if this audit confirms no residual eval/production divergence analogous to the incident that motivates the paper's opening narrative.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Read-only inspection of llm-service/eval.py's rule-computation path against backend/main.py's `apply_rule_override` (and the `rule_based_decision` it calls) confirms both resolve to the same backend/rules.py logic with no re-implemented/copied severity computation; a short diff/consistency-check script documents that eval.py's rule-side computation and apply_rule_override's rule_based_decision() call produce identical severity for eval.py's 8 existing scenarios.",
+        "minimum_viable": "If eval.py does not currently share code with apply_rule_override in some sub-path, document exactly where the divergence is (file/line) and report it as a newly-found, analogous drift bug -- a valid, disclosable finding in its own right, per the approach's own failure-mode framing."
+      },
+      "deliverables": [
+        "diff/consistency-check script + output comparing eval.py's rule path to apply_rule_override's rule_based_decision path",
+        "one-paragraph audit note for Methodology/Discussion"
+      ],
+      "dependencies": [],
+      "priority": 2,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G3",
+      "title": "Behavioral Measurement of the Dual-Layer Decision System & Its Enumerable-Threshold Boundary",
+      "description": "Measure what AQUA-1B actually emits when run through eval.py and apply_rule_override (not merely what the architecture guarantees), classify outcomes into a four-bucket taxonomy including model over-calls, separate mechanism-correctness from behavioral evidence, and use the same run to ground H2's non-enumerable-failure-mode scope boundary.",
+      "hypothesis_id": "H1,H2",
+      "approach_ids": ["H1-1", "H1-4", "H1-6", "H2-1", "H2-2", "H2-4"],
+      "merge_rationale": "H1-1 (run eval.py model mode through apply_rule_override, four-bucket classify), H1-4 (report test_decision.py as mechanism evidence), H1-6 (report whatever H1-1 produces, including a mostly-unparseable result), H2-1 (manually code the 8 reasoning strings for factual/citation accuracy), H2-2 (cross-reference H4's F1 0.906 residual-hallucination number), and H2-4 (write the Discussion 'Precision Check' paragraph) are merged because H2-1/H2-2/H2-4 all consume H1-1's same 8-scenario run as direct input and together produce the single Results 5.1 subsection plus its Discussion scope-boundary paragraph; splitting them would create four goals that cannot be independently executed without re-running the same eval.py pass. H1-3 (retrain a v2 LoRA adapter) and H1-5/H2-3 (pure citation decisions) are deliberately excluded as separate goals: H1-3 is an optional stretch extension (brainstorm priority_rank: null, flagged as open_question, not required for H1/H2 coverage), and H1-5/H2-3's citation content is folded into this goal's Precision Check paragraph.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Extend or wrap llm-service/eval.py's `model_status()` so each of its 8 scenarios' raw AQUA-1B output is fed through backend/main.py's `apply_rule_override`, and classify every scenario into the four buckets from research_proposal.md's Goal 1 (parseable-and-agrees / parseable-and-under-calls-and-escalated / parseable-and-over-calls / unparseable-defaulted-to-ok); record which adapter directory (sure-aqua-adapter/adapters.safetensors mtime, or `git log` against llm-service/finetune.py's default output path) produced the run; run `pytest backend/test_decision.py -v` and report its pass/fail as separate mechanism-correctness evidence, never substituted for the behavioral result; manually code the `reasoning` field of all 8 scenarios for factual/citation accuracy, reporting at least one non-enumerable failure the rule engine cannot catch as illustration for H2; cross-reference H4's F1 0.906 (production threshold 0.85, from G1) as corroborating grounding for H2's scope claim; write the Methodology/Discussion 'Precision Check' paragraph scoping the central claim to 'escalation-only deterministic override for enumerable safety thresholds,' citing the SIS/IEC 61511 (source 11/26) and RL-shielding (source 12) equivalent-known prior art per literature_review_matrix.md Theme 3.",
+        "minimum_viable": "If AQUA-1B output is mostly unparseable (mirroring bench_agent.py's 0% finding), report 'malformed-output fail-safe is the dominant observed pathway, not severity-correction' as the H1 finding -- a different but still valid, still reportable safety claim per the proposal's own pre-committed interpretation plan; if none of the 8 reasoning strings show a coded inaccuracy, report the n=8 illustration as weaker but still valid for H2's scope claim."
+      },
+      "deliverables": [
+        "extended eval.py (or new analysis script) + 8-scenario four-bucket classification table",
+        "backend/test_decision.py pytest output",
+        "adapter-provenance note (mtime/git log)",
+        "manual reasoning-accuracy coding table (n=8)",
+        "Precision Check paragraph draft citing sources 11/26/12"
+      ],
+      "dependencies": ["G2"],
+      "priority": 3,
+      "novelty_reframed": true,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G4",
+      "title": "Agentic Tool-Routing Negative-Result Robustness",
+      "description": "Confirm the reproducibility of bench_agent.py's existing AQUA-1B (0%/0%) and AQUA-7B (60%/50%-constant-answer) results, audit the constant-answer detection logic against the real run log, and genuinely grow the scenario count past n=5 to strengthen (or honestly temper) the negative-result generalizability claim.",
+      "hypothesis_id": "H3",
+      "approach_ids": ["H3-1", "H3-2", "H3-3", "H3-4", "H3-5", "H3-6"],
+      "merge_rationale": "All six H3 approaches operate on the single llm-service/agent/bench_agent.py harness and its existing result; H3-1 (report as-is), H3-2 (re-run for reproducibility), H3-4 (audit the constant-answer detection logic against the real log), H3-5 (soften the novelty claim per literature source 21), H3-3 (author new scenarios to grow n), and H3-6 (report whatever the new scenarios reveal) are sequential steps of one measurement campaign, not independent goals.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Re-run `python -m agent.bench_agent` fresh and confirm the existing AQUA-1B (0% parseable-action / 0% correct selection) and AQUA-7B (60% format / 50% selection) figures reproduce; inspect the constant-answer flag (`len(set(chosen))==1`) against the actual AQUA-7B run log to confirm the 50% figure is genuinely a constant-answer artifact (get_sensor_trend chosen in all five scenarios); author at least 4 new, distinct Scenario/StaticDataSource entries (using the existing scenario-authoring machinery in llm-service/agent/bench_agent.py) spanning the same failure categories to grow n past 5, and re-run the full benchmark against both models; cite literature source 21 (Artifacts or Abduction) to scope the constant-answer-detection contribution as a novel application of a known artifact-detection principle to a new task type, per novelty_flags.json's PARTIAL status on this claim (not the invention of artifact-aware evaluation).",
+        "minimum_viable": "If new scenarios are not authored before manuscript freeze, report the existing n=5-scenario/2-model result plainly as an honestly-scoped limitation (per research_proposal.md Known Limitations #7) rather than an addressed concern, and still perform the reproducibility re-run and constant-answer log audit, which require no new scenario-authoring work; explicitly note that `bench_agent.py --repeat N` does NOT constitute a sample-size increase (temp=0.0 greedy decoding produces byte-identical repeats)."
+      },
+      "deliverables": [
+        "re-run bench_agent.py output (reproducibility check)",
+        "constant-answer log audit note",
+        "≥4 new scenario definitions + expanded benchmark table",
+        "one-sentence literature-scoped novelty framing citing source 21"
+      ],
+      "dependencies": [],
+      "priority": 4,
+      "novelty_reframed": true,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G5",
+      "title": "Vision Dataset Leakage Audit",
+      "description": "Audit the full 510-image vision dataset for clip/video-level leakage beyond the already-caught ogretmen case, protecting every headline vision number (mAP50 0.840, precision 0.858, recall 0.719) that H6 and H7 depend on.",
+      "hypothesis_id": "H6,H7 (protective control, ablation row 7)",
+      "approach_ids": ["XC-1"],
+      "merge_rationale": "Single approach; kept as its own goal (rather than folded into G6/G7) because it is a precondition control whose result gates the validity of both downstream vision goals (G6, G7), matching the brainstorm's own priority_rank of 5 and its explicit note that it 'protects the validity of every vision-layer claim (H6, H7) at once.'",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "A filename/timestamp-adjacency check (and optional perceptual-hash near-duplicate check) across all 510 labeled images (data/sure_dataset.yaml) confirms no frame from the same source video appears in both the 412-image train and 98-image val split, beyond the already-caught and corrected ogretmen case (per MODEL_RAPORU.md's epoch-77 correction); the result is reported as a data-integrity control in Experimental Setup, directly closing Ablation row 7.",
+        "minimum_viable": "If further leakage is found, report exactly which images/videos are affected and state a corrected, caveated headline vision number (mAP50/precision/recall) rather than the uncorrected 0.840/0.858/0.719 figures, per the approach's own failure branch."
+      },
+      "deliverables": [
+        "leakage-audit script + result table",
+        "Experimental Setup data-integrity paragraph"
+      ],
+      "dependencies": [],
+      "priority": 5,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G6",
+      "title": "Export-Format Accuracy Loss: Mechanism and Reproducibility",
+      "description": "Report and strengthen vision-service/export_bench.py's six-configuration table, quantify CoreML/ANE latency variance across sessions, re-confirm val() reproducibility against the exact commit, and test the shared-post-processing-path causal claim directly via a per-image ONNX-vs-TorchScript detection diff.",
+      "hypothesis_id": "H6",
+      "approach_ids": ["H6-1", "H6-2", "H6-3", "H6-4", "H6-5", "H6-6"],
+      "merge_rationale": "All six operate on vision-service/export_bench.py's six-configuration table and best.pt; H6-1 (report table verbatim), H6-2 (repeat CoreML/ANE latency across sessions for variance), H6-4 (re-run val() on best.pt fresh, record commit/date), H6-3/H6-6 (diff per-image detections between ONNX/TorchScript to test the shared-post-processing-path causal claim, report whatever is found), and H6-5 (cite GitHub issue threads per literature source 8) together produce the single H6 finding and its Results 5.3 export-loss subsection.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Report vision-service/export_bench.py's full six-configuration table (pt/mps, pt/cpu, onnx/cpu, onnx-int8/cpu, coreml/ANE, torchscript/cpu: p50/p95 latency, FPS, ΔmAP50, model size) verbatim, confirming CoreML/ANE p50=9.0ms/p95=9.5ms and INT8 ΔmAP50=-0.0082; repeat the CoreML/ANE measurement across ≥3 separate sessions and report variance (mean±std or min/max range), not a single sample; re-run `model.val()` on best.pt fresh and record the exact git commit hash/date, confirming no new epoch-73-style discrepancy exists; write and run a script diffing per-image detection boxes between the ONNX and TorchScript export outputs on the 98-image val set, reporting IoU-overlap agreement as direct evidence for (or against) the shared-post-processing-path causal claim; cite literature source 8 (GitHub issue threads) as prior informal evidence for the export/NMS mechanism, and source 9 (TensorRT/INT8 quantization literature) to contextualize the -0.0082 ΔmAP50 within the normal 0.5-2.0pp calibrated band.",
+        "minimum_viable": "If multi-session CoreML variance is high, widen the reported latency range and state the headline claim as a mean, not a guaranteed single-run figure; if the ONNX/TorchScript per-image diff shows meaningful divergence despite matching aggregate mAP50, report the causal story downgraded to 'coincidental match, mechanism unconfirmed' rather than the stronger post-processing-path claim -- both are pre-committed, reportable outcomes per the approach's own failure branch."
+      },
+      "deliverables": [
+        "six-configuration table (re-run, with commit hash)",
+        "multi-session CoreML latency variance report",
+        "ONNX-vs-TorchScript per-image diff script + result",
+        "citations to sources 8 and 9"
+      ],
+      "dependencies": ["G5"],
+      "priority": 6,
+      "novelty_reframed": true,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G7",
+      "title": "Vision Operating-Point Safety Trace",
+      "description": "Quantify the fish-per-frame distribution and the rarity of a full-frame miss under 0.719 per-instance recall, run a confidence-threshold PR-curve sweep to confirm the 0.858/0.719 F1-argmax, and state H7's disclosed safety-relevant blind spot with confident, unhedged language given its OPEN novelty status.",
+      "hypothesis_id": "H7",
+      "approach_ids": ["H7-1", "H7-2", "H7-3", "H7-4", "H7-5"],
+      "merge_rationale": "H7-1 (quantify full-frame-miss rarity from val-set fish-per-frame counts) and H7-3 (compute the fish-per-frame distribution) use the same val-label data and are two readings of one distribution; H7-2 (PR-curve/operating-point sweep) supplies the F1-argmax evidence for the same H7 claim; H7-4 (state H7 confidently, since it is one of only two OPEN novelty claims per novelty_flags.json's C7) and H7-5 (carry forward the already-drafted Known Limitations #2 language) are the framing/write-up steps for the same finding.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Compute the fish-per-frame count distribution directly from the 98-image val-set labels; combine it with the per-instance recall (0.719) to quantify how rare a full-frame miss (fish_count==0 despite fish present) is under the current operating point, giving a numeric, falsifiable statement instead of a qualitative one; run an Ultralytics `val()` confidence-threshold sweep at 2-3 alternate operating points to confirm precision=0.858/recall=0.719 is the F1-argmax (or identify where the true argmax lands); state H7 with confident, unhedged language in Results/Discussion given its OPEN (C7) novelty status per novelty_flags.json; carry the existing Known Limitations #2 language verbatim into Discussion, explicitly tracing the finding to backend/rules.py's `fish_count == 0` rule.",
+        "minimum_viable": "If many val-set frames are sparse (1-2 fish), report the blind spot as more urgent than a narrow-blind-spot reading would suggest, and state Expected Contributions/Practice guideline 6 as a specific numeric warning rather than a general caution -- this is itself a valid, still-reportable finding per H7-1/H7-3's own failure branch."
+      },
+      "deliverables": [
+        "fish-per-frame distribution table",
+        "full-frame-miss-rate quantification note",
+        "confidence-threshold PR-curve sweep table",
+        "H7 Discussion paragraph + carried-forward Known Limitations #2 text"
+      ],
+      "dependencies": ["G5"],
+      "priority": 6,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G8",
+      "title": "MLOps PSI Drift-Binning Systematic Sweep & Three-Way Gate Exercise",
+      "description": "Run a systematic synthetic-degradation sweep through both quantile-edge and equal-width PSI binning schemes to replace 4 anecdotal points with a full comparison curve, and exercise mlops/retrain.py's full three-way decision path (none/review/retrain) plus its MIN_IMPROVEMENT gate against synthetic windows.",
+      "hypothesis_id": "H5",
+      "approach_ids": ["H5-1", "H5-2", "H5-3", "H5-4", "H5-5"],
+      "merge_rationale": "H5-1 (recover/reconstruct the historical equal-width PSI failure), H5-2 (systematic synthetic-degradation sweep through both binning schemes), H5-5 (exercise retrain.py's three-way decision on synthetic no-drift/drift windows), and the two framing items H5-3 (cite PSI-binning literature, source 23) / H5-4 (cite champion-challenger literature, source 22) together produce the single H5 finding and its Results 5.5 subsection.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Using mlops/drift.py's existing `psi()`/`histogram()`/`bin_edges()` functions, run a systematic synthetic-degradation sweep (many severities, not the current 4 anecdotal points) through both quantile-edge binning (the current `bin_edges()` implementation) and a reconstructed equal-width binning scheme, producing a full smooth-vs-saturating comparison curve; if recoverable via `git log`/`git blame` on mlops/drift.py, cite the historical equal-width PSI figures (0.06->1.05) as measured history, otherwise clearly label the equal-width comparison as a faithful reconstruction, not measured history; run `python -m mlops.retrain --check <file>` against two synthetic windows (a no-drift and a significant-drift window) and report the resulting three-way decision (none/review/retrain) plus the MIN_IMPROVEMENT=0.005 gate outcome on a synthetic candidate map50; cite source 23 (PSI/binning literature) and source 22 (champion-challenger MLOps) to frame H5 as known-best-practice application, per novelty_flags.json's PARTIAL (C8) and KNOWN (C9) statuses.",
+        "minimum_viable": "If the sweep does not cleanly separate the two binning schemes at every severity, report exactly where it does and does not, per the approach's own failure branch; if git history for the equal-width binning is not recoverable, clearly label the comparison as a reconstruction, not measured history."
+      },
+      "deliverables": [
+        "synthetic-degradation sweep script + full comparison curve (both binning schemes)",
+        "mlops/retrain.py --check output for 2 synthetic windows",
+        "two literature citations (sources 22, 23) integrated into Methodology/Related Work"
+      ],
+      "dependencies": [],
+      "priority": 7,
+      "novelty_reframed": true,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G9",
+      "title": "twin_bridge Mechanism-Evidence Inventory & Honest Cross-Validation Status Reporting",
+      "description": "Deliver the achievable, zero-missing-infrastructure evidence path for the twin_bridge sub-question: unit-test coverage plus a new FakeTwin-scripted synthetic edge-case integration test, and an honest Results 5.6 status paragraph that never overstates unit-tested code as live cross-implementation corroboration. This is the paper's designated fallback goal.",
+      "hypothesis_id": "sub_question_2_twin_bridge",
+      "approach_ids": ["TB-1", "TB-2", "TB-4"],
+      "merge_rationale": "TB-1 (state twin_bridge status exactly as unit-tested-only per Known Limitations #4), TB-2 (report test_bridge.py's actual coverage), and TB-4 (write a FakeTwin-scripted synthetic edge-case integration test exercising compare_once end-to-end) together form the achievable, zero-missing-infrastructure evidence path recommended by brainstorm.json's recommended_sequence and by research_proposal.md's Goal 2(a). TB-3 (stand up a live Godot/CODESYS session) is deliberately excluded as a required goal -- it is the only approach in the entire 48-approach set requiring genuinely missing infrastructure (Godot 4 engine binary, CODESYS soft PLC GUI setup, a not-yet-existing capture adapter) -- and is tracked only as an optional upgrade to this goal's baseline per research_proposal.md's own dated go/no-go stretch-goal scoping.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Run `pytest twin_bridge/test_bridge.py -v` and report its existing unit-test coverage as mechanism-correctness evidence for twin_bridge/compare.py's `compare_once()` agree/expected/unexplained classification logic; write and run a new synthetic edge-case integration test using twin_bridge/client.py's existing `FakeTwin` dataclass that exercises `compare_once()` end-to-end across designed edge cases (e.g., a register mismatch, a within-tolerance divergence, an unexplained divergence) beyond the existing narrow unit tests, explicitly labeled as team-scripted mechanism evidence, never described as cross-implementation corroboration; write the Results 5.6 / Known Limitations #4 paragraph stating twin_bridge's status exactly as 'designed and unit-tested (test_bridge.py), not exercised against a live twin session; end-to-end cross-implementation corroboration remains future work,' with the word 'validated' never used absent an actually-executed live session.",
+        "minimum_viable": "This goal's success criteria ARE its own minimum-viable form -- it requires no infrastructure beyond what already exists in the repository (twin_bridge/client.py, twin_bridge/compare.py, twin_bridge/test_bridge.py) and delivers full value (an honest, reviewer-defensible Results 5.6 subsection) independent of whether the higher-risk TB-3 live session is ever attempted; if TB-3's go/no-go checkpoint (one week before manuscript freeze) does produce a live session, that result is reported as an upgrade to this goal's baseline, not a replacement for it."
+      },
+      "deliverables": [
+        "twin_bridge/test_bridge.py pytest output",
+        "new FakeTwin-scripted synthetic edge-case test script + results",
+        "Results 5.6 / Known Limitations #4 paragraph"
+      ],
+      "dependencies": [],
+      "priority": 2,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal",
+      "is_fallback_goal": true,
+      "fallback_rationale": "Delivers a complete, honestly-labeled Results 5.6 subsection using only artifacts already present in the codebase, independent of whether TB-3's live Godot/CODESYS session (the paper's single highest-infrastructure-risk item) ever materializes."
+    },
+    {
+      "id": "G10",
+      "title": "Cross-Layer Thesis Framing & Confirmatory Literature Check",
+      "description": "Select and justify the paper's headline framing option for the central cross-layer thesis (C2), confirmed by one additional targeted literature search, synthesizing the completed layer-level findings (G3/G4/G6/G7/G8/G9) into the paper's single restatable claim.",
+      "hypothesis_id": "central_cross_layer_thesis_C2",
+      "approach_ids": ["CT-1", "CT-2", "CT-3", "CT-4"],
+      "merge_rationale": "CT-1/CT-2/CT-3 are three mutually exclusive framing OPTIONS (not sequential steps) for foregrounding the same central cross-layer thesis (C2); CT-4 is the literature-search precondition brainstorm.json itself flags as needed before finalizing C2 as a headline claim. All four target the single central_cross_layer_thesis_C2 hypothesis and are merged into one goal whose deliverable is a single framing decision plus its supporting literature check, per brainstorm's own track_recommendation note that this is 'a short Methodology/Discussion subsection... not a parallel proof track.'",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "Run one additional literature search (CT-4, e.g., for 'multi-layer AI governance case study deployed system' or an equivalent query) to confirm medium-to-high confidence that no closer prior instance of the cross-layer 'deterministic authority over probabilistic component, applied and measured across multiple architecturally distinct layers in one deployed system' claim exists beyond what literature_review_matrix.md's Theme 3 already surfaced (SIS/IEC 61511, RL shielding, guardrail industry blogs, LLM-industrial-control academic work, id 11/26/12/13/14.1); select and justify CT-3 (Option C, the brainstorm-recommended hybrid: eval-harness-drift incident as hook, cross-layer thesis with explicit medium-confidence caveat) as the paper's Abstract/Introduction/Conclusion framing for C2, matching the already-accepted Narrative Arc; write the resulting framing as a concrete paragraph, explicitly hedged to C2's OPEN-but-medium-confidence novelty status per novelty_flags.json, synthesizing the completed G3 (H1/H2), G4 (H3), G6 (H6), G7 (H7), G8 (H5), and G9 (twin_bridge) results as the evidence it draws on.",
+        "minimum_viable": "If CT-4's search surfaces a closer prior instance, narrow C2's claim accordingly (report the found source and the specific narrowing) rather than retracting the cross-layer observation entirely -- the individually-measured consistency across layers remains true and reportable (Option B/CT-2, a more conservative framing) even if the 'coherent single design philosophy' framing (Option A/CT-1 or hybrid Option C/CT-3) must be softened."
+      },
+      "deliverables": [
+        "CT-4 literature-search note (confirms or narrows C2)",
+        "one-paragraph framing decision + justification",
+        "draft Abstract/Conclusion sentence instantiating the chosen framing"
+      ],
+      "dependencies": ["G3", "G4", "G6", "G7", "G8", "G9"],
+      "priority": 11,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal"
+    },
+    {
+      "id": "G11",
+      "title": "Manuscript-Wide Data-Integrity & Provenance Discipline",
+      "description": "Guarantee the stale TODOS.md recall figure (0.695) never ships in place of the corrected 0.719, and attach a git commit hash/date to every re-measured number produced across G1-G9, as a final cross-cutting QA pass before manuscript freeze.",
+      "hypothesis_id": "cross-cutting (protects all hypotheses' reported numbers)",
+      "approach_ids": ["XC-2", "XC-3"],
+      "merge_rationale": "XC-2 (pre-submission grep for the stale 0.695 recall figure) and XC-3 (record git commit hash/date next to every re-measured number) are both pure process-discipline controls applied across every other goal's output rather than standalone empirical findings; merged into one manuscript-wide QA goal executed as a final pass over G1-G9's outputs.",
+      "track": "experiment",
+      "success_criteria": {
+        "strong": "A grep pass (`grep -rn '0.695'`) across the full draft manuscript and all paper_workspace artifacts confirms the stale TODOS.md recall figure never appears, and every citation of vision recall resolves to 0.719 per MODEL_RAPORU.md's epoch-77 correction; every re-measured number produced by G1-G9 (RAG sweep, eval.py run, bench_agent.py re-run, export_bench.py re-run, val() re-run, PSI sweep, twin_bridge tests) is recorded alongside the exact git commit hash and date it was measured against, consolidated into one provenance table/appendix.",
+        "minimum_viable": "If full commit-hash provenance cannot be attached to every number before freeze, at minimum guarantee the 0.695-vs-0.719 grep check passes (the higher-severity, Known-Limitations-#1-flagged risk) and record provenance for the highest-priority re-measured numbers (G1's RAG sweep, G3's eval.py run, G6's export_bench.py table)."
+      },
+      "deliverables": [
+        "grep-pass log confirming no stale 0.695 figure",
+        "commit-hash/date provenance table for all re-measured numbers"
+      ],
+      "dependencies": ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"],
+      "priority": 12,
+      "novelty_reframed": false,
+      "brainstorm_data_quality": "normal"
+    }
+  ]
+}

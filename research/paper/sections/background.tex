@@ -1,0 +1,78 @@
+\section{Background}
+\label{sec:background}
+
+This section is deliberately short. Its job is to define the terms the rest of the paper uses and
+to sketch the system's shape, not to re-argue the literature placement already made in
+Section~\ref{sec:related-work}.
+
+\subsection{Recirculating aquaculture systems}
+
+A recirculating aquaculture system (RAS) treats and reuses water within a closed loop rather than
+drawing continuously from an open source, which makes water chemistry both more controllable and
+more fragile: a single mechanical or biological failure propagates through the whole tank volume
+rather than being diluted by fresh inflow. Dissolved oxygen (DO) is the parameter this paper treats
+as the sharpest deadline. Reported lethal thresholds for farmed fish vary by species and water
+temperature, roughly in the 4.1--7.0~mg/L range \citep{lindholm2023waterquality,
+agmrc2026waterquality}; for the sturgeon stock this system monitors, the operative floor is
+6~mg/L, and a sustained drop below it can kill stock within hours, not days. That timescale is the
+reason a monitoring system for this domain cannot tolerate a silent failure mode: there is no
+grace period in which a human operator is expected to notice and intervene before an LLM's
+unnoticed mistake becomes a physical loss.
+
+\subsection{The S.U.R.E. system, at a glance}
+
+S.U.R.E. is an implemented welfare-monitoring stack, designed to run continuously, built around four
+communicating services (Figure references and full architectural detail follow in
+Section~\ref{sec:system-architecture}; this is only an orientation map). A vision service runs
+YOLOv11s object detection with ByteTrack \citep{zhang2022bytetrack} multi-object tracking over a
+live or recorded camera feed at roughly 15 frames per second, producing a per-frame fish count and
+track history. A sensor stream (dissolved oxygen, temperature, pH, and related water-chemistry
+readings) arrives on a two-second cycle. A backend service fuses both streams, maintains a rolling
+history, and computes a decision. That decision has two independent sources: a locally hosted LLM
+(AQUA-1B, a fine-tuned Gemma-3-1B variant with a LoRA domain adapter) that reasons over the fused
+sensor-and-vision state and produces a natural-language explanation alongside a status label, and a
+deterministic rule engine that computes the same status label directly from the sensor and vision
+thresholds, with no dependency on the model at all. A frontend dashboard renders the fused result.
+A retrieval-augmented generation (RAG) layer supplies the LLM with grounded passages from eight
+domain-specific knowledge documents when it needs supporting context, and an MLOps layer tracks
+model registry history and watches the vision model's own output distribution for drift.
+
+\subsection{Definitions used throughout}
+
+\paragraph{Severity levels.} The system recognizes three ordered severity levels --
+\texttt{ok} $<$ \texttt{warning} $<$ \texttt{critical} -- forming a finite total order. Every
+decision, whether produced by the LLM or the rule engine, resolves to exactly one of these three
+labels; there is no partial-severity or confidence-weighted intermediate state exposed to either
+side of the decision fusion described next.
+
+\paragraph{The rule engine.} ``The rule engine'' refers throughout this paper to
+\texttt{backend/rules.py}, a single Python module with no dependency on the model-serving stack,
+the web framework, or any request/response object -- it is pure functions over sensor and vision
+values. Both the system's decision path and the offline evaluation harness import this exact
+module, a property Section~\ref{sec:results} verifies directly rather than assumes. The rule
+engine's output is treated as ground truth for what the system's severity \emph{should} be at any
+given moment; the LLM's job is to reason about and explain that state, never to override it
+downward.
+
+\paragraph{Decision fusion and escalation.} When the LLM's proposed status disagrees with the rule
+engine's computed status, the system never lets the LLM's status stand if it is less severe than
+the rule engine's. This escalation-only behavior is stated formally as
+Formalization~\ref{form:monotonicity} in Section~\ref{sec:system-architecture}.
+
+\paragraph{Retrieval-augmented generation (RAG).} RAG here means the specific pipeline that embeds
+incoming queries and eight source documents with the \texttt{e5-small} model, retrieves
+similarity-ranked passage chunks from a \texttt{pgvector} store, and supplies retrieved passages to
+the LLM as grounding context, subject to a minimum-similarity threshold below which nothing is
+retrieved at all. It is explicitly an enhancement to the LLM's reasoning, not a dependency the
+system requires to keep functioning -- if the vector store is unreachable, the system continues to
+operate on the rule engine alone.
+
+\paragraph{Population Stability Index (PSI).} PSI is the divergence measure used here to detect
+drift in the vision model's own detection-confidence output distribution, computed by
+comparing a binned reference distribution (captured when the reference window was first
+established) against a binned current
+window using $\mathrm{PSI} = \sum_i (c_i - r_i)\ln(c_i / r_i)$ over bins $i$ with reference and
+current mass $r_i, c_i$. The binning scheme used to build those bins is itself the object of one of
+this paper's own MLOps findings (Section~\ref{sec:results}); PSI's sensitivity is not independent
+of how its bins are drawn, and that dependency, not merely PSI's value, is what the paper's MLOps
+result is actually about.

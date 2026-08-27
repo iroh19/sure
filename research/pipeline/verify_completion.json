@@ -1,0 +1,116 @@
+{
+  "completion_ratio": 0.95,
+  "goal_results": [
+    {
+      "goal_id": "G1",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP01/results.md",
+        "experiment_workspace/experiment_runs/EXP01/calibrate_output.log",
+        "experiment_workspace/experiment_runs/EXP01/bench_readonly_results.json",
+        "experiment_workspace/experiment_runs/EXP01/random_baseline_results.json"
+      ],
+      "reasoning": "Strong criterion satisfied: calibrate.py sweep confirms F1-argmax at threshold 0.84 (F1=0.951) vs. deployed 0.85 (F1=0.906), reproduced exactly from calibrate_output.log; a new random/no-retrieval baseline (bench_readonly.py + random_baseline.py) shows e5-small clears random by hit@1 +0.586 (0.793 vs 0.207) and MRR +0.438 (0.856 vs 0.418). verification_results.json independently recomputed all figures with 0.0% discrepancy."
+    },
+    {
+      "goal_id": "G2",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP02/results.md",
+        "experiment_workspace/experiment_runs/EXP02/exp02_output.json"
+      ],
+      "reasoning": "Strong criterion satisfied and exceeded: eval.py and backend/main.py's apply_rule_override confirmed to resolve to the exact same in-memory rules module object (module-identity check), with 8/8 scenario agreement -- stronger than the success criterion's 'produce identical severity' requirement. verification_results.json independently recomputed 8/8 agree, overall_pass=true."
+    },
+    {
+      "goal_id": "G3",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP03/results.md",
+        "experiment_workspace/experiment_runs/EXP03/g3_results.json"
+      ],
+      "reasoning": "MINIMUM_VIABLE check performed word-for-word against research_goals.json: the clause reads 'If AQUA-1B output is mostly unparseable ... report malformed-output fail-safe is the dominant observed pathway, not severity-correction as the H1 finding.' The actual run found unparseable-defaulted-to-ok as the largest single bucket (4/8, 50%) versus only 1/8 (12%) genuine severity-correction (under-calls-and-escalated) and 0/8 over-calls -- results.md's own headline sentence ('malformed-output fail-safe is dominant... not severity-correction') is a near-verbatim match to the prescribed fallback finding, so the H1 half of the clause is satisfied. The H2 half ('if none of the 8 reasoning strings show a coded inaccuracy, report the n=8 illustration as weaker') did not even need to fire: 6/8 reasoning strings were manually coded as containing fabricated sensor values, i.e. the H2 illustration requirement was exceeded, not just minimally met. backend/test_decision.py (18/18 passed) is correctly kept separate from the behavioral finding. Genuinely meets minimum_viable -- not rounded up."
+    },
+    {
+      "goal_id": "G4",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP04/results.md",
+        "experiment_workspace/experiment_runs/EXP04/aqua1b_results.jsonl",
+        "experiment_workspace/experiment_runs/EXP04/aqua7b_results.jsonl"
+      ],
+      "reasoning": "Strong criterion satisfied: fresh re-run plus 4 genuinely new scenarios (n=5->n=9) reproduces AQUA-1B 0%/0% and AQUA-7B's constant-answer artifact (9/9 get_sensor_trend on the expanded set), confirmed with source 21 novelty-scoping. Disclosed, not concealed: published README's 60%/3.6-steps figure does not reproduce (fresh run shows 100%/2.0 steps) -- footnoted as a likely mlx-lm/model-stack drift, does not affect the core negative-result claim being verified."
+    },
+    {
+      "goal_id": "G5",
+      "status": "partial",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP05/results.md",
+        "experiment_workspace/experiment_runs/EXP05/exp05_summary.json"
+      ],
+      "reasoning": "MINIMUM_VIABLE check performed word-for-word against research_goals.json: the clause requires BOTH (a) 'report exactly which images/videos are affected' AND (b) 'state a corrected, caveated headline vision number (mAP50/precision/recall) rather than the uncorrected 0.840/0.858/0.719 figures.' Part (a) is genuinely met: 32 near-duplicate pairs across videos 2/4/5/6/7 and frame_source0 are fully enumerated in exp05_summary.json and near_duplicate_pairs_full.json. Part (b) is NOT met: results.md explicitly states the potential bias is 'unquantified' ('this may cause a modest, UNQUANTIFIED optimistic bias') and only proposes a caveat SENTENCE for future insertion -- it does not itself state a corrected numeric mAP50/precision/recall value anywhere. track_merge_summary.md and experiment_track_summary.json both independently flag this as a 'live gap... not yet reflected anywhere the headline mAP50/precision/recall numbers are reported in paper_workspace,' i.e. even the source documents concede this half of the minimum_viable clause is outstanding. Because only one of the two required minimum_viable sub-requirements is satisfied, this is downgraded from the experiment_track_summary.json's 'minimum_viable' (implying met) to 'partial' per the verification task's conservative, non-rounding-up rule."
+    },
+    {
+      "goal_id": "G6",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP06/results.md",
+        "experiment_workspace/experiment_runs/EXP06/run1_full_table.json",
+        "experiment_workspace/experiment_runs/EXP06/g6_onnx_ts_diff_summary.json"
+      ],
+      "reasoning": "Strong criterion satisfied: six-configuration table reproduced with commit hash; CoreML/ANE latency measured across 3 independent sessions (p50 9.03ms+/-0.22, p95 9.60ms+/-0.18, genuine variance not a single sample); new per-image ONNX-vs-TorchScript diff shows near-bit-identical agreement (median IoU 0.99999976), stronger evidence than required for the shared-post-processing-path claim. verification_results.json independently recomputed all figures exactly."
+    },
+    {
+      "goal_id": "G7",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP07/results.md",
+        "experiment_workspace/experiment_runs/EXP07/exp07_conf_curve_summary.json",
+        "experiment_workspace/experiment_runs/EXP07/exp07_fish_per_frame_summary.json"
+      ],
+      "reasoning": "Strong criterion satisfied: fish-per-frame distribution computed from val labels (min=3, avg=15.56); confidence-threshold sweep run and confirms F1-argmax near the cited operating point; H7 stated with confident, unhedged language per its OPEN novelty status. A must-disclose finding was surfaced (deployed conf=0.20 actually runs at P=0.720/R=0.782 vs. the cited academic-argmax P=0.858/R=0.719) -- this is an honestly-reported complication that strengthens rather than undermines goal completion, since it is exactly the kind of falsifiable, numeric statement the strong criterion calls for."
+    },
+    {
+      "goal_id": "G8",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP08/results.md",
+        "experiment_workspace/experiment_runs/EXP08/exp08_output.json"
+      ],
+      "reasoning": "MINIMUM_VIABLE check performed word-for-word against research_goals.json: the clause requires (a) 'report exactly where [the sweep] does and does not [cleanly separate the two binning schemes]' AND (b) 'if git history for equal-width binning is not recoverable, clearly label the comparison as a reconstruction.' Part (a) is met: results.md precisely reports that quantile is MORE sensitive than equal-width at delta<=0.06 (e.g. delta=0.02: 0.164 vs 0.078) and that equal-width overtakes and saturates from delta>=0.08 onward (delta=0.30: 4.844 vs 7.649), with the mechanism confirmed via per-bin decomposition. Part (b) is met: results.md explicitly states 'git log --oneline --all -- mlops/drift.py returns exactly 1 commit' and labels the equal-width curve 'a faithful reconstruction... never presented as recovered git history.' Both sub-requirements genuinely satisfied. The retrain.decide() three-way gate exercise (no-drift->none PSI=0.0048; significant-drift->retrain PSI=0.9070) and the gate() MIN_IMPROVEMENT three-case exercise were also completed, exceeding the minimum_viable bar into most of the strong criterion as well."
+    },
+    {
+      "goal_id": "G9",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP09/results.md",
+        "experiment_workspace/experiment_runs/EXP09/existing_test_bridge_run.log",
+        "experiment_workspace/experiment_runs/EXP09/new_edge_case_test_run.log"
+      ],
+      "reasoning": "This fallback goal's success criteria equal its own minimum_viable form, and both are fully reached: twin_bridge/test_bridge.py run (18 passed, 1 failed -- root-caused to a test-helper float-truncation bug, not a production defect); 4 new FakeTwin-scripted edge-case tests authored and passed, correctly labeled as team-authored mechanism evidence (never described as cross-implementation corroboration); Results 5.6 status paragraph states twin_bridge as unit-tested-only, not exercised against a live twin session, with 'validated' language correctly avoided."
+    },
+    {
+      "goal_id": "G10",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP10/results.md",
+        "experiment_workspace/experiment_runs/EXP10/exp10_cross_layer_synthesis.md",
+        "experiment_workspace/experiment_runs/EXP10/exp10_literature_search.md"
+      ],
+      "reasoning": "Strong criterion satisfied: confirmatory literature search (CT-4) found no closer prior instance of the cross-layer thesis, C2 correctly kept OPEN/medium-confidence rather than over-claimed; framing CT-3 selected and refined against the real G3/G7/G8 findings (not the idealized narrative), synthesizing all six dependency goals (G3/G4/G6/G7/G8/G9) as required."
+    },
+    {
+      "goal_id": "G11",
+      "status": "met",
+      "evidence": [
+        "experiment_workspace/experiment_runs/EXP11/results.md",
+        "experiment_workspace/experiment_runs/EXP11/provenance_table.json",
+        "experiment_workspace/experiment_runs/EXP11/grep_output.txt"
+      ],
+      "reasoning": "Strong criterion substantially satisfied: grep pass across the manuscript and repo confirms the stale 0.695 figure never ships as a live claim in paper_workspace itself (though it does surface one new live/unfixed occurrence inside the production RAG knowledge base, correctly disclosed as a HIGH-priority finding rather than hidden); provenance coverage reaches 10/10 experiments with commit hash 3c1b9fa + date attached, up from 3/10. This meets the goal's own success criterion, which is a data-integrity QA pass, not a requirement that zero stale figures exist anywhere in the codebase."
+    }
+  ],
+  "recommendation": "COMPLETE",
+  "stall_detected": false,
+  "previous_ratio": null,
+  "cycle_number": 1
+}

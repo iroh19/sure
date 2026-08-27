@@ -1,0 +1,223 @@
+{
+  "experiment_id": "EXP08",
+  "measured_at_utc": "2026-08-26T14:45:42.723368+00:00",
+  "git_provenance": {
+    "repo_head_short": "3c1b9fa",
+    "repo_head_date": "2026-08-26T08:57:33+03:00",
+    "drift_py_commit_count": 1,
+    "drift_py_commits": [
+      "3c1b9fa Add MLOps: experiment tracking, drift detection and a gated retrain path"
+    ]
+  },
+  "reference_stats": {
+    "n": 1467,
+    "mean": 0.6421,
+    "min": 0.2502,
+    "max": 0.8869
+  },
+  "open_decisions_resolved": {
+    "severity_grid_and_perturbation_model": "Chose a mean-shift sweep, delta in [0.00, 0.30] step 0.02 (16 points), resampled with replacement from the reference at each delta then clipped to [0,1] -- matches drift.py's own mean_reference/mean_current framing and is the simplest, most directly comparable perturbation per the rationale doc's own recommendation. Variance-inflation was NOT added (out of scope for this pass); noted as a natural extension.",
+    "incumbent_map50_end_to_end_check": "Ran retrain.decide() + retrain.incumbent_map50() once, standalone, before building the full sweep -- see 'step0_incumbent_map50_check' below."
+  },
+  "step0_incumbent_map50_check": {
+    "ran_without_exception": true,
+    "returned_value": 0.83949,
+    "note": "None means either no experiment/run found with tags.metrics_valid='True', or mlflow raised internally and was swallowed by incumbent_map50()'s own try/except (by design, per retrain.py's own comment)."
+  },
+  "sweep": [
+    {
+      "delta": 0.0,
+      "current_mean": 0.6478,
+      "quantile_psi": 0.005,
+      "quantile_severity": "none",
+      "equal_width_psi": 0.0049,
+      "equal_width_severity": "none"
+    },
+    {
+      "delta": 0.02,
+      "current_mean": 0.6233,
+      "quantile_psi": 0.1639,
+      "quantile_severity": "moderate",
+      "equal_width_psi": 0.0776,
+      "equal_width_severity": "none"
+    },
+    {
+      "delta": 0.04,
+      "current_mean": 0.5997,
+      "quantile_psi": 0.7279,
+      "quantile_severity": "significant",
+      "equal_width_psi": 0.3059,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.06,
+      "current_mean": 0.5816,
+      "quantile_psi": 1.4778,
+      "quantile_severity": "significant",
+      "equal_width_psi": 0.9057,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.08,
+      "current_mean": 0.5572,
+      "quantile_psi": 2.1842,
+      "quantile_severity": "significant",
+      "equal_width_psi": 2.1412,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.1,
+      "current_mean": 0.5367,
+      "quantile_psi": 2.652,
+      "quantile_severity": "significant",
+      "equal_width_psi": 3.027,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.12,
+      "current_mean": 0.5187,
+      "quantile_psi": 3.3716,
+      "quantile_severity": "significant",
+      "equal_width_psi": 3.4738,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.14,
+      "current_mean": 0.5004,
+      "quantile_psi": 3.4993,
+      "quantile_severity": "significant",
+      "equal_width_psi": 3.8634,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.16,
+      "current_mean": 0.4857,
+      "quantile_psi": 3.986,
+      "quantile_severity": "significant",
+      "equal_width_psi": 4.2552,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.18,
+      "current_mean": 0.4664,
+      "quantile_psi": 4.0302,
+      "quantile_severity": "significant",
+      "equal_width_psi": 5.1331,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.2,
+      "current_mean": 0.4527,
+      "quantile_psi": 4.1238,
+      "quantile_severity": "significant",
+      "equal_width_psi": 5.9264,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.22,
+      "current_mean": 0.42,
+      "quantile_psi": 4.3192,
+      "quantile_severity": "significant",
+      "equal_width_psi": 6.2131,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.24,
+      "current_mean": 0.4015,
+      "quantile_psi": 4.6096,
+      "quantile_severity": "significant",
+      "equal_width_psi": 6.3534,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.26,
+      "current_mean": 0.3767,
+      "quantile_psi": 4.8597,
+      "quantile_severity": "significant",
+      "equal_width_psi": 6.7538,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.28,
+      "current_mean": 0.361,
+      "quantile_psi": 4.8228,
+      "quantile_severity": "significant",
+      "equal_width_psi": 7.3928,
+      "equal_width_severity": "significant"
+    },
+    {
+      "delta": 0.3,
+      "current_mean": 0.3377,
+      "quantile_psi": 4.8444,
+      "quantile_severity": "significant",
+      "equal_width_psi": 7.6493,
+      "equal_width_severity": "significant"
+    }
+  ],
+  "curve_characterization": {
+    "quantile_largest_single_step_jump": {
+      "from_delta": 0.04,
+      "to_delta": 0.06,
+      "jump": 0.7499,
+      "from_psi": 0.7279,
+      "to_psi": 1.4778
+    },
+    "equal_width_largest_single_step_jump": {
+      "from_delta": 0.06,
+      "to_delta": 0.08,
+      "jump": 1.2355,
+      "from_psi": 0.9057,
+      "to_psi": 2.1412
+    },
+    "note": "Equal-width curve is reported as a FAITHFUL RECONSTRUCTION using drift.py's own histogram()/psi()-equivalent machinery with fixed [i/10 for i in 1..9] edges, NOT as history recovered from git -- `git log --oneline --all -- mlops/drift.py` returns exactly 1 commit(s), confirming the historical 0.06->1.05 jump narrated in drift.py's own code comment is not present as an earlier implementation in version control."
+  },
+  "retrain_gate_exercise": {
+    "no_drift_window": {
+      "n": 1467,
+      "decision": {
+        "action": "none",
+        "reason": "no meaningful drift \u2014 PSI 0.0048 (none) \u2014 mean confidence 0.642 -> 0.647 (up), 1467 detections against a 1467-detection reference",
+        "drift_psi": 0.0048,
+        "drift_severity": "none",
+        "window_size": 1467
+      }
+    },
+    "significant_drift_window": {
+      "delta_used": 0.04,
+      "n": 1467,
+      "decision": {
+        "action": "retrain",
+        "reason": "significant drift \u2014 PSI 0.9070 (significant) \u2014 mean confidence 0.642 -> 0.595 (down), 1467 detections against a 1467-detection reference",
+        "drift_psi": 0.907,
+        "drift_severity": "significant",
+        "window_size": 1467
+      }
+    }
+  },
+  "gate_exercise": [
+    {
+      "label": "below_zero_delta",
+      "candidate_map50": 0.75,
+      "incumbent_map50": 0.76,
+      "delta": -0.01,
+      "gate_passes": false,
+      "reason": "candidate mAP50 0.7500 does not beat incumbent 0.7600 (-0.0100)"
+    },
+    {
+      "label": "inside_noise_band",
+      "candidate_map50": 0.7625,
+      "incumbent_map50": 0.76,
+      "delta": 0.0025,
+      "gate_passes": false,
+      "reason": "candidate is better by only +0.0025, inside the 0.005 noise band \u2014 not shipping"
+    },
+    {
+      "label": "above_min_improvement",
+      "candidate_map50": 0.775,
+      "incumbent_map50": 0.76,
+      "delta": 0.015,
+      "gate_passes": true,
+      "reason": "candidate mAP50 0.7750 beats incumbent 0.7600 by +0.0150"
+    }
+  ]
+}

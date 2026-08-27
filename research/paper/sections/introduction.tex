@@ -1,0 +1,130 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Dissolved oxygen below roughly 6~mg/L can kill farmed sturgeon within hours, not days
+\citep{lindholm2023waterquality,agmrc2026waterquality}. A locally hosted large language model is
+genuinely useful in this setting -- it can reason jointly over sensor readings and fish-behavior
+video, and explain its reasoning in plain language, in a way a fixed threshold table cannot -- but
+an LLM that silently misses a safety-critical threshold is not a tool anyone should deploy
+unattended. S.U.R.E. is an implemented, real-time-capable welfare-monitoring architecture for
+sturgeon in a recirculating aquaculture system (RAS) that answers this tension with a specific
+architectural choice: a locally hosted LLM (AQUA-1B, with a LoRA domain adapter) proposes a severity
+assessment, but a deterministic rule engine has the final word, and can only ever raise the model's
+proposed severity, never lower it. This paper reports what happened when that architecture was
+measured, not merely designed -- across the decision layer itself and four other layers of the same
+system.
+
+No physical water-quality sensor exists for this system, and none was built for this paper. That
+absence shapes what kind of contribution this is, and it is worth stating plainly rather than only
+as a caveat: without real sensor hardware, this work demonstrates the architectural feasibility of
+running a multi-component pipeline -- a locally hosted LLM, a computer-vision detector, a
+retrieval-augmented knowledge base, and a deterministic rule engine -- together, and specifically
+tests whether that pipeline's space and memory footprint is viable on realistic edge hardware. Framed
+this way, the paper is a feasibility and resource-management study of the architecture, run against
+synthetically generated sensor values and real, hand-labeled camera imagery captured from the
+system's own physical setup, not a field validation of decision-making accuracy in a live setting.
+That is a legitimate and, we think, useful contribution in its own right, distinct from and prior to
+the question of whether the model's decisions are accurate against a live water body.
+
+\question{Does escalation-only deterministic authority over an LLM's output survive contact with a
+genuinely unreliable local model, in a system that is actually running, rather than only in a
+design diagram?}
+
+The proposal this system was originally built around assumed a specific answer: the model proposes
+a severity judgment, and the rule engine's value is in catching the cases where that judgment is a
+dangerous under-estimate. That is a clean story, and it is not the one this paper's measurements
+support.
+
+\question{When the architecture ``works,'' what does that actually mean, once measured --
+sophisticated correction of a nuanced misjudgment, or something structurally different?}
+
+Measured directly against all eight of the evaluation harness's built-in scenarios, using the real,
+unmodified override logic and the system's configured model, the dominant pathway is not correction. Half the
+time, the model's output does not parse into anything usable at all, and the rule engine's entire
+contribution is defaulting to a safe state rather than adjudicating a disagreement. Only one of
+eight scenarios shows the textbook pattern of the model under-calling a threshold and the rule
+engine escalating it. And in a finding this paper considers its most novel single result, two of
+the three scenarios where the model's final answer agreed with the rule engine did so via reasoning
+that cited a sensor value never present in the input -- fabrication that is invisible to any
+evaluation checking only the output label, which is how most guardrail and agentic-benchmark
+literature is scored. This was measured, deliberately, against the weakest plausible version of the
+model component: the configured adapter trained on eight handwritten examples the project's own
+fine-tuning pipeline documents as insufficient, while a properly sized, 128-example alternative sat
+unused on disk. That the safety property held regardless is stronger evidence for the
+architecture's design than a result obtained against a carefully tuned model would have been, and
+this paper states that directly rather than treating the undertrained adapter as a limitation to
+apologize for.
+
+\question{Does the same narrow-enumerable-interface discipline generalize across architecturally
+distinct layers of one system?}
+
+Four more measurements bear on this question, each earning its place independently rather than
+restating the first. Agentic tool-routing was abandoned in favor of deterministic code specifically
+because an adversarial re-run -- designed to break the negative result, not confirm it -- only
+strengthened it. The vision pipeline's own confidence-threshold choice turned out to run at a
+different, and more reassuring, point on its precision--recall curve than the number this field
+would otherwise headline. INT8 quantization, widely assumed to be where an edge deployment pays for
+its speed, turns out to lose \emph{less} accuracy than the unquantized export formats already do.
+And a drift-detection binning choice that credit-scoring literature already documents as sensitive
+to convention turns out, on this system's own confidence distribution, to invert the naive
+expectation at low severity before confirming it at high severity.
+
+This paper does not claim to have solved LLM unreliability, and that claim would not survive its
+own evidence: the LLM component measured here is, on its own terms, frequently unreliable. What the
+evidence supports is narrower and, we think, more useful to a practitioner building a similar
+system: a falsifiable design rule under which that unreliability becomes harmless rather than
+merely mitigated. Architect the pipeline assuming the model will often produce nothing usable,
+verify the fallback default is conservative, and never let the validator read anything from the
+model beyond the one enumerable field it is designed to certify -- and the model's failure modes,
+including the ones this paper newly documents, stop being the system's failure mode.
+
+That discipline is worth taking seriously precisely because this paper's own system still lapsed
+once in exactly the way it warns against: during the audit behind this paper, the system's own
+retrieval-augmented knowledge base was found to still be serving a stale accuracy figure in one file
+it had corrected everywhere else -- a knowledge-base entry the correcting commit missed by 43
+minutes and that has sat uncorrected since. That the same audit process caught it is the argument
+for the discipline, not a reason to distrust the rest of this paper's numbers -- it is disclosed
+here, and again in Section~\ref{sec:known-limitations}, as a live, currently unresolved issue rather
+than a historical anecdote.
+
+Two further scope statements belong here, early, alongside the two above, because they bound what
+``measured'' means throughout this paper. First, every result reported here is an offline,
+bench-level evaluation of the implemented system -- against synthetically generated sensor readings,
+static labeled imagery, and scripted or synthetic scenarios run against the codebase -- and not a
+field deployment: no experiment in this paper involved real physical sensors or an operating
+recirculating aquaculture facility, and only the system's interface, not a live deployment, was ever
+demonstrated. Second,
+S.U.R.E. was built for the TEKNOFEST Agricultural Technologies competition, but this team did not
+enter that competition and did not pass its preliminary evaluation round. Both points are stated
+again, in full, in Section~\ref{sec:known-limitations}.
+
+\takeaway{Malformed-output fail-safe defaulting, not sophisticated correction, is the dominant
+realized safety pathway (50\% versus 12\% of scenarios) -- Section~\ref{sec:results-dual-layer},
+Figure~\ref{fig:exp03-buckets}.}
+
+\takeaway{Fabricated sensor values survive inside outputs whose final status agrees with the rule
+engine, invisible to status-only evaluation -- Section~\ref{sec:results-dual-layer}.}
+
+\takeaway{The agentic tool-routing negative result replicates under an adversarial re-run built to
+break it, not merely confirm it -- Section~\ref{sec:results-agentic}.}
+
+\takeaway{The vision pipeline's configured operating point governs recall at 0.782, materially
+different from the headline academic-argmax recall of 0.719 that the rest of this literature would
+otherwise cite -- Section~\ref{sec:results-vision}, Figure~\ref{fig:exp07-pr}.}
+
+\takeaway{INT8 quantization loses less accuracy than fp32 export, relocating the real cost to a
+shared post-processing path -- Section~\ref{sec:results-vision}, Figure~\ref{fig:exp06-scatter}.}
+
+The rest of this paper proceeds as follows. Section~\ref{sec:related-work} places this system
+against the literature it draws on, pivoting explicitly from the domain and deployment literature
+that earns citations but no novelty claim, through the guardrail and safety-critical-LLM literature
+that this system's pattern does not invent, to the specific gap -- cross-layer measurement plus a
+fabrication-inside-agreement finding -- that this paper actually fills.
+Section~\ref{sec:background} defines the terms used throughout. Section~\ref{sec:system-architecture}
+describes the dual-layer decision system, the vision, retrieval, and MLOps layers, and states the
+four formal properties the rest of the paper depends on.
+Section~\ref{sec:experimental-setup} documents how every one of the eleven underlying experiments
+was actually run. Section~\ref{sec:results} is the paper's evidentiary core.
+Section~\ref{sec:discussion} and Section~\ref{sec:known-limitations} state what this paper does and
+does not license a reader to conclude, and Section~\ref{sec:conclusion} closes with the paper's
+central claim restated against everything measured in between.

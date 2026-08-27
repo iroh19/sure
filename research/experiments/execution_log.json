@@ -1,0 +1,420 @@
+[
+  {
+    "experiment_id": "EXP05",
+    "goal_id": "G5",
+    "status": "partial",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP05",
+    "primary_metric": {
+      "name": "near-duplicate train/val pairs at strict aHash/dHash threshold (<=5 bits of 64)",
+      "value": 32
+    },
+    "secondary_metrics": [
+      {
+        "name": "cross-split source-group collisions (videoN_ groups appearing in both train and val)",
+        "value": "6/10"
+      },
+      {
+        "name": "exact same-frame-index collisions within colliding groups",
+        "value": 0
+      },
+      {
+        "name": "near-duplicate pairs at loose threshold (<=16 bits)",
+        "value": 902
+      },
+      {
+        "name": "minimum hash distance found (bits of 64)",
+        "value": 2
+      },
+      {
+        "name": "ogretmen positive-control leak detection",
+        "value": "confirmed (train==val folder by construction)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 5.9,
+    "open_decisions_resolved": [
+      "Filename source-identity encoding: sure_dataset mixes videoN_frame_MMMM.jpg (source-encoded) with a pooled contiguous plain frame_MMMM.jpg range (0000-0034), confirmed byte-identical via md5 to data/frames/ files of the same name -- treated as one pooled source group 'frame_source0'.",
+      "imagehash library availability: NOT installed in anaconda env (import fails) -- implemented minimal 64-bit aHash + dHash inline with PIL+numpy only, exactly per the design doc's own fallback plan."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Strong criterion (zero cross-split leakage) NOT met: perceptual hashing found 32 near-duplicate candidate pairs at a strict threshold, 14 of which are literally adjacent frame indices (gap=1) of the same source video split across train/val -- a real temporal-adjacency leakage risk distinct from and milder than the already-excluded ogretmen case (no exact-duplicate frames; 0/0 exact index overlaps). Minimum-viable criterion met: affected videos and exact file pairs are fully enumerated in exp05_summary.json. Recommend the paper add an explicit caveat to headline vision metrics rather than claim a fully clip-disjoint split."
+  },
+  {
+    "experiment_id": "EXP06",
+    "goal_id": "G6",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP06",
+    "primary_metric": {
+      "name": "CoreML/ANE p50 latency across 3 separate process invocations (mean +/- std, ms)",
+      "value": "9.03 +/- 0.22 (p95: 9.60 +/- 0.18)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "six-config table reproduction vs MODEL_RAPORU.md (mAP50/precision/recall/deltaMAP50)",
+        "value": "reproduced within rounding: pt-mps 0.8395/0.859/0.719; onnx & torchscript both -0.0104 deltaMAP50, mAP50-95 0.5867 identical to 4dp"
+      },
+      {
+        "name": "ONNX vs TorchScript per-image detection agreement (98 val images, greedy IoU match)",
+        "value": "0/98 images meaningfully different; median matched-pair IoU 0.99999976; 0 unmatched detections"
+      },
+      {
+        "name": "fresh val() on best.pt vs epoch-77 headline",
+        "value": "matches, no new epoch-73-style discrepancy"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 149,
+    "open_decisions_resolved": [
+      "coremltools availability: confirmed installed (v9.0) in /opt/anaconda3.",
+      "export_bench.py val()-only path: confirmed --skip-export reuses existing export artifacts but still runs the full benchmark() (val() + latency) path -- no separate script needed.",
+      "IoU-matching algorithm + agreement threshold for the new ONNX-vs-TorchScript diff: greedy confidence-descending matching, strict 0.9 IoU bar for 'agreement' -- documented rationale in g6_onnx_torchscript_diff.py."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Per-image ONNX-vs-TorchScript agreement is far stronger than the design doc's success criterion anticipated (near-bit-identical boxes, not just 'high IoU-overlap') -- strong direct evidence the shared -0.0104 mAP50 loss is systematic, not coincidental per-toolchain noise. Honest caveat added to results.md: this confirms the two exports agree with EACH OTHER almost perfectly, which does not by itself isolate NMS specifically (vs. other export-vs-eager numeric differences) as the mechanism -- both formats share the same Ultralytics AutoBackend wrapper, so full isolation would need a pre-NMS raw-output comparison against pt/mps, which was out of scope here."
+  },
+  {
+    "experiment_id": "EXP07",
+    "goal_id": "G7",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP07",
+    "primary_metric": {
+      "name": "empirical full-frame-miss rate on val set at deployed conf=0.20",
+      "value": "0/98 (0.0%)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "fish-per-frame distribution: min/avg/max ground-truth fish per val frame",
+        "value": "min=3, avg=15.56, matches MODEL_RAPORU's ~15.6"
+      },
+      {
+        "name": "independence-approximation expected full-frame misses across val set",
+        "value": 0.053
+      },
+      {
+        "name": "true F1-argmax on fine-grained confidence curve",
+        "value": "conf=0.341, P=0.845, R=0.730, F1=0.7835 (headline F1=0.7827, effectively the same point)"
+      },
+      {
+        "name": "actual precision/recall AT the deployed conf=0.20 operating point",
+        "value": "P=0.720, R=0.782 (materially different from the headline P=0.858/R=0.719)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 57,
+    "open_decisions_resolved": [
+      "Full-frame-miss estimation approach: implemented direct empirical count (primary) via best.pt inference on actual val frames at the deployed threshold, plus the independence approximation as a secondary sanity-check, per the design doc's own recommendation.",
+      "Confidence sweep points: read vision-service/yolo_runner.py directly, found CONF_THRESH=0.20 (not the assumed 0.25 default) with an inline comment confirming it was deliberately lowered from 0.30 for recall -- swept {0.10,0.15,0.20,0.25,0.30,0.35,0.40} around the confirmed deployed value."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Two findings beyond the original hypothesis, both important for the write-up: (1) the val set contains NO frames with 1-2 fish (minimum is k=3) -- the sparse-frame regime H7 worried about is entirely untested by this dataset, not merely 'found to be rare'; extrapolated (untested) independence-approximation miss risk at k=1 is ~22-28% depending on which recall figure is used, a real quantified gap to flag. (2) model.val(conf=X) does NOT pin box.mp/box.mr to conf=X for X below the internal argmax (methodological trap, documented) -- reading the fine-grained per-confidence curve directly revealed the DEPLOYED operating point (conf=0.20) actually runs at P=0.720/R=0.782, not the headline P=0.858/R=0.719. Production recall is thus HIGHER (more reassuring for full-frame-miss risk) than the number the paper has been citing for this discussion; the paper's H7 section should cite the deployed-point recall (0.782), not the academic-argmax headline (0.719), when discussing real-world full-frame-miss risk."
+  },
+  {
+    "experiment_id": "EXP02",
+    "goal_id": "G2",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP02",
+    "primary_metric": {
+      "name": "eval.py vs backend/main.py rule-status scenario agreement",
+      "value": "8/8"
+    },
+    "secondary_metrics": [
+      {
+        "name": "structural_checks_all_pass",
+        "value": true
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 0.4,
+    "open_decisions_resolved": [],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Both eval.py and backend/main.py confirmed to resolve to the exact same in-memory rules module object (`is` identity check), not merely matching output. No re-implemented rule logic found in either path."
+  },
+  {
+    "experiment_id": "EXP08",
+    "goal_id": "G8",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP08",
+    "primary_metric": {
+      "name": "quantile PSI vs equal-width PSI across 16-point mean-shift severity sweep (delta 0.00-0.30)",
+      "value": "quantile PSI 0.005->4.844; equal-width PSI 0.005->7.649 (equal-width overtakes quantile from delta=0.08 onward)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "retrain.decide() no-drift window action",
+        "value": "none (PSI 0.0048)"
+      },
+      {
+        "name": "retrain.decide() significant-drift window action",
+        "value": "retrain (PSI 0.9070, delta=0.04)"
+      },
+      {
+        "name": "gate() three-delta exercise",
+        "value": "below_zero=False, inside_noise_band=False, above_min_improvement=True"
+      },
+      {
+        "name": "incumbent_map50() end-to-end check",
+        "value": "0.83949 (ran without exception)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 1.5,
+    "open_decisions_resolved": [
+      "Severity grid/perturbation model: chose 16-point mean-shift sweep (delta 0.00-0.30 step 0.02), resampled with replacement from reference, clipped to [0,1].",
+      "incumbent_map50() end-to-end viability against mlops/mlflow.db: confirmed working, returns 0.83949 without error."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Honest nuance vs. literal H5 wording: equal-width binning was LESS sensitive than quantile at small early shifts (delta<=0.06), not more -- it only becomes more explosive/saturating at larger shifts (delta>=0.08) once a single large fixed bin ([0.8,0.9), holding 30% of reference mass) empties. Mechanism confirmed via per-bin decomposition, reported precisely rather than forced to match the hypothesis. Equal-width curve explicitly labeled a reconstruction (git log --oneline --all -- mlops/drift.py returns exactly 1 commit, re-confirmed)."
+  },
+  {
+    "experiment_id": "EXP09",
+    "goal_id": "G9",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP09",
+    "primary_metric": {
+      "name": "existing twin_bridge/test_bridge.py pytest suite",
+      "value": "18/19 passed"
+    },
+    "secondary_metrics": [
+      {
+        "name": "new FakeTwin edge-case tests (this experiment, in experiment_workspace)",
+        "value": "4/4 passed"
+      }
+    ],
+    "failure_reason": "1 pre-existing test failure in the live repo: test_scaling_is_applied fails because its own _holding() helper uses int(do*100), and 8.12*100==811.9999999999999 in IEEE-754 float, truncating to 811 instead of 812. Root cause is a float-to-int rounding bug in the TEST HELPER, not in registers.py's production decode() logic. Not fixed (sure-project is read-only per guardrails); reported honestly with root cause identified.",
+    "wall_time_seconds": 0.06,
+    "open_decisions_resolved": [
+      "TB-3 live Godot/CODESYS checkpoint status: confirmed via filesystem search that no Godot/CODESYS installation or capture-adapter script exists anywhere in the repo -- still not materialized, as the design pass assumed.",
+      "Additional DO-boundary edge case near rules.py's 6.0 mg/L threshold: treated as optional per its own open_decision framing, not added."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "twin_bridge/ is UNTRACKED in git (git status shows '?? twin_bridge/', git log -- twin_bridge is empty) -- it has no commit hash provenance at all, carried forward as a finding into EXP11. New edge-case test file targets the previously-unreachable-in-tests 'unmapped alarm string while do_low==sure_critical' branch in compare_once(), plus multi-simultaneous-expected-divergence and a mixed-kind multi-sample run() session."
+  },
+  {
+    "experiment_id": "EXP11",
+    "goal_id": "G11",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP11",
+    "primary_metric": {
+      "name": "count of stale 0.695 recall-figure occurrences in shippable/live-claim text",
+      "value": 0
+    },
+    "secondary_metrics": [
+      {
+        "name": "count of vision-recall mentions resolving to 0.719 in sure-project + initial_context",
+        "value": "7/7"
+      },
+      {
+        "name": "stale-figure leak found in RAG knowledge base (re-confirmed at finalization)",
+        "value": "llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 states recall ~0.695 as a live fact; this file IS ingested into the RAG knowledge base by llm-service/rag/ingest.py, making it a retrievable, user-facing stale claim, not a dead doc. NOT fixed (read-only guardrail)."
+      },
+      {
+        "name": "total distinct stale/inconsistent/superseded figures found across the complete experiment set (finalization pass)",
+        "value": 6
+      },
+      {
+        "name": "G1-G10 provenance coverage (commit hash + date per headline number)",
+        "value": "10/10 experiments covered (was 3/10 -- EXP02/EXP08/EXP09 only -- in the original partial pass)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 2.0,
+    "open_decisions_resolved": [
+      "Confirmed directly via state.json that no manuscript draft exists yet, rather than assuming (still true at finalization time).",
+      "Implemented live commit-hash/date logging for this run's own experiments (EXP02, EXP08 scripts compute git rev-parse/log at run time and embed it in their JSON outputs), per this open_decision's own recommendation.",
+      "FINALIZATION (this update): once EXP01/EXP03-EXP07/EXP10 completed, re-ran the 0.695-vs-0.719 grep against the full, now-complete artifact set (still PASSES, no new leak introduced), added provenance entries for all remaining G1-G9 numbers plus G10, and consolidated a manuscript-wide cross-check across every experiment's own results.md that surfaced 5 additional, previously undocumented stale/inconsistent figures beyond the original 0.695 finding (see provenance_table.json's stale_and_inconsistent_figures array): (1) the RAG knowledge base's uncorrected 0.695 [already known, re-confirmed]; (2) vision recall's two distinct valid readings, 0.719 (F1-argmax) vs. 0.782 (actual deployed conf=0.20 operating point per EXP07) -- undisclosed anywhere in paper_workspace, now flagged as requiring explicit resolution before manuscript freeze; (3) a 0.858-vs-0.859 precision rounding inconsistency inside MODEL_RAPORU.md itself, propagated to README.md/README.tr.md/research_task.md; (4) README.md's published agent-benchmark table (AQUA-7B 60% format/3.6 mean steps) vs. EXP04's fresh, unexplained-drift reproduction (100%/2.0); (5) an internal EXP08 reproducibility gap (its own sweep-table delta=0.04 PSI value differs from its retrain-gate exercise's separately-drawn delta=0.04 window, due to unseeded-per-call resampling variance within an otherwise-fixed-seed script); (6) EXP05's near-duplicate leakage finding not yet reflected as a caveat next to the headline vision metrics it concerns."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "FINALIZED. Recall figure's full git-verified provenance chain: 0.695 introduced by commit d709836 (2026-08-26 07:31:00+03:00), corrected to 0.719 by commit 9a260af (2026-08-26 08:14:54+03:00, 'Add edge export benchmark, and correct the reported detector metrics'). Every occurrence of '0.695' in paper_workspace/*.json/*.md was individually checked and confirmed to discuss the guardrail itself, never use it as a live claim. Strong success criterion (100% G1-G9 commit-hash provenance) is now MET: provenance_table.json carries an entry for every one of EXP01-EXP09 plus EXP10. The single most consequential NEW finding from this finalization is item (2) above: the paper currently has infrastructure to guard against citing 0.695, but nothing yet distinguishes 0.719 (F1-argmax) from 0.782 (actual deployed-threshold recall, per EXP07) -- both are correct numbers for different questions, and the manuscript must state which applies where (0.782 governs the real-world H7 safety discussion) before freeze."
+  },
+  {
+    "experiment_id": "EXP01",
+    "goal_id": "G1",
+    "status": "success",
+    "end_stage_executed": 4,
+    "end_stage_requested": 4,
+    "run_dir": "experiment_workspace/experiment_runs/EXP01",
+    "primary_metric": {
+      "name": "e5-small/heading MRR vs. random-retrieval-baseline MRR (margin)",
+      "value": "0.856 vs 0.418 (margin +0.438); hit@1 0.793 vs 0.207 (margin +0.586)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "calibrate.py F1-argmax threshold / F1",
+        "value": "0.84 / 0.951"
+      },
+      {
+        "name": "deployed threshold (0.85) F1",
+        "value": 0.906
+      },
+      {
+        "name": "positive/negative similarity distribution overlap",
+        "value": "confirmed overlap (negative max 0.847 >= positive min 0.841)"
+      },
+      {
+        "name": "bench.py degenerate flag, e5-small/heading (44 chunks, k=5)",
+        "value": false
+      },
+      {
+        "name": "bench.py degenerate flag, fixed-480w (8 chunks, k=5)",
+        "value": true
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 41,
+    "sample_size_achieved": "29 EVAL_QUERIES x 8 (model,strategy) combinations, read-only against the live 44-chunk sure_rag corpus; random baseline: 29 queries x 6 seeds",
+    "open_decisions_resolved": [
+      "Postgres auth for anaconda psycopg: confirmed default DSN postgresql:///sure_rag works via peer auth with no explicit user/password -- VectorStore(dim=384).count('e5-small:heading') returned 44 on first try.",
+      "Random-baseline sampling scheme: resolved as uniform-over-all-chunks (not uniform-over-docs-then-chunk), because the production retriever ranks and returns individual chunks, deduped to doc_id only after retrieval. Seed=42 fixed and reported, with a 5-additional-seed stability check."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "GUARDRAIL DEVIATION FROM WRITTEN PROCEDURE, DELIBERATE: the procedure as written says to run `python -m rag.bench` directly, but bench.py's run_combination() calls store.clear()+store.upsert() on the collection under test -- a DELETE+INSERT against the live production sure_rag DB, forbidden by this run's read-only-DB guardrail. Instead authored bench_readonly.py, which reproduces bench.py's exact query/scoring logic (identical hit_at_k/reciprocal_rank functions) against whatever is already indexed, performing zero writes; a local-vs-DB chunk-count cross-check confirmed the live index is current, so this is not a staleness concern. e5-small/heading reproduced the published MRR=0.856/hit@1=0.793 exactly. Honest caveat: the random baseline's MRR (0.418) is not near zero because the corpus has only 8 source documents, so even 5 random chunks span most of them by chance -- the hit@1 margin (real 0.793 vs random 0.207) is the least corpus-size-inflated, most defensible number."
+  },
+  {
+    "experiment_id": "EXP03",
+    "goal_id": "G3",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP03",
+    "primary_metric": {
+      "name": "4-bucket distribution over n=8 eval.py scenarios (AQUA-1B raw output x real apply_rule_override)",
+      "value": "unparseable-defaulted-to-ok: 4/8 (50%); parseable-and-agrees: 3/8 (38%); parseable-and-under-calls-and-escalated: 1/8 (12%); parseable-and-over-calls: 0/8 (0%)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "backend/test_decision.py mechanism-correctness baseline",
+        "value": "18/18 passed, 0 skipped (torch present)"
+      },
+      {
+        "name": "manual coding of 8 reasoning strings: accurate / inaccurate / uncodable",
+        "value": "1 / 6 / 1"
+      },
+      {
+        "name": "non-enumerable failure mode identified",
+        "value": "yes -- fabricated specific sensor values in free-text reasoning (e.g. states DO=6.0 mg/L when actual reading was 5.7; states DO=9.0 when actual was 8.0; states DO=6.0 when actual was 7.8), invisible to the status-only apply_rule_override comparison, occurring even inside the 'agrees' bucket"
+      },
+      {
+        "name": "model load time",
+        "value": "3.8s"
+      },
+      {
+        "name": "total 8-scenario wall time",
+        "value": "~23s"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 27,
+    "sample_size_achieved": "n=8 (full eval.py SCENARIOS set, not a subsample -- no time-budget constraint required subsampling)",
+    "open_decisions_resolved": [
+      "Over-calls bucket detection: implemented as a separate SEVERITY[model_pre] > SEVERITY[rule_status] comparison, independent of the rule_override flag, since apply_rule_override never downgrades and the flag alone cannot surface an over-call.",
+      "test-adapter vs sure-aqua-adapter provenance: confirmed via grep (test-adapter referenced nowhere in code/docs) and docker-compose.yml (mounts sure-aqua-adapter at AQUA_ADAPTER_PATH=/adapter) that sure-aqua-adapter is the deployed adapter; test-adapter excluded, provenance unknown.",
+      "Git-tracking check: `git check-ignore -v` confirms llm-service/sure-aqua-adapter/ is gitignored (.gitignore:58); `git log --all` returns nothing. Provenance is mtime-only (adapters.safetensors mtime: Fri Jun 5 00:43:26 2026), disclosed as such rather than presented as a commit-hash provenance claim.",
+      "Parseability-detection ambiguity: rather than use the written procedure's heuristic (reasoning==raw[:500]), reimplemented generate_decision()'s exact parse logic one level up over the same unmodified inference._decision_user_content()/inference._generate() primitives, yielding a definitive parse_ok boolean at no extra generation cost."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "CENTRAL FINDING, REPORTED HONESTLY EVEN THOUGH IT COMPLICATES THE HEADLINE NARRATIVE: the dominant observed pathway (50%, 4/8) is NOT 'the LLM reasons and the rule engine corrects a miss' -- it is malformed output defaulting safe, exactly the minimum-viable framing research_goals.json's own risk table pre-registered as legitimate ('malformed-output fail-safe is the dominant observed pathway, not severity-correction'). Only 1/8 scenarios (12%) shows the textbook under-call-then-escalate dynamic the unit tests establish is logically sound. Zero over-calls observed (n=8 too small to generalize this to 'rare in general'). A qualitative bonus finding grounds H2's scope boundary concretely: the model fabricates specific numeric sensor readings in free-text reasoning in 6/8 cases, sometimes reaching the categorically-correct status via an entirely invented causal story (T05, T08) -- this is structurally invisible to a status-only comparison and would pass through even the 'agrees' bucket undetected. Also fixed a namespace collision during implementation: llm-service/main.py and backend/main.py are both named 'main'; with both dirs on sys.path a plain `import main` silently resolved to the wrong one -- fixed by loading backend/main.py under an explicit distinct module name (sure_backend_main), not by editing either source file."
+  },
+  {
+    "experiment_id": "EXP04",
+    "goal_id": "G4",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP04",
+    "primary_metric": {
+      "name": "constant-answer flag, original n=5 vs expanded n=9, both models",
+      "value": "AQUA-1B: 0%/0% format/selection on both n=5 and n=9, no tool ever emitted; AQUA-7B: constant_answer=true on BOTH n=5 (5/5 get_sensor_trend) and n=9 (9/9 get_sensor_trend) -- negative result preserved and strengthened, not softened, by genuine scenario-count growth"
+    },
+    "secondary_metrics": [
+      {
+        "name": "AQUA-7B format compliance, n=5 / n=9",
+        "value": "100% / 100%"
+      },
+      {
+        "name": "AQUA-7B selection accuracy, n=5 / n=9",
+        "value": "50% (2/4 scored) / 71.4% (5/7 scored) -- flagged as inflated by acceptable-set design, not genuine discrimination"
+      },
+      {
+        "name": "AQUA-7B mean steps / mean seconds, n=5",
+        "value": "2.0 / 14.6s"
+      },
+      {
+        "name": "AQUA-1B mean seconds, n=5 / n=9",
+        "value": "2.2s / 1.7s"
+      },
+      {
+        "name": "AQUA-7B 1-scenario timing dry run before full matrix",
+        "value": "27.9s (incl. model load)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 165,
+    "sample_size_achieved": "9 scenarios (5 original + 4 newly authored, genuinely distinct fixtures) x 2 models (AQUA-1B, AQUA-7B) = 18 independent agent runs; no --repeat used",
+    "open_decisions_resolved": [
+      "--repeat N is not a sample-size increase: confirmed directly in make_generator()'s generate() -- inference._generate(prompt, temp=0.0, ...), greedy decoding, so repeats are byte-identical. 4 new Scenario fixtures were authored instead.",
+      "AQUA_ADAPTER_PATH left unset for this experiment (base-model measurement): bench_agent.py's docstring and the README's published table both frame this as testing 'the model'/'a real model' with no adapter framing anywhere, unlike eval.py's explicit 'AQUA-1B + LoRA adapter' framing; no shell history or run log found indicating the adapter was set for the original benchmark, so this reproduction matches that unset condition.",
+      "PLAN_MAX_TOKENS read directly from agent/loop.py: 48 tokens, MAX_STEPS=4, MAX_SECONDS=45.0 -- confirmed small, not the 512-token narration-budget leak the docstring warns about."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Selection% and the constant-answer finding reproduce the published README figures exactly on the original n=5 (AQUA-7B 50% selection, constant answer confirmed against the real per-scenario tool= log -- get_sensor_trend chosen in fish inactive/no fish detected scenarios where it is NOT in the acceptable set). Format compliance and mean-steps do NOT reproduce exactly: this run measured AQUA-7B at 100% format / 2.0 mean steps vs. the published 60% / 3.6 mean steps, with no config difference found to explain it (adapter unset in both; loop.py unchanged) -- most likely mlx-lm/model-stack drift since the original table was produced; reported as a disclosed discrepancy rather than smoothed over. On the expanded n=9, AQUA-7B's raw selection% rose to 71.4% but this is flagged explicitly as an artifact of 3/4 new scenarios being sensor-trend-relevant by design (following the original 5's own skew), NOT genuine improved discrimination -- the constant-answer flag (still true, now over 9 independent scenarios) is the metric the manuscript should quote, not the raw selection percentage."
+  },
+  {
+    "experiment_id": "EXP10",
+    "goal_id": "G10",
+    "status": "success",
+    "end_stage_executed": 3,
+    "end_stage_requested": 3,
+    "run_dir": "experiment_workspace/experiment_runs/EXP10",
+    "primary_metric": {
+      "name": "confirmatory literature search outcome for C2 (cross-layer thesis) novelty status",
+      "value": "no closer prior instance found; C2 remains OPEN, confidence medium (unchanged from novelty_flags.json -- a negative search result cannot itself elevate confidence to high)"
+    },
+    "secondary_metrics": [
+      {
+        "name": "framing option selected",
+        "value": "CT-3 (hybrid: eval-harness-drift incident as narrative hook, cross-layer thesis stated with explicit medium-confidence hedge) -- confirmed as design doc predicted, with the mechanism-level claim inside it refined to match real EXP03/EXP07/EXP08 findings"
+      },
+      {
+        "name": "novelty_flags.json claims re-checked against real EXP01-EXP09 data (C1-C11)",
+        "value": "0/11 status changes (no claim moves to BLOCKING or is upgraded to HIGH confidence); C3 and C7 gain a stronger concrete empirical instance without a classification change"
+      },
+      {
+        "name": "cross-layer synthesis: experiments held cleanly vs. required honest correction/new finding",
+        "value": "4/9 held cleanly or were strengthened (EXP01, EXP02, EXP04, EXP06); 1/9 central complication (EXP03); 2/9 required a directional/numeric correction (EXP07, EXP08); 1/9 confirmed honestly-incomplete as pre-committed (EXP09); 1/9 new unplanned orthogonal finding (EXP05)"
+      }
+    ],
+    "failure_reason": null,
+    "wall_time_seconds": 180,
+    "open_decisions_resolved": [
+      "This experiment could not be executed until EXP03/EXP04/EXP06/EXP07/EXP08/EXP09 (its hard dependencies) all completed -- confirmed all 9 of EXP01-EXP09 are now complete via execution_log.json before proceeding.",
+      "Web-search tool and exact CT-4 query wording, left open by the design pass: ran two searches -- 'multi-layer AI governance case study deployed system deterministic override probabilistic components' and 'deterministic safety layer probabilistic AI industrial deployment cross-component guardrail empirical evaluation case study' -- full source-by-source relevance assessment in EXP10/exp10_literature_search.md."
+    ],
+    "sure_project_commit": "3c1b9fa",
+    "sure_project_commit_date": "2026-08-26T08:57:33+03:00",
+    "notes": "Central deliverable is a framing decision, not a new codebase measurement. Recommendation, stated plainly rather than forced to fit the original clean narrative: keep C2 (the cross-layer thesis) as the paper's foregrounded claim via CT-3, but state the mechanism-level claim precisely -- the deterministic layer's most commonly REALIZED function across the system is unconditional fail-safe defaulting under malformed/uncertain probabilistic output (EXP03: 50% of decision-layer scenarios), not sophisticated correction of a nuanced misjudgment (only 12%), and it provides zero protection against a categorically-correct verdict reached via fabricated reasoning (6/8 reasoning strings manually coded as containing fabricated sensor values, including inside the 'agrees' bucket). This is a narrower, more precise claim than the original narrative, not a retreat from the cross-layer thesis -- all five layers still show the same underlying discipline of giving a deterministic, testable, code-shared component final say, and EXP04/EXP06 in particular held up as strongly or more strongly than hypothesized. Draft Abstract/Conclusion sentence instantiating this refined, hedged claim is in EXP10/results.md section 3. Full per-experiment synthesis in EXP10/exp10_cross_layer_synthesis.md; full search log in EXP10/exp10_literature_search.md."
+  }
+]

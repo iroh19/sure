@@ -1,0 +1,45 @@
+% style_macros.tex — simple LaTeX macros for the S.U.R.E. paper (project_000).
+% \input{style_macros} from the preamble of final_paper.tex.
+% Provides \question{} and \takeaway{} environments plus a \formalization{} environment used for
+% the 4 Key Formalizations (explicitly NOT labeled as theorems — this is an empirical-only paper,
+% per track_decomposition.json's recommended_track="empirical").
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+% ---- Formalization environment (not "Theorem") ----
+\newtheoremstyle{formalizationstyle}
+  {6pt}{6pt}{\itshape}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{formalizationstyle}
+\newtheorem{formalization}{Formalization}
+
+% ---- \question{} — used sparingly in Introduction/Discussion to name a research question ----
+\newcommand{\question}[1]{%
+  \par\medskip\noindent\textbf{Question.}\ #1\par\medskip
+}
+
+% ---- \takeaway{} — used in Introduction to state an explicit, section-pointing takeaway ----
+\newtcolorbox{takeawaybox}{%
+  colback=gray!5, colframe=gray!40, boxrule=0.4pt, arc=1pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt, breakable
+}
+\newcommand{\takeaway}[1]{%
+  \begin{takeawaybox}\textbf{Takeaway.}\ #1\end{takeawaybox}
+}
+
+% ---- \sourceclaim{} — inline marker for citing the exact raw-artifact source of a number ----
+% Usage: state the number, then \sourceclaim{EXP07/exp07_conf_curve_summary.json}
+\newcommand{\sourceclaim}[1]{\text{\footnotesize\color{gray}[#1]}}
+
+% ---- \disclosure{} — visually sets off a must-disclose-early callout paragraph (e.g. the
+% 0.719-vs-0.782 recall distinction) as a named callout, not a figure caption ----
+\newtcolorbox{disclosurebox}{%
+  colback=yellow!5, colframe=black!50, boxrule=0.5pt, arc=1pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt, breakable,
+  title={\small\bfseries Disclosure}, fonttitle=\small, coltitle=black,
+  colbacktitle=gray!15
+}
+\newcommand{\disclosure}[1]{\begin{disclosurebox}#1\end{disclosurebox}}

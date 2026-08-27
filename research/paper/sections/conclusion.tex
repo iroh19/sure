@@ -1,0 +1,43 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+What this paper leaves a reader with is not primarily a new fact about AQUA-1B, but a claim about
+where a safety architecture's soundness is allowed to live: never in the model's reasoning, only in
+one enumerable field and a conservative default. Measured directly, half of the eight exercised
+scenarios produced no usable model output at all, and the rule engine acted alone; of the scenarios
+where it did not even need to act, because the model's own final label already agreed, two of three
+reached that correct label through an invented sensor reading -- a failure mode no evaluation that
+checks only the output label would ever see. None of this was measured against a model given a fair
+chance: the configured LoRA adapter is an 8-example smoke-test artifact the project's own training
+pipeline calls insufficient, with a properly sized 128-example alternative sitting unused on disk
+throughout. That is the more informative condition to have tested under, not a caveat to apologize
+for -- the safety property held while the model was given close to no chance to reason well, which
+pre-empts the obvious reviewer objection that a better-tuned model would change the conclusion,
+rather than merely deferring it.
+
+The same narrow-enumerable-interface discipline recurs across four other layers of this system,
+and it is not the same finding restated four times -- each layer earns its place
+differently. The agentic tool-routing negative result survives an adversarial re-run designed to
+break it. The vision pipeline's own honest self-correction (the configured operating point governs
+recall at 0.782, not the headline 0.719 the rest of this field would otherwise cite)
+makes the system's safety picture more reassuring than a naive reading would suggest, precisely
+because it was measured rather than assumed. The RAG threshold and the PSI drift-binning gate are
+each careful, disclosed applications of an asymmetric-cost or crossover-aware design choice, not
+inventions. None of the five layers claims to have invented deterministic override -- Safety
+Instrumented Systems and RL-safety shielding got there first, in different domains, for different
+kinds of probabilistic components -- and this paper's own contribution is narrower and, we think,
+more useful: a measured, implemented instance of that pattern applied to a local LLM in a new domain,
+plus a fabrication-detection finding that the enumerable-action-space literature this pattern
+descends from has no equivalent for, because it was never built to look inside a right decision for
+a wrong reason.
+
+The practitioner rule this supports, stated in full in Section~\ref{sec:discussion}, is
+correspondingly general and falsifiable: assume the model will often say nothing usable, keep the
+fallback default conservative, and never let the validator see more of the model's output than the
+one field it exists to certify. What would strengthen this claim further is already named rather
+than left implicit: a leakage-free retrain on
+a clip-disjoint re-split of the vision dataset, a live twin-bridge session against an actual
+Godot/CODESYS instance, and a test of the same narrow-interface discipline against a larger
+on-device model attempting agentic tool-routing. None of those would overturn what was measured
+here. They would tell us whether it holds under conditions this particular offline evaluation never
+happened to create.

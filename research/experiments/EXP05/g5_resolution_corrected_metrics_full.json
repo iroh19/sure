@@ -1,0 +1,42 @@
+{
+  "baseline_98": {
+    "precision": 0.8589678044340149,
+    "recall": 0.7188881853209993,
+    "map50": 0.8394782259318897,
+    "map50_95": 0.5951697020612199,
+    "n_images": 98
+  },
+  "excl_14_adjacent_pairs_13_files": {
+    "precision": 0.8516399027283232,
+    "recall": 0.7120166418657019,
+    "map50": 0.8344797167771001,
+    "map50_95": 0.5877452604238402,
+    "n_images": 85
+  },
+  "excl_all_32_pairs_17_files": {
+    "precision": 0.8462734139535285,
+    "recall": 0.7123505976095618,
+    "map50": 0.8335336650829628,
+    "map50_95": 0.586861875700458,
+    "n_images": 81
+  },
+  "delta_excl14_vs_baseline": {
+    "precision": -0.0073,
+    "recall": -0.0069,
+    "map50": -0.0050,
+    "map50_95": -0.0074
+  },
+  "delta_excl32_vs_baseline": {
+    "precision": -0.0127,
+    "recall": -0.0065,
+    "map50": -0.0059,
+    "map50_95": -0.0083
+  },
+  "environment": {
+    "sure_project_git_commit": "3c1b9fabf7a5de59e83b81965d1a319498baaec5",
+    "interpreter": "/opt/anaconda3/bin/python3, ultralytics 8.4.14, torch 2.10.0, CPU (Apple M4 Pro)",
+    "weights": "sure_models/sure_v1/weights/best.pt",
+    "date": "2026-08-26",
+    "note": "Filtered val sets built via symlinks in a scratch directory outside sure-project; sure-project's data/sure_dataset/ was not modified. train split unchanged in both filtered runs (only val was filtered)."
+  }
+}

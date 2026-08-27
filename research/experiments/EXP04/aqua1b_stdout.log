@@ -1,0 +1,20 @@
+Model: KurmaAI/AQUA-1B
+AQUA_ADAPTER_PATH: (unset)
+Scenarios: 5 original + 4 new = 9 total
+
+[generator constructed in 0.7s -- model itself loads lazily on first _generate() call]
+
+[AQUA/mlx] Yükleniyor: KurmaAI/AQUA-1B
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 13868.01it/s]
+[AQUA/mlx] Hazır.
+  [1/9] (original) XX oxygen falling                   format=XX tool=None                   steps=0   6.0s  model 2 denemede de biçimi tutturamadı
+  [2/9] (original) XX fish inactive, sensors normal    format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [3/9] (original) XX no fish detected                 format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [4/9] (original) XX pH at the edge                   format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [5/9] (original) -  everything normal                format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [6/9] (new     ) XX temperature rising (new-A)       format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [7/9] (new     ) XX pH improving (new-B)             format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [8/9] (new     ) XX low activity + falling TDS (new-C) format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+  [9/9] (new     ) -  borderline but safe on all axes (new-D) format=XX tool=None                   steps=0   1.2s  model 2 denemede de biçimi tutturamadı
+
+Written: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP04/aqua1b_results.jsonl

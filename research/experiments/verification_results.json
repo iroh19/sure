@@ -1,0 +1,214 @@
+[
+  {
+    "experiment_id": "EXP01",
+    "goal_id": "G1",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Recomputed F1-sweep argmax from calibrate_output.log (0.84 -> F1 0.951; deployed 0.85 -> F1 0.906) and e5-small/heading row from bench_readonly_results.json (hit@1 0.793, MRR 0.856); recomputed random-baseline margin from random_baseline_results.json (0.793-0.207=0.586, 0.856-0.418=0.438). All matched results.md exactly.",
+    "independent_metric_extraction": {
+      "metric": "e5-small/heading hit@1 / MRR and random-baseline margin",
+      "raw_value": "hit@1=0.793, MRR=0.856; margin hit@1=+0.586, MRR=+0.438",
+      "reported_value": "hit@1=0.793, MRR=0.856; margin +0.586/+0.438",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable to this experiment",
+    "sample_size_notes": "29 positive + 12 negative eval queries; 8-document corpus (small, disclosed as such via bench.py's own degenerate flag).",
+    "issues": []
+  },
+  {
+    "experiment_id": "EXP02",
+    "goal_id": "G2",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Recomputed 8/8 scenario agreement directly from exp02_output.json's scenario_results array (all agree:true) and confirmed overall_pass:true and all 3 structural is-identity checks true. Matches results.md exactly.",
+    "independent_metric_extraction": {
+      "metric": "eval.py vs backend/main.py rule-status agreement",
+      "raw_value": "8/8 agree, overall_pass=true",
+      "reported_value": "8/8, overall_pass true",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n=8, eval.py's full fixed SCENARIOS set (not a sample).",
+    "issues": []
+  },
+  {
+    "experiment_id": "EXP03",
+    "goal_id": "G3",
+    "verdict": "partial",
+    "goal_satisfaction": "minimum_viable",
+    "recommendation": "accept_as_minimum_viable",
+    "reproduction_check": "Recomputed the 4-bucket tally directly from g3_results.json's 8 'rows' entries by counting the 'bucket' field: agrees=3, under-calls-and-escalated=1, over-calls=0, unparseable-defaulted-to-ok=4. Matches both the JSON's own bucket_counts field and results.md's table exactly. Independently verified backend/test_decision.py reported as 18/18 (mechanism-correctness, kept separate from the behavioral result as required).",
+    "independent_metric_extraction": {
+      "metric": "4-bucket distribution over n=8 scenarios",
+      "raw_value": "agrees=3, under-calls-and-escalated=1, over-calls=0, unparseable=4 (of 8)",
+      "reported_value": "3/1/0/4 of 8 (38%/12%/0%/50%)",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n=8 is eval.py's full fixed scenario population, not a sample -- percentages carry no confidence interval and should not be reported as if they did. Manual reasoning-string coding is n=8, single-rater, qualitative.",
+    "issues": [
+      "Headline finding (50% malformed-output-defaults-safe dominant, only 12% textbook under-call-and-escalate) satisfies the pre-registered MINIMUM_VIABLE framing, not the STRONG framing's implicit hope of clean severity-correction dominance -- this is honestly reported, not concealed, but must not be described in the manuscript as confirming the strong hypothesis.",
+      "Adapter provenance is mtime-only (gitignored, no git history for llm-service/sure-aqua-adapter/adapters.safetensors) -- disclosed limitation, cannot be pinned to a commit.",
+      "Non-enumerable failure mode (fabricated sensor values in free-text reasoning, 6/8 scenarios) is a genuine, previously undocumented finding but is n=8 qualitative coding and should be stated as illustrative, not statistically powered."
+    ]
+  },
+  {
+    "experiment_id": "EXP04",
+    "goal_id": "G4",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Recomputed directly from aqua7b_results.jsonl (9 rows): format_ok true for all 9 (100%); first_tool == 'get_sensor_trend' for all 9 (constant answer confirmed from the per-scenario log, not the aggregate); among the 7 rows with non-empty 'acceptable' lists, 5 have selection_ok=true (71.4%). Recomputed from aqua1b_results.jsonl (9 rows): format_ok false for all 9 (0%). All values match results.md exactly.",
+    "independent_metric_extraction": {
+      "metric": "AQUA-7B format%/selection%/constant-answer on expanded n=9 set; AQUA-1B format%/selection%",
+      "raw_value": "AQUA-7B: 9/9 format, 5/7 scored selection (71.4%), constant_answer=true (9/9 get_sensor_trend); AQUA-1B: 0/9 format",
+      "reported_value": "AQUA-7B 100%/71.4%/true; AQUA-1B 0%/0%",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n=9 scenarios x 2 models = 18 independent runs (not --repeat, confirmed genuinely distinct inputs). Small n; negative result held identically across all 4 new scenarios, which strengthens but does not eliminate the small-sample caveat.",
+    "issues": [
+      "Published README table (AQUA-7B format 60%, mean steps 3.6) does not reproduce in this fresh run (100%, 2.0 steps); selection% and constant-answer conclusion do reproduce exactly. No code-level cause identified; most likely mlx-lm/model-stack drift. Correctly disclosed, not smoothed over -- must appear in manuscript as a footnoted discrepancy."
+    ]
+  },
+  {
+    "experiment_id": "EXP05",
+    "goal_id": "G5",
+    "verdict": "partial",
+    "goal_satisfaction": "minimum_viable",
+    "recommendation": "accept_as_minimum_viable",
+    "reproduction_check": "Recomputed directly from exp05_summary.json: n_source_groups_crossing_splits=6 (matches group list), exact_frame_index_overlaps=0, near_duplicate_hits_per_threshold {5:32,10:202,16:902}, min_hash_distance=2 -- all match results.md exactly. Independently recomputed frame-index gaps (abs(train_idx-val_idx)) from the 32 strict_threshold_hits_detail entries: 14 of 32 have gap=1, matching the 'temporal-adjacency' claim exactly -- this number is not a precomputed JSON field, so this is a genuine independent derivation, not a restatement.",
+    "independent_metric_extraction": {
+      "metric": "near-duplicate train/val pairs at strict (<=5 bit) threshold, and adjacent-frame subset",
+      "raw_value": "32 pairs at <=5 bits; 14 of 32 have |train_idx-val_idx|==1",
+      "reported_value": "32 near-duplicate pairs; 14 of 32 adjacent-index",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "Sound methodology: source-group collision (6/10) is a necessary-not-sufficient precondition; exact frame-index overlap (0) rules out the ogretmen-style exact-duplicate leak; perceptual hash (aHash+dHash, inline PIL/numpy fallback since imagehash unavailable) finds real near-duplicates concentrated at small frame-index gaps. Positive control (ogretmen.yaml, byte-identical train/val folder) independently sanity-checks the detection method itself. Strong criterion (zero leakage) genuinely fails; minimum-viable (enumerate affected files/videos, state a caveated headline) is met with specific checkable numbers.",
+    "sample_size_notes": "Affects an estimated 14-32 of the 98 val images depending on shared-file counting; a minority but non-negligible fraction of the val set.",
+    "issues": [
+      "Strong criterion (zero cross-split leakage beyond ogretmen) is NOT met.",
+      "Per EXP11 cross-check, this leakage caveat is not yet reflected anywhere the headline mAP50/precision/recall numbers are reported in paper_workspace artifacts -- a live gap requiring an explicit sentence before manuscript freeze."
+    ]
+  },
+  {
+    "experiment_id": "EXP06",
+    "goal_id": "G6",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Recomputed the six-configuration table directly from run1_full_table.json: pt-mps/pt-cpu mAP50=0.8395, mAP50-95=0.5952; onnx & torchscript both mAP50=0.8291 (delta -0.0104), mAP50-95=0.5867. Recomputed CoreML 3-session mean/std from run1/run2/run3 JSON files: p50 mean=9.03 std=0.217, p95 mean=9.60 std=0.178 -- matches the reported 9.03+/-0.22 / 9.60+/-0.18 exactly. Recomputed ONNX-vs-TorchScript diff summary fields directly from g6_onnx_ts_diff_summary.json: 0/98 meaningfully different, 1479 matched pairs, 0 unmatched, median IoU 0.99999976 -- all match exactly.",
+    "independent_metric_extraction": {
+      "metric": "CoreML/ANE p50/p95 latency across 3 sessions (mean+/-std)",
+      "raw_value": "p50: [8.77, 9.30, 9.01] -> mean 9.03, std 0.217; p95: [9.64, 9.79, 9.36] -> mean 9.60, std 0.178",
+      "reported_value": "9.03 +/- 0.22 (p95 9.60 +/- 0.18)",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "3 independent process invocations for CoreML variance (small n by design, appropriate for a latency-stability check, not a statistical claim); 98-image val set for the per-image ONNX/TorchScript diff (full population, not a sample).",
+    "issues": []
+  },
+  {
+    "experiment_id": "EXP07",
+    "goal_id": "G7",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Recomputed fish/frame average from exp07_fish_per_frame_summary.json (1525/98=15.561, matches '15.56'); confirmed histogram has no k=0/1/2 keys. Recomputed deployed-point and argmax figures from exp07_conf_curve_summary.json: conf=0.200 -> P=0.720/R=0.782/F1=0.750; argmax conf=0.341 -> P=0.845/R=0.730/F1=0.7835 (headline F1 0.7827, delta 0.00075). Independently recomputed extrapolated miss-risk: (1-0.719)^1=28.1%, (1-0.782)^1=21.8%, (1-0.719)^2=7.9%, (1-0.782)^2=4.75%. All match results.md's headline numbers.",
+    "independent_metric_extraction": {
+      "metric": "precision/recall at deployed conf=0.20 vs F1-argmax",
+      "raw_value": "deployed: P=0.7205/R=0.7823/F1=0.7501; argmax: conf=0.3413, P=0.8447/R=0.7305/F1=0.78346",
+      "reported_value": "deployed 0.720/0.782/0.750; argmax 0.845 (conf 0.341)/0.730/0.784",
+      "match": true,
+      "discrepancy_pct": 0.09
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n=98 val images, full population not a sample; zero frames with k=1 or k=2 ground-truth fish in the entire val set, so the extrapolated 22-28% miss-risk at low fish counts is an untested extrapolation, never a measurement -- must be stated as such.",
+    "issues": [
+      "Table cell rounds argmax F1 as 0.784 (raw value 0.78346 rounds to 0.783 at 3dp) and the headline-vs-argmax delta as 0.0008 (raw 0.00075, rounds to 0.0007 at 4dp) -- thousandths-place rounding artifacts, <0.1% relative error, no conclusion changes, noted for completeness only.",
+      "MUST-DISCLOSE: deployed operating point (conf=0.20) runs at P=0.720/R=0.782, materially different from the headline academic-argmax P=0.858/R=0.719 the rest of the manuscript cites in H7's safety discussion. Both numbers are independently confirmed correct; the manuscript currently has no language distinguishing which one governs the safety claim.",
+      "Dataset-coverage gap: zero val-set frames with k=1 or k=2 fish means the reassuring 0/98 empirical full-frame-miss result says nothing about the sparse-frame regime where the extrapolated risk is highest -- recommend adding to Known Limitations."
+    ]
+  },
+  {
+    "experiment_id": "EXP08",
+    "goal_id": "G8",
+    "verdict": "partial",
+    "goal_satisfaction": "minimum_viable",
+    "recommendation": "accept_as_minimum_viable",
+    "reproduction_check": "Recomputed the sweep table directly from exp08_output.json: delta=0.02 quantile PSI=0.1639 (moderate) vs equal-width PSI=0.0776 (none) -- confirms the inversion at low severity exactly as reported. delta=0.30: quantile 4.844 vs equal-width 7.649, confirming equal-width overtakes at high severity. Retrain gate: no-drift -> action=none PSI=0.0048; significant-drift (delta=0.04) -> action=retrain PSI=0.9070 -- matches exactly. gate() three-case exercise matches exactly (fail/-0.010; fail/+0.0025 inside band; pass/+0.015).",
+    "independent_metric_extraction": {
+      "metric": "quantile vs equal-width PSI at delta=0.02 and delta=0.30",
+      "raw_value": "delta=0.02: quantile=0.1639, equal-width=0.0776; delta=0.30: quantile=4.844, equal-width=7.649",
+      "reported_value": "delta=0.02: 0.164 moderate vs 0.078 none; delta=0.30: 4.844 vs 7.649",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "16-point synthetic severity sweep (systematic, not anecdotal, per design intent), each point n=1467 resampled reference distribution.",
+    "issues": [
+      "Literal H5 hypothesis direction ('equal-width jumps early, quantile grades smoothly') does NOT hold at low severities -- quantile is actually MORE sensitive than equal-width at delta=0.02, the opposite of the naive expectation. Mechanism (a single large fixed equal-width bin dominating the PSI total once emptied) is confirmed via per-bin decomposition, but the qualitative shape claim needed correcting rather than confirming. This is the pre-registered minimum-viable failure branch, reported precisely.",
+      "Internal inconsistency, self-flagged and independently reconfirmed: the sweep table's own delta=0.04 entry gives quantile PSI=0.7279, but the separately-drawn significant-drift window (also delta=0.04) gives PSI=0.9070 -- caused by unseeded per-call resampling-with-replacement inside a fixed-seed script. Low severity (no headline manuscript number depends on the exact intermediate value) but should be footnoted, not silently resolved by picking one number."
+    ]
+  },
+  {
+    "experiment_id": "EXP09",
+    "goal_id": "G9",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Independently confirmed existing_test_bridge_run.log: 18 passed, 1 failed (test_scaling_is_applied, assert 8.11 == 8.12). Independently verified the root-cause claim in a Python shell equivalent: int(8.12*100)==811 and round(8.12*100)==812 -- both true, confirming the test-helper float-truncation bug, not a production decode() error. Read the 4 new FakeTwin edge-case tests directly and confirmed they exercise genuinely new branches (multi-cause expected divergence, an unmapped-alarm branch structurally unreachable via any existing test, and a mixed agree/expected/unexplained session).",
+    "independent_metric_extraction": {
+      "metric": "twin_bridge/test_bridge.py pass/fail count",
+      "raw_value": "18 passed, 1 failed",
+      "reported_value": "18 passed, 1 failed",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable (mechanism-test coverage, not a train/val split)",
+    "sample_size_notes": "This goal's success criteria are explicitly defined to equal its own minimum-viable form; that ceiling was fully reached. All FakeTwin-scripted tests (existing and new) are team-authored mechanism evidence, correctly never described as cross-implementation corroboration.",
+    "issues": [
+      "twin_bridge/ is untracked in git (independently reconfirmed via git status and git log -- twin_bridge, both empty of history) -- provenance for this module can only ever be 'file contents as of session date', not a commit hash. Correctly disclosed.",
+      "No live Godot/CODESYS session exists anywhere in the repository (independently confirmed by absence of any .st/Godot project files) -- the 'not validated against a live twin' language is accurate, not an understatement."
+    ]
+  },
+  {
+    "experiment_id": "EXP10",
+    "goal_id": "G10",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Not a numeric-recomputation target (literature search + synthesis). Cross-checked every factual claim EXP10 makes about EXP03/04/06/07/08/09 against this verifier's own independent reads of those experiments' raw data (above) -- all matched (EXP03's 50%/12% split, EXP04's 5/5->9/9, EXP06's near-bit-identical agreement, EXP07's operating-point correction, EXP08's directional inversion, EXP09's honest incompleteness). No overstatement or cherry-picking found.",
+    "independent_metric_extraction": {
+      "metric": "n/a -- qualitative synthesis experiment",
+      "raw_value": "n/a",
+      "reported_value": "n/a",
+      "match": true,
+      "discrepancy_pct": null
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n/a",
+    "issues": []
+  },
+  {
+    "experiment_id": "EXP11",
+    "goal_id": "G11",
+    "verdict": "pass",
+    "goal_satisfaction": "strong",
+    "reproduction_check": "Independently re-ran the 0.695 grep against the live repo myself: exactly 4 non-label occurrences (MODEL_RAPORU.md:25 inside the correction note; MODEL_RAPORU.md:135 inside a historical 5-epoch-vs-epoch-73 comparison table, confirmed by direct sed read; TODOS.md:11 self-flagged stale; llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md:58 live and unfixed). Independently read the knowledge-base file directly and confirmed line 58 states the stale figure as a live fact. Independently confirmed 0.719 is cited correctly in README.md, README.tr.md, MODEL_RAPORU.md. Independently confirmed twin_bridge/ is untracked (git status, git log). Independently confirmed commit 45d42c7 exists and matches the description ('Extract the rule engine into a single source of truth') for EXP02's provenance anchor.",
+    "independent_metric_extraction": {
+      "metric": "0.695-vs-0.719 grep pass/fail and RAG knowledge-base leak status",
+      "raw_value": "4 occurrences of 0.695 (3 historical/safe, 1 live/unfixed); 0.719 correct everywhere it is a live citation",
+      "reported_value": "same",
+      "match": true,
+      "discrepancy_pct": 0.0
+    },
+    "data_leakage_check": "not applicable",
+    "sample_size_notes": "n/a -- manuscript-wide grep and provenance audit",
+    "issues": [
+      "Minor organizational gap: provenance_table.json's Finalization Pass section has exp01_provenance through exp10_provenance keys but no distinct exp02_provenance key; the number/commit anchor (45d42c7) is present instead in the human-readable results.md summary tables. Cosmetic, not a missing or fabricated provenance claim.",
+      "This verification pass adds one new must-disclose item beyond EXP11's own 6-item list: EXP07's dataset-coverage gap (zero k=1/k=2 val frames) is a genuine limitation not captured by the stale-figure list (it is a coverage gap, not a stale number) -- recommend adding as a 7th Known Limitations item."
+    ]
+  }
+]

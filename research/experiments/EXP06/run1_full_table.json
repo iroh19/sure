@@ -1,0 +1,74 @@
+[
+  {
+    "name": "pt-mps",
+    "device": "mps",
+    "map50": 0.8395,
+    "map5095": 0.5952,
+    "precision": 0.859,
+    "recall": 0.7189,
+    "p50_ms": 22.83,
+    "p95_ms": 29.26,
+    "size_mb": 54.5,
+    "status": "ok"
+  },
+  {
+    "name": "pt-cpu",
+    "device": "cpu",
+    "map50": 0.8395,
+    "map5095": 0.5952,
+    "precision": 0.859,
+    "recall": 0.7189,
+    "p50_ms": 38.62,
+    "p95_ms": 44.64,
+    "size_mb": 54.5,
+    "status": "ok"
+  },
+  {
+    "name": "onnx",
+    "device": "cpu",
+    "map50": 0.8291,
+    "map5095": 0.5867,
+    "precision": 0.8515,
+    "recall": 0.7154,
+    "p50_ms": 44.72,
+    "p95_ms": 104.48,
+    "size_mb": 36.2,
+    "status": "ok"
+  },
+  {
+    "name": "onnx-int8",
+    "device": "cpu",
+    "map50": 0.8313,
+    "map5095": 0.5863,
+    "precision": 0.8461,
+    "recall": 0.7138,
+    "p50_ms": 35.24,
+    "p95_ms": 36.13,
+    "size_mb": 9.4,
+    "status": "ok"
+  },
+  {
+    "name": "coreml",
+    "device": "cpu",
+    "map50": 0.8298,
+    "map5095": 0.584,
+    "precision": 0.8455,
+    "recall": 0.7212,
+    "p50_ms": 8.77,
+    "p95_ms": 9.64,
+    "size_mb": 18.2,
+    "status": "ok"
+  },
+  {
+    "name": "torchscript",
+    "device": "cpu",
+    "map50": 0.8291,
+    "map5095": 0.5867,
+    "precision": 0.8515,
+    "recall": 0.7154,
+    "p50_ms": 45.82,
+    "p95_ms": 60.42,
+    "size_mb": 36.4,
+    "status": "ok"
+  }
+]

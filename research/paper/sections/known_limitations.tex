@@ -1,0 +1,85 @@
+\section{Known Limitations}
+\label{sec:known-limitations}
+
+This section states each limitation explicitly rather than letting any of them evaporate under
+space pressure. None is new information relative to Section~\ref{sec:results}; the point of
+collecting them here is that a reader assessing how far to trust this paper's claims should be
+able to find every scope boundary in one place.
+
+\paragraph{No live field deployment; this is an offline, bench-level evaluation.} This is the most
+foundational scope boundary in the paper, stated first rather than buried among smaller caveats. No
+experiment reported in this paper was conducted with real physical sensors or inside an operating
+recirculating aquaculture facility -- no physical water-quality sensor hardware exists for this
+system at all. Every measurement -- the vision-model validation, the RAG retrieval tests, the
+AQUA-1B/rule-engine behavioral trace, the agentic tool-routing benchmark, the PSI drift-binning
+sweep, and the edge export benchmark -- was run against synthetically generated sensor data, static
+labeled images, offline analysis scripts, and scripted or synthetic scenarios executed against the
+codebase, not against live sensor telemetry from an operating facility. This is a deliberate choice
+of study design, not an incidental gap: absent physical sensor hardware, the goal of this evaluation
+is to demonstrate the architectural feasibility of the proposed multi-component pipeline and to test
+whether its space and memory footprint is viable on realistic edge hardware, rather than to validate
+decision-making accuracy in a live setting; Section~\ref{sec:introduction} and
+Section~\ref{sec:experimental-setup} state this framing directly. Only the system's interface has
+ever been demonstrated, as a mockup/demo; the system itself has not been field-tested. Separately,
+and just as plainly: S.U.R.E. was built for the TEKNOFEST Agricultural Technologies competition, but
+this team did not enter that competition and did not pass its preliminary evaluation round. Every
+claim elsewhere in this paper about what the system does or how it performs should be read against
+this scope, not against an assumption of field deployment.
+
+\paragraph{Sample size of the central result.} The four-bucket dual-layer classification
+(Section~\ref{sec:results-dual-layer}) is measured on $n=8$ -- the evaluation harness's entire
+fixed scenario population, not a sample drawn from a larger population. No confidence interval is
+implied by this count and none should be inferred from it. The finding is a census of a small,
+fixed scenario set, not a statistically powered estimate of a rate that would hold over a larger or
+different set of scenarios.
+
+\paragraph{Single-device edge benchmarking.} Every latency and export-format number in
+Section~\ref{sec:results-vision} was measured on a single Apple M4 Pro. The CoreML/ANE figure was
+re-measured across three independent process invocations to rule out single-session variance, but
+multi-session thermal-throttling effects beyond those three sessions, and behavior on any other
+device class, were not characterized and should not be assumed to transfer.
+
+\paragraph{twin\_bridge remains unresolved.} The digital-twin comparison module is unit-tested
+only. It has never been exercised against a live Godot or CODESYS session, and no such session
+exists anywhere in this project's history. This paper never describes it as field-validated, and a
+reader should not infer field validation from the passing unit-test count.
+
+\paragraph{The adapter-provenance caveat is scoped narrowly.} It applies to results derived from
+the dual-layer decision system (Section~\ref{sec:results-dual-layer}), which used the configured
+\texttt{sure-aqua-adapter}. It does not apply to the agentic tool-routing results
+(Section~\ref{sec:results-agentic}), which ran the base model with no adapter loaded at all.
+Applying this caveat to the agentic-routing result would be a new factual error, not added
+precision, and this paper does not make that error anywhere in its text.
+
+\paragraph{The vision dataset is real but small.} Unlike the sensor values discussed above, the
+510-image detector-training dataset (Section~\ref{sec:vision-pipeline}) is composed of genuine
+photographs captured from the project's own physical camera setup and hand-labeled by the team, not
+synthetic imagery. It is, however, intentionally small at this stage, and the authors plan to expand
+it as future work; no claim in this paper should be read as asserting that 510 images is a
+sufficient long-run dataset size, only that it is what the reported detector was actually trained
+and validated on.
+
+\paragraph{The validation set has no sparse-fish frames.} Every one of the 98 validation frames
+used throughout Section~\ref{sec:results-vision} contains at least three ground-truth fish. The
+reassuring 0/98 full-frame-miss result is conditional on that property and says nothing about the
+$k=1$/$k=2$ regime, which this dataset does not contain at all. The 22--28\% miss-risk figure
+sometimes cited alongside it is an extrapolation from an independence approximation, not a
+measurement, and should be read as one.
+
+\paragraph{A live, unfixed data-integrity issue.} The system's RAG knowledge base
+(\url{llm-service/knowledge/06-davranis-ve-refah-gostergeleri.md}) still states the detector's
+recall as approximately 0.695 as a live fact, a figure superseded elsewhere in this system's
+history 43 minutes after it was introduced, but never corrected in this specific file. This file is
+ingested into the system's vector store and is retrievable by the LLM running against it. It was
+not fixed during this audit, consistent with a read-only guardrail on the running system; it is
+disclosed here as a genuine, currently unresolved issue in the codebase, not a historical footnote.
+
+\paragraph{Minor, non-conclusion-changing inconsistencies.} A thousandths-place rounding
+difference exists between the commonly reported precision figure (0.858) and a freshly reproduced
+raw \texttt{val()} output (0.859); neither number changes any claim in this paper. AQUA-7B's
+published agent-benchmark format-compliance and mean-step-count figures did not reproduce exactly
+on a fresh, code-unmodified re-run, with no configuration difference found to explain the drift,
+though the selection-accuracy and constant-answer conclusions reproduced exactly. The PSI
+drift-binning sweep's own $\delta=0.04$ entry differs from a separately drawn significant-drift
+window at the same nominal severity, an artifact of unseeded per-call resampling; no headline
+number in this paper depends on either individual value.

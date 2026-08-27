@@ -1,0 +1,70 @@
+[cors] allow_origins=* (kapalı ağ demosu). Production'da CORS_ORIGINS ortam değişkenini ayarla.
+==============================================================================
+EXP03 -- Dual-Layer Behavioral Measurement (AQUA-1B x apply_rule_override)
+AQUA_ADAPTER_PATH = '/Users/batuhancitak/Desktop/sure-project/llm-service/sure-aqua-adapter' (exists: True)
+Backend = mlx
+==============================================================================
+
+Adapter provenance: {
+  "adapter_dir": "/Users/batuhancitak/Desktop/sure-project/llm-service/sure-aqua-adapter",
+  "adapter_file_exists": true,
+  "adapter_mtime": "Fri Jun  5 00:43:26 2026",
+  "git_tracked": false,
+  "note": "llm-service/sure-aqua-adapter/ is gitignored (.gitignore line 58: 'llm-service/sure-aqua-adapter*/'), so provenance is mtime-only, not a commit hash. `git log --all -- llm-service/sure-aqua-adapter` returns nothing. docker-compose.yml mounts sure-aqua-adapter (not test-adapter) at AQUA_ADAPTER_PATH=/adapter, confirming this is the deployed adapter. llm-service/test-adapter/adapters.safetensors (4.0MB) is not referenced anywhere in code/docs/compose and is excluded from this measurement; its provenance is unknown."
+}
+
+[AQUA/mlx] Yükleniyor: KurmaAI/AQUA-1B + adaptör: /Users/batuhancitak/Desktop/sure-project/llm-service/sure-aqua-adapter
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 9336.81it/s]
+[AQUA/mlx] Hazır.
+Model load time: 3.8s
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 15824.86it/s]
+[1mBertModel LOAD REPORT[0m from: intfloat/multilingual-e5-small
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+[3mNotes:
+- UNEXPECTED[3m	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.[0m
+[T01] Normal koşullar
+  rule_status=ok  model_pre=ok  model_post=ok  rule_override=False  parse_ok=True  bucket=parseable-and-agrees  (8.0s)
+  reasoning: 'Tüm parametreler optimal. Yüksek oksijen (7.2 mg/L) ve dengeli aktivite mükemmel balık refahına işaret ediyor.'
+
+[T02] Kritik oksijen
+  rule_status=critical  model_pre=ok  model_post=critical  rule_override=True  parse_ok=True  bucket=parseable-and-under-calls-and-escalated  (1.3s)
+  reasoning: 'Tüm parametreler güvenli aralıkta. Yüksek oksijen (6.0) ve dengeli aktivite mükemmel balık refahına işaret ediyor.'
+
+[T03] pH uyarısı
+  rule_status=warning  model_pre=ok  model_post=warning  rule_override=True  parse_ok=False  bucket=unparseable-defaulted-to-ok  (2.0s)
+  reasoning: 'Sıcaklık (19.2°C, güvenli alt sınır 16.0°C, güvenli alt sınır 21.0°C). pH 8.3, güvenli alt sınır 6.5. TDS 420 ppm. Diğer parametreler kabul edilebilir. Balık aktivitesi normal.", "reasoning": "Tüm par'
+
+[T04] Optimal koşullar
+  rule_status=ok  model_pre=ok  model_post=ok  rule_override=False  parse_ok=False  bucket=unparseable-defaulted-to-ok  (0.5s)
+  reasoning: 'SADECE geçerli JSON döndür.'
+
+[T05] Soğuk su + düşük pH
+  rule_status=warning  model_pre=warning  model_post=warning  rule_override=False  parse_ok=True  bucket=parseable-and-agrees  (2.6s)
+  reasoning: 'Çözünmüş oksijen kritik üst sınırı aştı (9.0 mg/L, güvenli alt sınır 6.0). Sıcaklık üst sınırı aşmış (21.5°C). pH kritik üst sınırı aştı (8.6). TDS aşırı yüksek (450 ppm). Balık aktivitesi düşük (0.00'
+
+[T06] Yüksek oksijen, yüksek aktivite
+  rule_status=ok  model_pre=ok  model_post=ok  rule_override=False  parse_ok=False  bucket=unparseable-defaulted-to-ok  (2.2s)
+  reasoning: 'Sıcaklık kritik üst sınırı aştı (17.8°C, güvenli alt sınır 16.0°C). pH kritik üst sınırı aştı (7.5, güvenli alt sınır 6.5). TDS düşük (350 ppm). Diğer parametreler kabul edilebilir. Balık stresinden s'
+
+[T07] Acil durum — çoklu parametre
+  rule_status=critical  model_pre=ok  model_post=critical  rule_override=True  parse_ok=False  bucket=unparseable-defaulted-to-ok  (4.3s)
+  reasoning: 'Tüm parametreler optimal aralıkta. Yüksek oksijen beslenme aktivitesini destekliyor, dengeli aktivite (0.0008) sağlıklı beslenme dönemine işaret ediyor, stres/yoksunluk belirtisi düşük (4, 4) ve denge'
+
+[T08] Balık tespit edilmedi — sensör normal
+  rule_status=warning  model_pre=warning  model_post=warning  rule_override=False  parse_ok=True  bucket=parseable-and-agrees  (1.9s)
+  reasoning: 'Çözünmüş oksijen kritik seviyede (6.0 mg/L, güvenli alt sınır 6.0). Sıcaklık üst sınırı aşmış (19.0°C). pH kritik üst sınırı aşt (8.0. Diğer parametreler kabul edilebilir. Balık aktivitesi düşük.'
+
+==============================================================================
+BUCKET DISTRIBUTION (n=8):
+  parseable-and-agrees                          3  (38%)
+  parseable-and-under-calls-and-escalated       1  (12%)
+  parseable-and-over-calls                      0  (0%)
+  unparseable-defaulted-to-ok                   4  (50%)
+==============================================================================
+
+Full results written: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP03/g3_results.json
+Per-scenario run log: /Users/batuhancitak/Desktop/Experiments/PoggioAI-results/project_000/experiment_workspace/experiment_runs/EXP03/g3_run_log.jsonl
