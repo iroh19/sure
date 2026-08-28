@@ -288,3 +288,84 @@ Tekrar üretmek için:
 cd llm-service
 AQUA_ADAPTER_PATH=./sure-aqua-adapter python3 eval.py --repeat 3
 ```
+
+---
+
+## Tavsiyenin sonucu ölçüldü (2026-08-28)
+
+Buraya kadarki her ölçüm bir *bileşeni* not veriyordu: dedektör ne kadar iyi
+tespit ediyor, retrieval ne kadar iyi getiriyor, model kural motoruyla ne sıklıkta
+uyuşuyor. Hiçbiri projenin var olma sebebi olan soruyu yanıtlamıyordu:
+**tavsiyeye uyulunca balıklar daha iyi durumda mı oluyor?**
+
+`twin_bridge/experiment.py` aynı tesisi iki kez koşturuyor ve tek bir şeyi
+değiştiriyor: S.U.R.E.'nin hükmü, kontrolörün zaten okuduğu stres register'ına
+(HR6) yazılıyor mu. Kontrolör stres yüksekken oksijen setpoint'ini 0.5 mg/L
+yükseltiyor — tek kaldıraç bu.
+
+### Birinci ölçüm: kaldıraç çalışmıyor
+
+| Senaryo | Kol | En düşük DO | Eşik altı | Aerasyon |
+|---------|-----|------------:|----------:|---------:|
+| decline | kontrolör tek başına | 4.30 | 213 tick | 76.2% |
+| decline | S.U.R.E. devrede | 4.30 | 210 tick | 76.5% |
+| crash | kontrolör tek başına | 4.50 | 37 tick | 14.7% |
+| crash | S.U.R.E. devrede | 4.50 | 35 tick | 15.0% |
+
+Teşhis bir hata değil: **S.U.R.E. ile PLC aynı eşikte tetikleniyor.** `rules.py`
+DO < 6.0'da `critical` diyor, kontrolörün alarm biti de tam aynı okumada
+kalkıyor. Danışman katman kontrolörden daha erken uyarmıyor, aynı anda uyarıyor.
+Kontrolörün eşiğini paylaşan bir erken uyarı sisteminin ekleyecek şeyi yok.
+
+### Düzeltme: seviyeye değil eğime bak
+
+Kontrolör bir *seviye* görüyor. `twin_bridge/advisor.py` bir *eğim* görüyor ve
+seviyenin eşiği ne zaman keseceğini öngörüyor — kontrolörün sahip olmadığı bilgi.
+
+`backend/rules.py` değiştirilmedi. Hükmü ve eşikleri aynı; danışman yalnızca
+**neyin yayınlanacağına** karar veriyor. Öngörüyü kural motoruna katmak, tahmini
+bir sinyali güvenlik garantisinin içine koymak olurdu — gürültülü bir eğim acil
+durum ilan edebilirdi. Hüküm bir taban: öngörü onu yükseltebilir, asla
+indiremez.
+
+Öngörü penceresi tahminle değil taramayla seçildi:
+
+| Öngörü | Eşik altı | Değişim | En düşük DO | Aerasyon |
+|-------:|----------:|--------:|------------:|---------:|
+| yok | 37 | — | 4.50 | 14.7% |
+| **10** | **34** | **−8.1%** | 4.50 | 15.5% |
+| 20 | 34 | −8.1% | 4.50 | 16.0% |
+| 30 | 34 | −8.1% | 4.50 | 16.2% |
+| 90 | 34 | −8.1% | 4.50 | 16.2% |
+
+10 tick'ten sonrası aynı faydayı daha pahalıya alıyor. Dirsek orada, üretim
+varsayılanı o.
+
+### Saklanmaya değer sonuç
+
+Her iki senaryoda da danışman **eşik altı süreyi kısaltıyor** (crash −%8.1,
+decline −%2.3) ve **en düşük oksijeni hiç değiştirmiyor.**
+
+Bu bir ayar hatası değil. Çöküşün dibinde aeratör zaten %100'de doygun ve doygun
+bir aktüatöre setpoint yükseltmek bir şey söylemiyor.
+
+> **Erken uyarı maruziyeti kısaltır, tabanı yükseltmez.**
+> Taban bir aktüatör boyutlandırma problemidir, zeka problemi değil.
+
+Bu iddia commit mesajında değil testte sabitli — ileride tabanı yükseltiyor gibi
+görünen bir değişiklik kutlanmak yerine sorgulansın diye.
+
+### Sınırlar
+
+Sayılar `fake_plc.Plant`'i tarif ediyor, gerçek ikizi değil. Bulgunun *şekli* bir
+kontrol sistemi özelliği, fixture artefaktı değil; ama büyüklükler CODESYS'e
+karşı yeniden ölçülmeli.
+
+Ayrıca gerçek ikizde bu döngü **tek bir değişiklik olmadan kapanmıyor**:
+`main.gd` HR5/HR6'yı simülasyondan her değiştiğinde yazıyor, yani Godot ile
+S.U.R.E. birbirini ezer. Godot'un, dışarıdan bir danışman HR6'yı sağladığında
+onu yazmayı bırakması gerekiyor.
+
+```bash
+python -m twin_bridge.experiment --scenario crash --sweep
+```
