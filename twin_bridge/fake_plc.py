@@ -32,6 +32,15 @@ from .registers import HOLDING_COUNT, INPUT_COUNT
 # would agree with it by construction and prove nothing.
 DO_ALARM_BELOW = 6.0
 
+# Base aeration setpoint, and the bump applied when the stress index is high.
+# This mirrors the behaviour the twin's README documents: high stress while
+# oxygen is below setpoint raises the setpoint by 0.5 mg/L, so the aerator opens
+# earlier than the alarm alone would make it. It is the single lever an advisory
+# system has on this plant, which makes it the thing to measure.
+DO_SETPOINT = 7.0
+STRESS_SETPOINT_BUMP = 0.5
+STRESS_HIGH = 60
+
 SCENARIOS = {
     # Oxygen decays into the alarm band, the aerator responds, oxygen recovers.
     "crash": lambda t: 8.2 - 4.6 * math.exp(-((t - 60) ** 2) / 700),
@@ -49,14 +58,18 @@ class Plant:
         self.curve = SCENARIOS[scenario]
         self.aerator = 0
         self.feed_today = 0
+        self.stress = 0          # HR6, writable by an external advisor
+        self.last_do = None
+        self.history: list[dict] = []
 
     def step(self) -> tuple[list[int], list[int]]:
         self.t += 1
         do = self.curve(self.t)
 
-        # Aeration lifts oxygen; the controller opens proportionally to the
-        # shortfall below setpoint.
-        shortfall = max(0.0, 7.0 - do)
+        # The advisor's lever: a high stress index raises the setpoint, so the
+        # aerator opens sooner than the raw oxygen reading alone would justify.
+        setpoint = DO_SETPOINT + (STRESS_SETPOINT_BUMP if self.stress >= STRESS_HIGH else 0.0)
+        shortfall = max(0.0, setpoint - do)
         self.aerator = int(min(100, shortfall * 45))
         do += self.aerator / 100 * 0.9
 
@@ -76,9 +89,15 @@ class Plant:
         advice = 1 if (alarms & 1) else (2 if (alarms & 2) else 0)
         self.feed_today = min(65000, self.feed_today + 3)
 
+        self.last_do = do
+        self.history.append({
+            "t": self.t, "do": round(do, 3), "aerator": self.aerator,
+            "stress": self.stress, "alarm": bool(alarms & 1),
+        })
+
         holding = [
             round(do * 100), round(temp * 100), round(ph * 100), round(nh3 * 100),
-            round(tds), 55, 8, 57, 0, 1,
+            round(tds), 55, self.stress, 57, 0, 1,
         ]
         inputs = [
             self.aerator, 0, 0, 0, 1 if (alarms & 2) else 0,
@@ -126,7 +145,18 @@ async def serve(host: str, port: int, scenario: str, tick: float) -> None:
                 addr = int.from_bytes(body[0:2], "big")
                 count = int.from_bytes(body[2:4], "big")
 
-                if fc not in (3, 4):
+                if fc == 6:
+                    # Write single register. Only HR6 is accepted — the plant
+                    # owns everything else, and an advisor that can write the
+                    # oxygen reading could fake its own success.
+                    value = count          # for FC 6 the second field is the value
+                    if addr != 6:
+                        pdu = bytes([fc | 0x80, 0x02])   # illegal data address
+                    else:
+                        plant.stress = max(0, min(100, value))
+                        state["hr"][6] = plant.stress
+                        pdu = bytes([fc]) + body        # echo the request
+                elif fc not in (3, 4):
                     # Exception response: fc | 0x80, code 1 (illegal function).
                     pdu = bytes([fc | 0x80, 0x01])
                 else:

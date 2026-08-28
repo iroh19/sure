@@ -164,3 +164,78 @@ def test_run_stops_cleanly_when_the_twin_disappears():
 def test_missing_twin_raises_a_readable_error():
     with pytest.raises(TwinUnavailable, match="no frames scripted"):
         FakeTwin().read()
+
+
+# ── Write path ───────────────────────────────────────────────────────────────
+#
+# Writing into a control loop S.U.R.E. does not own is the one genuinely
+# dangerous thing in this package, so the bounds are tested rather than trusted.
+
+import twin_bridge.client as client_mod  # noqa: E402
+
+
+def test_writing_is_refused_unless_explicitly_enabled():
+    """Default off. An advisory system does not get to actuate by accident."""
+    twin = FakeTwin([_holding()], [_input()])
+    with pytest.raises(TwinUnavailable, match="disabled"):
+        twin.write_stress(90)
+
+
+def test_write_is_clamped_to_the_index_range(monkeypatch):
+    monkeypatch.setattr(client_mod, "WRITE_ENABLED", True)
+    twin = FakeTwin([_holding()], [_input()])
+    twin.write_stress(500)
+    twin.write_stress(-20)
+    assert twin.written == [100, 0]
+
+
+def test_only_one_register_is_writable():
+    """The address is a module constant, not a parameter — a caller cannot ask
+    this client to write anywhere else even by mistake."""
+    assert client_mod.WRITABLE_REGISTER == 6
+    assert not hasattr(client_mod.ModbusTwin, "write_register")
+
+
+# ── A/B experiment ───────────────────────────────────────────────────────────
+
+def test_severity_mapping_puts_warning_above_the_controller_threshold():
+    """The whole point is to act while it is still a warning. If `warning` mapped
+    below the controller's threshold, S.U.R.E. would only ever act once the
+    controller was going to act anyway."""
+    from twin_bridge.experiment import SEVERITY_TO_STRESS
+    from twin_bridge.fake_plc import STRESS_HIGH
+
+    assert SEVERITY_TO_STRESS["ok"] < STRESS_HIGH
+    assert SEVERITY_TO_STRESS["warning"] >= STRESS_HIGH
+    assert SEVERITY_TO_STRESS["critical"] >= STRESS_HIGH
+
+
+def test_a_calm_scenario_produces_no_difference():
+    """No deviation means nothing to advise about. An experiment that showed a
+    difference here would be measuring noise."""
+    from twin_bridge.experiment import compare
+
+    a, b = compare("calm", ticks=120)
+    assert a.ticks_below_threshold == b.ticks_below_threshold == 0
+    assert a.aeration_cost == b.aeration_cost
+
+
+def test_the_advised_arm_never_does_worse_on_oxygen():
+    """Whatever the size of the effect, publishing a stress index must not leave
+    the fish with less oxygen than the controller alone would have."""
+    from twin_bridge.experiment import compare
+
+    for scenario in ("decline", "crash"):
+        a, b = compare(scenario, ticks=250)
+        assert b.ticks_below_threshold <= a.ticks_below_threshold, scenario
+        assert b.min_do >= a.min_do - 1e-9, scenario
+
+
+def test_experiment_is_deterministic():
+    """Same scenario, same numbers — otherwise the A/B difference is unreadable."""
+    from twin_bridge.experiment import compare
+
+    first = compare("decline", ticks=150)
+    second = compare("decline", ticks=150)
+    assert first[0].min_do == second[0].min_do
+    assert first[1].ticks_below_threshold == second[1].ticks_below_threshold

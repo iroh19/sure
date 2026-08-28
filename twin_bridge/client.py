@@ -20,6 +20,13 @@ HOST = os.getenv("TWIN_MODBUS_HOST", "127.0.0.1")
 PORT = int(os.getenv("TWIN_MODBUS_PORT", "502"))
 UNIT = int(os.getenv("TWIN_MODBUS_UNIT", "1"))
 
+# Writing into a control loop this system does not own is a hazard, so it is off
+# unless asked for explicitly. When enabled, exactly one register is writable —
+# HR6, the stress index the PLC already consumes to raise its aeration setpoint.
+# Nothing else is reachable through this client by construction, not by policy.
+WRITE_ENABLED = os.getenv("TWIN_WRITE_ENABLED", "0") not in ("0", "false", "False")
+WRITABLE_REGISTER = 6
+
 
 class TwinSource(Protocol):
     def read(self) -> tuple[dict, dict]: ...
@@ -37,6 +44,7 @@ class FakeTwin:
     input_frames: list[list[int]] = field(default_factory=list)
     cursor: int = 0
     fail_after: int | None = None
+    written: list[int] = field(default_factory=list)
 
     def read(self) -> tuple[dict, dict]:
         if self.fail_after is not None and self.cursor >= self.fail_after:
@@ -49,6 +57,11 @@ class FakeTwin:
         holding = decode_holding(self.holding_frames[i])
         inputs = decode_input(self.input_frames[j]) if self.input_frames else {}
         return holding, inputs
+
+    def write_stress(self, index: int) -> None:
+        if not WRITE_ENABLED:
+            raise TwinUnavailable("writing is disabled")
+        self.written.append(max(0, min(100, int(index))))
 
     def close(self) -> None:
         pass
@@ -127,6 +140,37 @@ class ModbusTwin:
             raise TwinUnavailable(f"read failed: holding={hr}, input={ir}")
 
         return decode_holding(list(hr.registers)), decode_input(list(ir.registers))
+
+    def write_stress(self, index: int) -> None:
+        """Publish a stress index (0-100) to HR6.
+
+        This is the one lever S.U.R.E. has on the plant: the controller raises
+        its dissolved-oxygen setpoint when stress is high, so the aerator opens
+        before the low-oxygen alarm would otherwise trip. Writing it is how an
+        advisory system becomes a system whose advice can be measured.
+
+        Refuses unless TWIN_WRITE_ENABLED is set. The register address is a
+        module constant rather than a parameter: a caller cannot ask this client
+        to write anywhere else even by mistake.
+        """
+        if not WRITE_ENABLED:
+            raise TwinUnavailable(
+                "writing is disabled. Set TWIN_WRITE_ENABLED=1 to let S.U.R.E. "
+                "publish its stress index to the controller."
+            )
+        value = max(0, min(100, int(index)))
+
+        client = self._connect()
+        try:
+            kw = self._unit_kwarg(client.write_register, self.unit)
+            result = client.write_register(WRITABLE_REGISTER, value, **kw)
+        except Exception as exc:  # noqa: BLE001
+            self.close()
+            raise TwinUnavailable(f"write failed: {type(exc).__name__}: {exc}") from exc
+
+        if result.isError():
+            self.close()
+            raise TwinUnavailable(f"write rejected: {result}")
 
     def close(self) -> None:
         if self._client is not None:
