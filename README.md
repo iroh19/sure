@@ -450,8 +450,11 @@ comments and commits are English.
   for a day before EXP11 found it — corrected in the source and re-ingested, but
   nothing enforces that the index matches the files on disk.
 - **TensorRT rows are unmeasured** — no CUDA device available yet.
-- **AQUA-1B has never been run through the eval in model mode**; `--rule-only`
-  verifies the rule engine, not the model.
+- **AQUA-1B has no stable verdict.** Measured over 3 repeats: it agrees with the
+  rule engine in 4 of 8 safety scenarios, and gives *different answers to the
+  same input* in 6 of 8 — including both life-threatening ones. Its
+  contribution is narration, not judgement; the override is what decides.
+  See [`MODEL_RAPORU.md`](MODEL_RAPORU.md).
 - **The LoRA adapter may still be the 8-sample v1**; v2 (128 samples) is pending.
 - **The dashboard does not render `sources` yet** — citations reach
   `/api/decision` but are not displayed.

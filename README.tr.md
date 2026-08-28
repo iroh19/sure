@@ -449,8 +449,10 @@ mesajları — Türkçe, çünkü ürün Türkçe yanıt veriyor. Kod, yorumlar 
   boyunca durdu, EXP11 bulana kadar — kaynakta düzeltilip yeniden beslendi, ama
   indeksin diskteki dosyalarla eşleştiğini zorlayan bir mekanizma yok.
 - **TensorRT satırları ölçülmedi** — henüz CUDA'lı bir cihaz yok.
-- **AQUA-1B model modunda eval'den hiç geçirilmedi**; `--rule-only` kural
-  motorunu doğrular, modeli değil.
+- **AQUA-1B'nin kararlı bir hükmü yok.** 3 tekrarla ölçüldü: 8 güvenlik
+  senaryosunun 4'ünde kural motoruyla uyuşuyor, 6'sında *aynı girdiye farklı
+  cevap* veriyor — ikisi hayati senaryo. Katkısı gerekçe üretmek, yargı değil;
+  kararı override veriyor. Bkz. [`MODEL_RAPORU.md`](MODEL_RAPORU.md).
 - **LoRA adaptörü hâlâ 8 örneklik v1 olabilir**; v2 (128 örnek) bekliyor.
 - **Dashboard `sources` alanını göstermiyor** — alıntılar `/api/decision`'a
   ulaşıyor ama arayüzde render edilmiyor.

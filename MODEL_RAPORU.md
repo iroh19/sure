@@ -1,6 +1,6 @@
 # S.U.R.E. — Model Başarım Raporu
 
-_Vision (YOLOv11) tespit modeli · son güncelleme: 2026-08-26_
+_Vision (YOLOv11) tespit modeli + AQUA-1B karar kalitesi · son güncelleme: 2026-08-28_
 
 ---
 
@@ -228,3 +228,63 @@ doğrulama seti, aynı yüzdelik gecikme, aynı ısınma — o satırları Jetso
 
 Tabloya uydurma TensorRT sayısı **konmadı**. Jetson hedefi henüz elde yok;
 olduğunda satırlar buraya eklenecek.
+
+---
+
+## AQUA-1B karar kalitesi ölçümü (2026-08-28)
+
+`llm-service/eval.py` model modunda ilk kez çalıştırıldı. Ölçtüğü şey: 8 güvenlik
+senaryosunda modelin `status` kararı, üretimdeki kural motorunun kararıyla
+karşılaştırılıyor.
+
+| Koşu | Uyum | Düşen senaryolar |
+|------|-----:|------------------|
+| sıcaklık 0.3, tek çekiliş | 4/8 | T01, T04, T06, T07 |
+| sıcaklık 0 (deterministik) | 4/8 | T01, T02, T04, T07 |
+| sıcaklık 0.3, 3 tekrar | 4/8 | T02, T04, T05, T07 |
+
+### Asıl bulgu: kararlılık, doğruluk değil
+
+Üç koşu da 4/8 veriyor ama **her seferinde farklı senaryolar düşüyor**. Üç
+tekrarlı koşuda 8 senaryonun **6'sı aynı girdiye farklı cevap** verdi:
+
+| Senaryo | Üretilen cevaplar |
+|---------|-------------------|
+| T01 Normal koşullar | ok / warning |
+| T02 **Kritik oksijen** | **critical / warning** |
+| T03 pH uyarısı | critical / warning |
+| T06 Yüksek oksijen | ok / warning |
+| T07 **Acil durum, çoklu parametre** | **critical / warning** |
+| T08 Balık tespit edilmedi | critical / warning |
+
+"%50 doğru" yanıltıcı bir özet olur. Doğru özet: **modelin kararlı bir görüşü
+yok.** Aynı tank durumuna, örnekleme çekilişine göre farklı hüküm veriyor — ve
+bu, sistemin var olma sebebi olan iki senaryoda (T02, T07) da oluyor.
+
+### Ayrıştırma
+
+Üç tekrarlı koşuda 2 senaryoda (T01, T06) çıktı 3 koşunun 2'sinde
+ayrıştırılamadı. O senaryolarda görünen `ok`, modelin kararı değil güvenli
+varsayılan — yani yukarıdaki yüzde bir miktar modeli değil fallback'i ölçüyor.
+`eval.py` bunu ayrı raporluyor; ölçmeseydi skor olduğundan iyi görünecekti.
+
+Not: ajan benchmark'ında AQUA-1B format uyumu **%0**'dı. Karar prompt'unda
+çoğunlukla geçerli JSON üretiyor. LoRA adaptörü eğitildiği formatı öğretmiş ama
+yeni bir formata genellememiş — beklenen davranış.
+
+### Ne anlama geliyor
+
+Mimarinin en baştaki kararı — *model önerir, deterministik kural motoru karar
+verir* — bu ölçümle doğrulanıyor. Override dekoratif değil: **4/8 senaryoda
+kararı değiştiriyor** ve bunların ikisinde modelin az alarm vermesini yakalıyor.
+Kural motoru olmasaydı sistem kritik oksijende zar atışına göre `warning`
+diyebilirdi.
+
+LLM'in katkısı **gerekçe üretmek**, yargı değil. Bu artık iddia değil ölçüm.
+
+Tekrar üretmek için:
+
+```bash
+cd llm-service
+AQUA_ADAPTER_PATH=./sure-aqua-adapter python3 eval.py --repeat 3
+```
