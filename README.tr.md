@@ -346,6 +346,45 @@ python -m mlops.retrain --check window.json
 mlflow ui --backend-store-uri sqlite:///mlops/mlflow.db
 ```
 
+### Döngüyü kapatmak
+
+Buradaki diğer bütün ölçümler bir bileşene not veriyor. Bu, tavsiyeye uyulunca
+balıkların daha iyi durumda olup olmadığını soruyor: aynı tesis iki kez
+koşturuluyor ve tek bir değişken oynatılıyor — S.U.R.E.'nin hükmü kontrolöre
+ulaşıyor mu.
+
+İlk koşu boş sonuç verdi ve asıl değer teşhiste: S.U.R.E. ile PLC **aynı
+okumada** tetikleniyor, yani danışman katman hiç erken uyarmıyor, aynı anda
+uyarıyor. Kontrolörün eşiğini paylaşan bir erken uyarı sisteminin ekleyecek şeyi
+yok.
+
+`twin_bridge/advisor.py` bunu seviyeye değil **eğime** bakarak çözüyor; oksijenin
+eşiği ne zaman keseceğini öngörüyor. `rules.py` değişmedi: hüküm hâlâ onun ve
+hüküm bir taban — öngörü yükseltebilir, indiremez. Öngörü penceresi taramayla
+seçildi; 10 tick'ten sonrası aynı faydayı daha pahalıya aldığı için dirsek orada.
+
+| Senaryo | Kol | En düşük DO | Eşik altı | Aerasyon |
+|---|---|--:|--:|--:|
+| crash | kontrolör tek başına | 4.50 | 37 | 14.7% |
+| crash | + S.U.R.E. (trend) | 4.50 | **34** | 15.5% |
+| decline | kontrolör tek başına | 4.30 | 213 | 76.2% |
+| decline | + S.U.R.E. (trend) | 4.30 | **208** | 77.0% |
+
+**Erken uyarı maruziyeti kısaltır, tabanı yükseltmez.** En düşük değer hiç
+oynamıyor, çünkü çöküşün dibinde aeratör zaten doygun ve doygun bir aktüatöre
+setpoint yükseltmek bir şey söylemiyor. Taban bir aktüatör boyutlandırma
+problemi, zeka problemi değil — bu iddia testle sabitli ki ileride tabanı
+yükseltiyor gibi görünen bir değişiklik kutlanmak yerine sorgulansın.
+
+Sayılar `fake_plc.Plant`'i tarif ediyor. Bulgunun şekli bir kontrol sistemi
+özelliği; büyüklükler CODESYS'e karşı yeniden ölçülmeli. Gerçek ikizde döngü
+ayrıca orada tek bir değişiklik istiyor: `main.gd` HR6'yı simülasyondan yazıyor,
+yani Godot ile S.U.R.E. birbirini ezer.
+
+```bash
+python -m twin_bridge.experiment --scenario crash --sweep
+```
+
 ---
 
 ## Doğrulama

@@ -347,6 +347,45 @@ python -m mlops.retrain --check window.json
 mlflow ui --backend-store-uri sqlite:///mlops/mlflow.db
 ```
 
+### Closing the loop
+
+Every other measurement here grades a component. This one asks whether acting on
+the advice leaves the fish better off, by running the same plant twice and
+changing one variable: whether S.U.R.E.'s verdict reaches the controller.
+
+The first run was a null result, and the diagnosis was the point: S.U.R.E. and
+the PLC fire at the *same* reading, so the advisory layer never warned earlier —
+it warned simultaneously. An early-warning system that shares the controller's
+thresholds has nothing to add.
+
+`twin_bridge/advisor.py` fixes that by acting on the slope rather than the level,
+projecting when oxygen will cross. `rules.py` is untouched: it still owns the
+verdict, and the verdict is a floor the projection can raise but never lower.
+Lead time came from a sweep — every value from 10 ticks up bought the same
+benefit at rising cost, so 10 is the elbow.
+
+| scenario | arm | min DO | below threshold | aeration |
+|---|---|--:|--:|--:|
+| crash | controller alone | 4.50 | 37 | 14.7% |
+| crash | + S.U.R.E. (trend) | 4.50 | **34** | 15.5% |
+| decline | controller alone | 4.30 | 213 | 76.2% |
+| decline | + S.U.R.E. (trend) | 4.30 | **208** | 77.0% |
+
+**Early warning shortens exposure; it does not raise the floor.** The minimum
+never moves, because at the bottom of an excursion the aerator is already
+saturated and a raised setpoint tells a saturated actuator nothing. The floor is
+an actuator sizing problem, not an intelligence problem — pinned as a test so a
+future change that appears to raise it gets questioned rather than celebrated.
+
+Numbers describe `fake_plc.Plant`, the stand-in. The shape of the finding is a
+control-system property; the magnitudes need re-measuring against CODESYS. On the
+real twin the loop also needs one change there: `main.gd` writes HR6 from the
+simulation, so Godot and S.U.R.E. would overwrite each other.
+
+```bash
+python -m twin_bridge.experiment --scenario crash --sweep
+```
+
 ---
 
 ## Verification
