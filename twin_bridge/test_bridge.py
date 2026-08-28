@@ -239,3 +239,100 @@ def test_experiment_is_deterministic():
     second = compare("decline", ticks=150)
     assert first[0].min_do == second[0].min_do
     assert first[1].ticks_below_threshold == second[1].ticks_below_threshold
+
+
+# ── Trend advisor ────────────────────────────────────────────────────────────
+#
+# The A/B experiment showed publishing severity alone changed nothing, because
+# S.U.R.E. and the controller fire at the same reading. The advisor's whole
+# purpose is to act on something the controller cannot see: the slope.
+
+from twin_bridge.advisor import (  # noqa: E402
+    MIN_SLOPE,
+    PREDICTIVE_STRESS,
+    SEVERITY_TO_STRESS,
+    Advisor,
+)
+
+
+def _feed(advisor, values, status="ok"):
+    out = None
+    for v in values:
+        out = advisor.stress_for(v, status)
+    return out
+
+
+def test_a_flat_reading_publishes_nothing():
+    """Steady oxygen well above threshold is not an emergency in waiting."""
+    a = Advisor(threshold=6.0)
+    assert _feed(a, [8.0] * 15) == 0
+
+
+def test_noise_alone_does_not_project_a_crossing():
+    """Without a minimum slope, sensor jitter produces an ETA and the aerator
+    never closes."""
+    a = Advisor(threshold=6.0)
+    jitter = [8.0, 8.02, 7.98, 8.01, 7.99, 8.0, 8.01, 7.99, 8.0, 8.01] * 2
+    assert _feed(a, jitter) == 0
+
+
+def test_a_falling_trend_publishes_before_the_threshold_is_crossed():
+    """The point of the whole layer: act while the verdict is still ok."""
+    a = Advisor(threshold=6.0, lead_ticks=30)
+    falling = [8.0 - i * 0.05 for i in range(14)]      # ends near 7.35, still ok
+    result = a.stress_for(falling[-1], "ok")
+    for v in falling:
+        a.stress_for(v, "ok")
+    assert a.slope() < 0
+    assert a.stress_for(falling[-1], "ok") == PREDICTIVE_STRESS
+
+
+def test_a_rising_trend_publishes_nothing():
+    a = Advisor(threshold=6.0)
+    assert _feed(a, [6.5 + i * 0.05 for i in range(14)]) == 0
+
+
+def test_the_verdict_is_a_floor_the_prediction_can_never_lower():
+    """A projection may raise what is published; it must never soften a breach
+    that has already been measured."""
+    a = Advisor(threshold=6.0)
+    rising_but_critical = [5.0 + i * 0.02 for i in range(14)]
+    for v in rising_but_critical[:-1]:
+        a.stress_for(v, "critical")
+    assert a.stress_for(rising_but_critical[-1], "critical") == SEVERITY_TO_STRESS["critical"]
+
+
+def test_prediction_ranks_below_a_measured_warning():
+    """A forecast should open the aerator, not claim the confidence of a reading
+    that is actually out of band."""
+    assert PREDICTIVE_STRESS < SEVERITY_TO_STRESS["warning"]
+
+
+def test_no_projection_once_already_below_threshold():
+    """Below the line there is nothing left to predict — the verdict governs."""
+    a = Advisor(threshold=6.0)
+    for v in [7.0 - i * 0.1 for i in range(14)]:
+        a.stress_for(v, "ok")
+    assert a.ticks_to_threshold(5.5) is None
+
+
+def test_slope_needs_a_full_window():
+    """Reacting on two samples would make every start-up look like a crash."""
+    a = Advisor(threshold=6.0, window=10)
+    for v in [8.0, 7.5, 7.0]:
+        a.stress_for(v, "ok")
+    assert a.slope() == 0.0
+
+
+def test_trend_shortens_exposure_but_does_not_raise_the_floor():
+    """Measured on both scenarios: the advisor reduces time below threshold and
+    leaves the minimum untouched, because the aerator saturates at the bottom.
+    Early warning shortens an excursion; it cannot make an undersized actuator
+    bigger."""
+    from twin_bridge.experiment import compare
+
+    for scenario in ("crash", "decline"):
+        base, advised = compare(scenario, ticks=300, lead_ticks=10)
+        assert advised.ticks_below_threshold < base.ticks_below_threshold, scenario
+        assert advised.min_do == base.min_do, scenario
+        assert advised.aeration_cost > base.aeration_cost, scenario
